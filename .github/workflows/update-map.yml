@@ -9,7 +9,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
-  contents: write
+  contents: write # Autorisation stricte pour que GitHub puisse enregistrer vos fichiers
 
 jobs:
   generate-and-deploy:
@@ -24,7 +24,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '17' # Version d'exécution recommandée pour WurmMapGen
     - name: Installer lftp
       run: |
         sudo apt-get update && sudo apt-get install -y lftp
@@ -55,25 +55,33 @@ jobs:
         # Lance la génération de la carte en mode console sans écran graphique
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Generation de la date et heure locale (Quebec)
+    - name: 5. Generation du rapport des modifications (Changelog)
       run: |
         mkdir -p data
-        TZ="America/Toronto" date +'{"last_update": "%d/%m/%Y a %H:%M"}' > data/timestamp.json
+        # Détecte les fichiers JSON modifiés et compte les tuiles d'images mises à jour (.jpg ou .png)
+        JSON_MODIFS=$(git status --porcelain *.json data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
+        IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
+        
+        # Sécurité textuelle si rien n'a changé
+        if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
+        
+        # Crée le fichier JSON complet avec la date du Québec et les statistiques
+        echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
 
     - name: 6. Sauvegarde et Envoi automatique vers Vercel
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Enregistre tous les fichiers de données et d'images modifiés
+        # Prépare l'envoi des nouveaux fichiers de données et des tuiles de la carte actualisées
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
         git add tiles/ || true
         
+        # Enregistre le commit. Si aucune image ou coordonnée n'a changé, s'arrête proprement.
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
-
 
 
 
