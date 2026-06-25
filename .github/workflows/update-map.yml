@@ -2,14 +2,14 @@ name: Synchro Carte Wurm Legion Hosting
 
 on:
   schedule:
-    - cron: '0 4 * * *' # S'exécute automatiquement à 4h00 UTC
-  workflow_dispatch: # Bouton manuel gris pour tester
+    - cron: '0 4 * * *' # Étape automatique : S'exécute toutes les nuits à 4h00 UTC
+  workflow_dispatch: # Étape manuelle : Ajoute le bouton gris pour forcer la mise à jour
 
 permissions:
-  contents: write # Autorise à enregistrer le JSON final
+  contents: write # Donne le droit à GitHub de modifier et sauvegarder vos fichiers JSON
 
 jobs:
-  sync:
+  sync-map:
     runs-on: ubuntu-latest
     steps:
     - name: 1. Connexion au dépôt GitHub
@@ -17,31 +17,29 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: 2. Telechargement direct SFTP (Port 2022) via lftp
+    - name: 2. Telechargement des fichiers JSON de la carte (SFTP Port 2022)
       run: |
+        # Installation d'un outil de transfert rapide
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
         
-        # Télécharge le fichier db du serveur de jeu directement dans le conteneur GitHub Actions
-        lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "pget -n 5 ./Creative/wurmzones.db -o ./wurmzones.db; bye"
+        # Connexion sécurisée à votre serveur de jeu et téléchargement direct dans votre dossier data
+        # Remplacez /wurmmapgen/output/ par le dossier exact où votre outil génère les fichiers sur votre serveur
+        lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
+          lcd ./data;
+          mget -O ./ *.json;
+          bye
+        "
 
-    - name: 3. Configuration de Node 24 (Obligatoire)
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-
-    - name: 4. Installation des dépendances et Extraction Locale
-      run: |
-        npm install
-        npm run sync-map # Lance vos 1600 lignes localement sur le fichier téléchargé
-      env:
-        # Indique à votre script server.ts de lire le fichier local au lieu d'ouvrir une connexion réseau
-        LOCAL_DB_MODE: "true"
-
-    - name: 5. Sauvegarde et Push automatique sur GitHub
+    - name: 3. Sauvegarde et Envoi automatique sur GitHub
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add data/villages.json || true
-        git commit -m "Mise à jour automatique des villages [skip ci]" || exit 0
+        git config --global user.email "github-actions[bot]@://github.com"
+        
+        # Ajoute tous les fichiers JSON mis à jour (villages.json, structures.json, etc.)
+        git add data/*.json
+        
+        # Enregistre les changements. S'il n'y a pas de changement, s'arrête proprement ([skip ci] évite les boucles)
+        git commit -m "Mise à jour automatique des données de la carte [skip ci]" || exit 0
         git push origin main
+
