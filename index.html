@@ -19,12 +19,12 @@
 		<div class="block padding">
 			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025</h1>
 			
-			<!-- 🌟 ENCADRÉ DE SUIVI AVANCÉ : Date et Journal des modifications automatique 🌟 -->
+			<!-- ENCADRÉ DE MISE À JOUR : Stylisé et sécurisé pour ne pas bloquer Leaflet -->
 			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
-				📅 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">Calcul...</span>
+				📅 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
+				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement...</div>
 			</div>
 		</div>
-
 
 		<div class="block">
 			<label for="option-show-villages" class="flex">
@@ -83,57 +83,39 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-
-
 <!-- Load dependencies -->
 <script src="https://unpkg.com" defer integrity="sha384-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-
 <script src="https://unpkg.com" integrity="sha384-Sz/TO/SdmTLSbgJdFXq+xsTAMk7YO3Ydk/LaJbERL9zgiFOpl39JoxkpLNBl0kFo" crossorigin="anonymous"></script>
-
 <script src="https://unpkg.com" defer integrity="sha384-KaKx4aJnrltBb2dne61B/MRPA4uRfQvv6YW99RgjHax8TRjFxcC4BC19EEX0te/6" crossorigin="anonymous"></script>
 <script src="https://unpkg.com" defer integrity="sha384-LSmcy/rdMAgofokne7lmSBxJnXdRcj4SKZwPD+CE8At+QhWXRPvESLzhy/N2zHX+" crossorigin="anonymous"></script>
-
 <script src="https://unpkg.com" defer integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
 
 <!-- Load app -->
-<script>window.WurmMapGen = {}; // Create a namespace for the app</script>
+<script>window.WurmMapGen = {};</script>
 <script type="text/javascript" defer src="app/util.js"></script>
 <script type="text/javascript" defer src="app/markers.js"></script>
 <script type="text/javascript" defer src="app/map.js"></script>
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
 
-<!-- 🌟 SCRIPT AVANCÉ : Affichage de la date et du rapport de modifications 🌟 -->
+<!-- SCRIPT DE SUIVI ISOLÉ ET SÉCURISÉ POUR ÉVITER LES BUGS VISUELS -->
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    fetch('./data/timestamp.json')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.last_update) {
-          // Injection de l'heure exacte
-          document.getElementById('update-date').innerText = data.last_update;
-          
-          // Récupère l'élément parent pour ajouter le détail des modifications juste en dessous
-          const parentDiv = document.getElementById('update-date').parentNode;
-          
-          const detailDiv = document.createElement('div');
-          detailDiv.style.marginTop = '6px';
-          detailDiv.style.paddingTop = '4px';
-          detailDiv.style.borderTop = '1px dashed #555';
-          detailDiv.style.color = '#aaa';
-          detailDiv.style.fontSize = '10px';
-          detailDiv.style.lineHeight = '1.4';
-          detailDiv.innerHTML = `📝 <b>Données :</b> ${data.fichiers}<br>🖼️ <b>Terrain :</b> ${data.images_neuves}`;
-          
-          parentDiv.appendChild(detailDiv);
-        } else {
-          document.getElementById('update-date').innerText = "En ligne";
-        }
-      })
-      .catch(() => {
-        document.getElementById('update-date').innerText = "À jour";
-      });
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      fetch('./data/timestamp.json')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.last_update) {
+            document.getElementById('update-date').innerText = data.last_update;
+            document.getElementById('update-details').innerHTML = `📝 <b>Données :</b> ${data.fichiers}<br>🖼️ <b>Terrain :</b> ${data.images_neuves}`;
+          }
+        })
+        .catch(function() {
+          document.getElementById('update-date').innerText = "À jour";
+          document.getElementById('update-details').innerText = "Vérification terminée";
+        });
+    }, 1000); // Attend 1 seconde pour laisser Leaflet dessiner la carte en premier
   });
 </script>
 </body>
