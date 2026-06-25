@@ -1,0 +1,35 @@
+name: Synchro Carte Wurm Legion Hosting
+
+on:
+  schedule:
+    - cron: '0 4 * * *' # S'exécute automatiquement toutes les nuits à 4h00 UTC
+  workflow_dispatch: # Ajoute le bouton gris pour forcer le lancement à la main
+
+permissions:
+  contents: write # Donne le droit à GitHub de modifier votre fichier villages.json
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 1. Connexion au dépôt GitHub
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: true
+
+    - name: 2. Configuration de Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: 3. Installation des dépendances
+      run: npm ci || npm install
+
+    - name: 4. Exécution de vos 1600 lignes de code (server.ts)
+      run: npm run sync-map
+      env:
+        SFTP_HOST: ${{ secrets.LEGION_HOST }}
+        SFTP_USER: ${{ secrets.LEGION_USER }}
+        SFTP_PASSWORD: ${{ secrets.LEGION_PASS }}
+        SFTP_PORT: ${{ secrets.LEGION_PORT }}
