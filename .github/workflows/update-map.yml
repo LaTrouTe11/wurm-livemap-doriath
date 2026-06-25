@@ -6,24 +6,24 @@ on:
   workflow_dispatch: # Étape manuelle : Ajoute le bouton gris pour forcer la mise à jour
 
 permissions:
-  contents: write # Autorise GitHub à enregistrer vos fichiers de données
+  contents: write # Autorise explicitement GitHub à modifier vos fichiers JSON
 
 jobs:
-  sync:
+  download-json: # Changement de nom pour forcer GitHub à oublier l'ancien crash Node
     runs-on: ubuntu-latest
     steps:
-    - name: 1. Connexion au dépôt GitHub
+    - name: 1. Connexion au depot GitHub
       uses: actions/checkout@v4
       with:
         persist-credentials: true
 
-    - name: 2. Telechargement des fichiers JSON (SFTP Port 2022)
+    - name: 2. Telechargement direct des fichiers de la carte (SFTP Port 2022)
       run: |
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
         
-        # Télécharge tous les fichiers .json directement depuis votre serveur Legion Hosting
-        # Note : Si vos fichiers sont dans un sous-dossier, ajoutez 'cd nom_du_dossier;' juste après lcd ./data;
+        # Connexion securisee a votre serveur Legion (Port 2022) et telechargement des fichiers
+        # Note : Si vos fichiers .json sont dans un sous-dossier, ajoutez 'cd nom_du_dossier;' juste apres lcd ./data;
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           lcd ./data;
           mget -O ./ *.json;
@@ -38,8 +38,9 @@ jobs:
         # Enregistre tous les fichiers JSON mis à jour dans votre dossier data
         git add data/*.json
         
-        # Valide les changements s'il y en a, sinon s'arrête proprement sans erreur
-        git commit -m "Mise à jour des villages [skip ci]" || exit 0
+        # Enregistre les fichiers s'il y a des changements, sinon s'arrete proprement ([skip ci] evite les boucles)
+        git commit -m "Mise a jour automatique des fichiers de la carte [skip ci]" || exit 0
         git push origin main
+
 
 
