@@ -6,10 +6,10 @@ on:
   workflow_dispatch: # Étape manuelle : Ajoute le bouton gris pour forcer la mise à jour
 
 permissions:
-  contents: write # Force l'autorisation d'écriture sur votre dépôt GitHub
+  contents: write # Autorise GitHub à enregistrer vos fichiers de données
 
 jobs:
-  sync-map:
+  sync:
     runs-on: ubuntu-latest
     steps:
     - name: 1. Connexion au dépôt GitHub
@@ -17,12 +17,13 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: 2. Telechargement direct des fichiers JSON (SFTP Port 2022)
+    - name: 2. Telechargement des fichiers JSON (SFTP Port 2022)
       run: |
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
         
-        # Connexion sécurisée à Legion Hosting et téléchargement des JSON dans votre dossier data
+        # Télécharge tous les fichiers .json directement depuis votre serveur Legion Hosting
+        # Note : Si vos fichiers sont dans un sous-dossier, ajoutez 'cd nom_du_dossier;' juste après lcd ./data;
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           lcd ./data;
           mget -O ./ *.json;
@@ -34,10 +35,11 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Prise en compte de tous les fichiers JSON mis à jour (villages.json, structures.json, etc.)
+        # Enregistre tous les fichiers JSON mis à jour dans votre dossier data
         git add data/*.json
         
-        # Enregistre le changement. S'il n'y a aucune modification, le script s'arrête proprement sans erreur ([skip ci] évite les boucles Vercel)
-        git commit -m "Mise à jour automatique des données de la carte [skip ci]" || exit 0
+        # Valide les changements s'il y en a, sinon s'arrête proprement sans erreur
+        git commit -m "Mise à jour des villages [skip ci]" || exit 0
         git push origin main
+
 
