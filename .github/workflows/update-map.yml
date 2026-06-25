@@ -3,7 +3,7 @@ name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 on:
   schedule:
     - cron: '0 4 * * *' # Planification : S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
-  workflow_dispatch: # Manuel : Permet de cliquer sur le bouton gris pour tester à tout moment
+  workflow_dispatch: # C'EST CETTE LIGNE QUI FAIT APPARAÎTRE LE BOUTON GRIS RUN WORKFLOW
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -48,7 +48,7 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
-    - name: 4. Execution de WurmMapGen v2.33 (Avec Logs Actifs)
+    - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
@@ -81,7 +81,6 @@ jobs:
         
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
-
 
 
 
