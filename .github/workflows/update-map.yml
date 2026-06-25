@@ -1,9 +1,9 @@
-name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
+name: "Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)"
 
 on:
   schedule:
-    - cron: '0 4 * * *' # Planification : S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
-  workflow_dispatch: # C'EST CETTE LIGNE QUI FAIT APPARAÎTRE LE BOUTON GRIS RUN WORKFLOW
+    - cron: '0 4 * * *' # S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
+  workflow_dispatch: # Permet de faire réapparaître le bouton gris "Run workflow"
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -72,7 +72,7 @@ jobs:
     - name: 6. Sauvegarde et Envoi automatique vers Vercel
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
         git add data/*.json || true
         git add *.json || true
