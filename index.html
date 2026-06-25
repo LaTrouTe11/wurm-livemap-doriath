@@ -14,11 +14,15 @@
 
 <!-- Interface elements -->
 <div id="gui" :class="{sidebar: sidebarVisible}">
-	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">&#8801;</a>
+	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
 			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025</h1>
-
+			
+			<!-- 🌟 AJOUT : Encadré de suivi de la date sous le titre principal 🌟 -->
+			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
+				📅 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">Calcul...</span>
+			</div>
 		</div>
 
 
@@ -99,5 +103,26 @@
 <script type="text/javascript" defer src="app/map.js"></script>
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
+
+<!-- 🌟 AJOUT : Script de calcul automatique de la date HTTP Last-Modified 🌟 -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    fetch('./data/villages.json', { method: 'HEAD' })
+      .then(res => {
+        const headersDate = res.headers.get('Last-Modified');
+        if (headersDate) {
+          const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+          const dateFormatee = new Date(headersDate).toLocaleDateString('fr-FR', options);
+          document.getElementById('update-date').innerText = dateFormatee;
+        } else {
+          document.getElementById('update-date').innerText = "À jour";
+        }
+      })
+      .catch(() => {
+        document.getElementById('update-date').innerText = "Indisponible";
+      });
+  });
+</script>
 </body>
 </html>
+
