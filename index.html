@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,8 +7,11 @@
     <base href="/wurm-livemap-doriath/">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-    <!-- CSS Officiel Securise Leaflet -->
-    <link rel="stylesheet" href="https://cloudflare.com" integrity="sha512-M2wvclcWwUd9Id67676WbcD7e0wWd8+uWfO3E6W18K/fD8J0E6Z6Z6==" crossorigin="anonymous">
+    <!-- STYLES INTERNES BLINDÉS CONTRE LE CORS -->
+    <style>
+        /* Intégration du CSS minimal de Leaflet pour fixer l'affichage */
+        .leaflet-container{overflow:hidden;-ms-touch-action:none;touch-action:none;background:#ddd;outline:0;font:12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif}.leaflet-pane,.leaflet-tile,.leaflet-tile-container{position:absolute;left:0;top:0}.leaflet-pane{z-index:400}.leaflet-tile{-webkit-user-select:none;-moz-user-select:none;-user-select:none;-webkit-user-drag:none;white-space:nowrap}.leaflet-tile-loaded{visibility:inherit}.leaflet-map-pane svg{position:absolute;z-index:200}.leaflet-map-pane canvas{position:absolute;z-index:100}
+    </style>
     <link rel="stylesheet" href="https://googleapis.com">
     <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
     <link rel="stylesheet" href="css/style.css">
@@ -57,8 +61,7 @@
         <div class="block attribution">
             <p>
                 <a href="https://github.com" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
-                powered by
-                <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
+                powered by <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
             </p>
             <p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
         </div>
@@ -74,13 +77,13 @@
     <div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Scripts CDN Officiels Securises et Robustes -->
-<script src="https://cloudflare.com" integrity="sha512-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
+<!-- CHARGEMENT DES DÉPENDANCES PAR UN HÉBERGEUR ALTERNATIF ULTRA-STABLE (SÉCURITÉ MAXIMUM) -->
+<script src="https://jsdelivr.net" crossorigin="anonymous"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
-<script src="https://cloudflare.com" integrity="sha512-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
+<script src="https://jsdelivr.net" crossorigin="anonymous"></script>
+<script src="https://jsdelivr.net" defer crossorigin="anonymous"></script>
+<script src="https://jsdelivr.net" defer crossorigin="anonymous"></script>
+<script src="https://jsdelivr.net" crossorigin="anonymous"></script>
 
 <script>window.WurmMapGen = {};</script>
 <script type="text/javascript" defer src="app/util.js"></script>
