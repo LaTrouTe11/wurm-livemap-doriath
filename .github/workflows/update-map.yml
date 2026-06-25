@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Étape manuelle : Ajoute le bouton gris pour forcer la mise à jour
 
 permissions:
-  contents: write # Donne le droit à GitHub de modifier et sauvegarder vos fichiers JSON
+  contents: write # Force l'autorisation d'écriture sur votre dépôt GitHub
 
 jobs:
   sync-map:
@@ -17,14 +17,12 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: 2. Telechargement des fichiers JSON de la carte (SFTP Port 2022)
+    - name: 2. Telechargement direct des fichiers JSON (SFTP Port 2022)
       run: |
-        # Installation d'un outil de transfert rapide
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
         
-        # Connexion sécurisée à votre serveur de jeu et téléchargement direct dans votre dossier data
-        # Remplacez /wurmmapgen/output/ par le dossier exact où votre outil génère les fichiers sur votre serveur
+        # Connexion sécurisée à Legion Hosting et téléchargement des JSON dans votre dossier data
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           lcd ./data;
           mget -O ./ *.json;
@@ -36,10 +34,10 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Ajoute tous les fichiers JSON mis à jour (villages.json, structures.json, etc.)
+        # Prise en compte de tous les fichiers JSON mis à jour (villages.json, structures.json, etc.)
         git add data/*.json
         
-        # Enregistre les changements. S'il n'y a pas de changement, s'arrête proprement ([skip ci] évite les boucles)
+        # Enregistre le changement. S'il n'y a aucune modification, le script s'arrête proprement sans erreur ([skip ci] évite les boucles Vercel)
         git commit -m "Mise à jour automatique des données de la carte [skip ci]" || exit 0
         git push origin main
 
