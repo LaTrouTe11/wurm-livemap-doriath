@@ -2,14 +2,14 @@ name: Synchro Carte Wurm Legion Hosting
 
 on:
   schedule:
-    - cron: '0 4 * * *' # S'exécute automatiquement toutes les nuits à 4h00 UTC
-  workflow_dispatch: # Ajoute le bouton gris pour forcer le lancement à la main
+    - cron: '0 4 * * *' # S'exécute automatiquement à 4h00 UTC
+  workflow_dispatch: # Bouton manuel gris pour tester
 
 permissions:
-  contents: write # Donne le droit à GitHub de modifier votre fichier villages.json
+  contents: write # Autorise à enregistrer le JSON final
 
 jobs:
-  deploy:
+  sync:
     runs-on: ubuntu-latest
     steps:
     - name: 1. Connexion au dépôt GitHub
@@ -17,18 +17,31 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: 2. Configuration de Node.js (Version 24)
+    - name: 2. Telechargement direct SFTP (Port 2022) via lftp
+      run: |
+        sudo apt-get update && sudo apt-get install -y lftp
+        mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
+        
+        # Télécharge le fichier db du serveur de jeu directement dans le conteneur GitHub Actions
+        lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "pget -n 5 ./Creative/wurmzones.db -o ./wurmzones.db; bye"
+
+    - name: 3. Configuration de Node 24 (Obligatoire)
       uses: actions/setup-node@v4
       with:
-        node-version: '24' # 👈 Correction pour utiliser la version exigée par GitHub Actions
+        node-version: '24'
 
-    - name: 3. Installation des dépendances
-      run: npm install # 👈 Utilise npm install classique pour ignorer l'absence du package-lock.json
-
-    - name: 4. Exécution de vos 1600 lignes de code (server.ts)
-      run: npm run sync-map
+    - name: 4. Installation des dépendances et Extraction Locale
+      run: |
+        npm install
+        npm run sync-map # Lance vos 1600 lignes localement sur le fichier téléchargé
       env:
-        SFTP_HOST: ${{ secrets.LEGION_HOST }}
-        SFTP_USER: ${{ secrets.LEGION_USER }}
-        SFTP_PASSWORD: ${{ secrets.LEGION_PASS }}
-        SFTP_PORT: ${{ secrets.LEGION_PORT }}
+        # Indique à votre script server.ts de lire le fichier local au lieu d'ouvrir une connexion réseau
+        LOCAL_DB_MODE: "true"
+
+    - name: 5. Sauvegarde et Push automatique sur GitHub
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add data/villages.json || true
+        git commit -m "Mise à jour automatique des villages [skip ci]" || exit 0
+        git push origin main
