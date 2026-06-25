@@ -48,30 +48,28 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
+    - name: 3.8 Telechargement local des scripts (Securite CORS)
+      run: |
+        # Crée et télécharge les dépendances directement en local pour s'affranchir des blocages réseau
+        mkdir -p ./dist ./css
+        curl -sL https://cloudflare.com -o ./dist/leaflet-local.js
+        curl -sL https://cloudflare.com -o ./css/leaflet-local.css
+        curl -sL https://cloudflare.com -o ./dist/vue-local.js
+
     - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 4.5 Rectification du fichier config JSON obligatoire
+    - name: 4.5 Nettoyage des fichiers de configuration generee
       run: |
-        # Supprime le fichier config généré par erreur à la racine
         rm -f ./config.json || true
-        
-        # Réécrit proprement data/config.json exigé par Leaflet pour forcer la lecture de vos fichiers réels
-        echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
-        
-        # Clones de sécurité indispensables pour satisfaire l'interface JavaScript d'origine
+        rm -f ./data/config.json || true
         if [ -f "./data/villages.json" ]; then
           cp ./data/villages.json ./data/deeds.json 2>/dev/null || true
         fi
         if [ -f "./data/guardtowers.json" ]; then
           cp ./data/guardtowers.json ./data/towers.json 2>/dev/null || true
         fi
-
-    - name: 4.8 RAPPORT DE CONTROLE
-      run: |
-        echo "=== FICHIERS LOGS DANS LE DOSSIER DATA ==="
-        ls -la ./data/ || true
 
     - name: 5. Generation du rapport des modifications (Changelog)
       run: |
@@ -87,6 +85,8 @@ jobs:
         git config --global user.email "github-actions[bot]@://github.com"
         git add data/*.json || true
         git add *.json || true
+        git add dist/*.js || true
+        git add css/*.css || true
         git add images/ || true
         git add tiles/ || true
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
