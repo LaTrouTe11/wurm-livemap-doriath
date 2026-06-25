@@ -322,7 +322,7 @@
 </style>
 <link rel="stylesheet" href="/_astro/index.CN3UJUeJ.css">
 		<script>
-			window.redwood={"consentGroups":{"C0001":true,"C0002":true,"C0003":true,"C0004":true},"country":"US","colo":"ORD","user":null,"rv1":"tsk","locale":"en-US"}
+			window.redwood={"consentGroups":{"C0001":true,"C0002":true,"C0003":true,"C0004":true},"country":"US","colo":"DFW","user":null,"rv1":"tsk","locale":"en-US"}
 			window.redwood.syncOneTrustToZarazConsents = function() {
 				if(!window.zaraz?.consent) {
 					return;
@@ -351,7 +351,7 @@
 			};
 		</script>
     <script type="text/javascript">
-      var OneTrust={"geolocationResponse":{"stateCode":"IL","countryCode":"US"}}
+      var OneTrust={"geolocationResponse":{"stateCode":"WY","countryCode":"US"}}
     </script>
     <script>
      const acceptedLocales = [
