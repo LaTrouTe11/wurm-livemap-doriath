@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Étape manuelle : Ajoute le bouton gris pour forcer la mise à jour
 
 permissions:
-  contents: write # Donne explicitement le droit à GitHub d'enregistrer vos fichiers JSON
+  contents: write # Donne le droit à GitHub d'enregistrer vos fichiers JSON
 
 jobs:
   download-json:
@@ -22,24 +22,22 @@ jobs:
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
         
-        # Connexion securisee a votre serveur Legion (Port 2022) et telechargement des fichiers
-        # NOTE : Modifiez la ligne 'cd ...' ci-dessous avec le chemin exact de votre dossier sur FileZilla si necessaire !
+        # Le '|| true' à la fin empêche le script de planter si le dossier est vide
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           lcd ./data;
-          cd /wurmmapgen/output/;
           mget -O ./ *.json;
           bye
-        "
+        " || true
 
     - name: 3. Sauvegarde et Envoi automatique sur GitHub
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Enregistre tous les fichiers JSON mis à jour dans votre dossier data
-        git add data/*.json
+        # Force l'ajout des fichiers même s'ils n'ont pas bougé
+        git add data/*.json || true
         
-        # Enregistre les fichiers s'il y a des changements, sinon s'arrete proprement ([skip ci] evite les boucles Vercel)
+        # Enregistre les fichiers. S'il n'y a aucun changement, s'arrête proprement sans faire d'erreur
         git commit -m "Mise a jour automatique des fichiers de la carte [skip ci]" || exit 0
         git push origin main
 
