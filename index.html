@@ -5,8 +5,8 @@
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Remplacement CDN pour Leaflet CSS -->
-	<link rel="stylesheet" href="https://cloudflare.com" crossorigin="anonymous">
+	<!-- Lecture des fichiers de styles en local sans requete externe -->
+	<link rel="stylesheet" href="css/leaflet-local.css">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
@@ -84,13 +84,10 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement des dépendances via Cloudflare (Correction CORS) -->
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
+<!-- Chargement des dépendances locales (Protection CORS absolue) -->
+<script src="dist/leaflet-local.js"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
-<script src="https://cloudflare.com" crossorigin="anonymous"></script>
+<script src="dist/vue-local.js"></script>
 
 <!-- Load app -->
 <script>
@@ -123,7 +120,6 @@
 </script>
 </body>
 </html>
-
 
 
 
