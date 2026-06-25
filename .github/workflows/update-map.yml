@@ -55,6 +55,19 @@ jobs:
         # Lance la génération de la carte en mode console sans écran graphique
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
+    - name: 4.5 Nettoyage automatique des fichiers en doublon
+      run: |
+        # Supprime le fichier config.json s'il a été généré à la racine pour éviter les conflits de chemins
+        rm -f ./config.json || true
+        
+        # Double sécurité : si la carte cherche deeds.json mais que vous avez villages.json, on crée une copie de sécurité
+        if [ -f "./data/villages.json" ]; then
+          cp ./data/villages.json ./data/deeds.json 2>/dev/null || true
+        fi
+        if [ -f "./data/guardtowers.json" ]; then
+          cp ./data/guardtowers.json ./data/towers.json 2>/dev/null || true
+        fi
+
     - name: 5. Generation du rapport des modifications (Changelog)
       run: |
         mkdir -p data
