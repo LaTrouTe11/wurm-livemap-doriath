@@ -19,10 +19,10 @@
 		<div class="block padding">
 			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025</h1>
 			
-			<!-- ENCADRÉ DE MISE À JOUR : Stylisé et sécurisé pour ne pas bloquer Leaflet -->
+			<!-- ENCADRÉ DE MISE À JOUR : Configuré à plat -->
 			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
 				📅 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
-				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement...</div>
+				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement du monde...</div>
 			</div>
 		</div>
 
@@ -92,14 +92,17 @@
 <script src="https://unpkg.com" defer integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
 
 <!-- Load app -->
-<script>window.WurmMapGen = {};</script>
+<script>
+  window.WurmMapGen = {};
+  // 🌟 INJECTION DE FORCE : Force l'application à démarrer directement sur la taille 4096 sans passer par le config JSON cassé 🌟
+  window.WurmMapGen.config = {"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2};
+</script>
 <script type="text/javascript" defer src="app/util.js"></script>
 <script type="text/javascript" defer src="app/markers.js"></script>
 <script type="text/javascript" defer src="app/map.js"></script>
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
 
-<!-- SCRIPT DE SUIVI ISOLÉ ET SÉCURISÉ POUR ÉVITER LES BUGS VISUELS -->
 <script>
   window.addEventListener('load', function() {
     setTimeout(function() {
@@ -113,13 +116,14 @@
         })
         .catch(function() {
           document.getElementById('update-date').innerText = "À jour";
-          document.getElementById('update-details').innerText = "Vérification terminée";
+          document.getElementById('update-details').innerText = "Monde chargé";
         });
-    }, 1000); // Attend 1 seconde pour laisser Leaflet dessiner la carte en premier
+    }, 1500);
   });
 </script>
 </body>
 </html>
+
 
 
 
