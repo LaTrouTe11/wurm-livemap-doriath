@@ -30,26 +30,27 @@ jobs:
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
 
-    - name: 3. Telechargement de TOUTES les bases de donnees Wurm
+    - name: 3. Telechargement de l'INTEGRALITE des bases de donnees Wurm
       run: |
         mkdir -p ./sqlite_db
         mkdir -p ./sqlite_db/sqlite
         
-        # Téléchargement forcé des 3 bases de données (.db) et du fichier de relief (.map)
+        # Téléchargement forcé des 4 bases de données (.db) et du fichier de relief (.map)
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db;
           get /dist/Doriath-4k-20/sqlite/wurmeconomy.db -o ./sqlite_db/sqlite/wurmeconomy.db;
           get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/sqlite/wurmitems.db;
+          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/sqlite/wurmplayers.db;
           get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map;
           bye
         " || echo "⚠️ Fin du téléchargement FTP."
 
     - name: 3.5 Miroir de securite pour la topographie
       run: |
-        # Copie de sécurité pour s'assurer que Java trouve le relief peu importe le dossier ciblé
+        # Double sécurité pour s'assurer que Java trouve le relief peu importe la structure interne lue
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
         
-        echo "=== VERIFICATION DES FICHIERS DISPONIBLES ==?"
+        echo "=== VERIFICATION DES FICHIERS PRÊTS POUR JAVA ==="
         ls -la ./sqlite_db/sqlite
 
     - name: 4. Execution de WurmMapGen v2.33
@@ -75,6 +76,7 @@ jobs:
         
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
+
 
 
 
