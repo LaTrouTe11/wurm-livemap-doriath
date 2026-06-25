@@ -57,10 +57,10 @@ jobs:
         rm -f ./config.json || true
         mkdir -p ./data
         
-        # Genere un fichier config JSON impeccable que le site d'origine va adorer lire
+        # Genere un fichier config JSON impeccable que le site d'origine va adorer lire pour la taille 4096
         echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
         
-        # Lie vos fichiers reels aux demandes de l'index d'origine
+        # Aligne vos fichiers reels genere par la v2.33 avec les demandes de l'index d'origine
         if [ -f "./data/deeds.json" ]; then
           cp ./data/deeds.json ./data/villages.json 2>/dev/null || true
         else
@@ -85,7 +85,6 @@ jobs:
         git add tiles/ || true
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
-
 
 
 
