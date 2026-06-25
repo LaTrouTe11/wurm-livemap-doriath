@@ -5,8 +5,8 @@
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Liens officiels Leaflet CSS sécurisés -->
-	<link rel="stylesheet" href="https://unpkg.com" integrity="sha384-H790wZuevD7S60V667pYqfXmZ89ZgC9Z4/h0wWd8+uWfO3E6W18K/fD8J0E6Z6Z6" crossorigin="anonymous">
+	<!-- Liens officiels Leaflet CSS -->
+	<link rel="stylesheet" href="https://unpkg.com" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
@@ -84,18 +84,29 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement des dépendances officielles stables (Clés d'intégrité incluses) -->
-<script src="https://unpkg.com" integrity="sha384-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
+<!-- Chargement des dépendances officielles stables -->
+<script src="https://unpkg.com" crossorigin="anonymous"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
 <script src="https://unpkg.com" crossorigin="anonymous"></script>
-<script src="https://unpkg.com" defer crossorigin="anonymous"></script>
-<script src="https://unpkg.com" defer crossorigin="anonymous"></script>
-<script src="https://unpkg.com" integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer></script>
+<script src="https://unpkg.com" defer></script>
+<script src="https://unpkg.com" crossorigin="anonymous"></script>
 
-<!-- Injection de force pour charger directement la carte de Doriath (4096) -->
+<!-- Injection de la mémoire de configuration corrigée pour éviter le bug JSON -->
 <script>
   window.WurmMapGen = {};
-  window.WurmMapGen.config = {"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2};
+  window.WurmMapGen.config = {
+    actualMapSize: 4096,
+    showStructures: true,
+    nativeZoom: 4,
+    mapMinZoom: 2,
+    showGuardTowers: true,
+    mapMaxZoom: 7,
+    mapTileSize: 256,
+    showDeeds: true,
+    maxMapSize: 32768,
+    markerType: 2
+  };
 </script>
 <script type="text/javascript" defer src="app/util.js"></script>
 <script type="text/javascript" defer src="app/markers.js"></script>
@@ -123,7 +134,6 @@
 </script>
 </body>
 </html>
-
 
 
 
