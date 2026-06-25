@@ -49,9 +49,6 @@ jobs:
       run: |
         # Double sécurité pour s'assurer que Java trouve le relief peu importe la structure interne lue
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
-        
-        echo "=== VERIFICATION DES FICHIERS PRÊTS POUR JAVA ==="
-        ls -la ./sqlite_db/sqlite
 
     - name: 4. Execution de WurmMapGen v2.33
       run: |
@@ -76,6 +73,7 @@ jobs:
         
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
+
 
 
 
