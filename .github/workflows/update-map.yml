@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Étape manuelle : Ajoute le bouton gris pour forcer la mise à jour
 
 permissions:
-  contents: write # Donne le droit à GitHub d'enregistrer vos fichiers JSON
+  contents: write # Donne explicitement le droit à GitHub d'enregistrer vos fichiers JSON
 
 jobs:
   download-json:
@@ -22,7 +22,7 @@ jobs:
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
         
-        # Le '|| true' à la fin empêche le script de planter si le dossier est vide
+        # Connexion securisee a votre serveur Legion (Port 2022) et telechargement des fichiers
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           lcd ./data;
           mget -O ./ *.json;
@@ -34,12 +34,13 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Force l'ajout des fichiers même s'ils n'ont pas bougé
+        # Enregistre tous les fichiers JSON mis à jour dans votre dossier data
         git add data/*.json || true
         
-        # Enregistre les fichiers. S'il n'y a aucun changement, s'arrête proprement sans faire d'erreur
+        # Enregistre les fichiers s'il y a des changements, sinon s'arrete proprement ([skip ci] evite les boucles Vercel)
         git commit -m "Mise a jour automatique des fichiers de la carte [skip ci]" || exit 0
         git push origin main
+
 
 
 
