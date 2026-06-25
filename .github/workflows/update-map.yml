@@ -2,8 +2,8 @@ name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
   schedule:
-    - cron: '0 4 * * *'
-  workflow_dispatch:
+    - cron: '0 4 * * *' # Planification : S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
+  workflow_dispatch: # Manuel : Permet de cliquer sur le bouton gris pour tester à tout moment
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -52,10 +52,15 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 4.5 Nettoyage des fichiers de configuration generee
+    - name: 4.5 Rectification du fichier config JSON obligatoire
       run: |
+        # Supprime le fichier config généré par erreur à la racine
         rm -f ./config.json || true
-        rm -f ./data/config.json || true
+        
+        # Réécrit proprement data/config.json exigé par Leaflet pour forcer la lecture de vos fichiers réels
+        echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
+        
+        # Clones de sécurité indispensables pour satisfaire l'interface JavaScript d'origine
         if [ -f "./data/villages.json" ]; then
           cp ./data/villages.json ./data/deeds.json 2>/dev/null || true
         fi
@@ -67,8 +72,6 @@ jobs:
       run: |
         echo "=== FICHIERS LOGS DANS LE DOSSIER DATA ==="
         ls -la ./data/ || true
-        echo "=== VERIFICATION DE LA RACINE DU SITE ==="
-        ls -la ./ || true
 
     - name: 5. Generation du rapport des modifications (Changelog)
       run: |
@@ -81,7 +84,7 @@ jobs:
     - name: 6. Sauvegarde et Envoi automatique vers Vercel
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.email "github-actions[bot]@://github.com"
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
