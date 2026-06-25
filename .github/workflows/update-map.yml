@@ -1,100 +1,42 @@
-name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
+# ------------------------ #
+# WurmMapGen Configuration #
+# ------------------------ #
 
-on:
-  schedule:
-    - cron: '0 4 * * *' # Planification : S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
-  workflow_dispatch: # Manuel : Permet de cliquer sur le bouton gris pour tester à tout moment
+# Name of the server
+serverName=[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+# Server paths (CORRIGÉS POUR GITHUB CLOUD)
+# ------------
+wurmMapLocation=./sqlite_db
+saveLocation=.
 
-permissions:
-  contents: write # Autorisation stricte pour que GitHub puisse enregistrer vos fichiers
+# Ajout des chemins explicites pour forcer les dossiers de votre site web
+outputDataDir=./data/
+outputTilesDir=./images/
 
-jobs:
-  generate-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - name: 1. Connexion au depot GitHub
-      uses: actions/checkout@v4
-      with:
-        persist-credentials: true
+# ACTIVATION DES LOGS INTERNES (VERBOSE)
+# -------------------------------------
+verbose=true
+forceRedraw=false
 
-    - name: 2. Installation de Java 17 et de lftp
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17' # Version d'exécution recommandée pour WurmMapGen
-    - name: Installer lftp
-      run: |
-        sudo apt-get update && sudo apt-get install -y lftp
-        mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
+# Map Display & Layers
+# --------------------
+markerType=2
+showPlayers=false
+showDeeds=true
+showGuardTowers=true
+showStructures=true
+showPortals=true
 
-    - name: 3. Telechargement de l'INTEGRALITE des bases de donnees Wurm
-      run: |
-        mkdir -p ./sqlite_db
-        mkdir -p ./sqlite_db/sqlite
-        
-        # Téléchargement forcé des 4 bases de données (.db) et du fichier de relief (.map)
-        lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
-          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db;
-          get /dist/Doriath-4k-20/sqlite/wurmeconomy.db -o ./sqlite_db/sqlite/wurmeconomy.db;
-          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/sqlite/wurmitems.db;
-          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/sqlite/wurmplayers.db;
-          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map;
-          bye
-        " || echo "⚠️ Fin du téléchargement FTP."
-
-    - name: 3.5 Miroir de securite pour la topographie
-      run: |
-        # Double sécurité pour s'assurer que Java trouve le relief peu importe la structure interne lue
-        cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
-
-    - name: 4. Execution de WurmMapGen v2.33
-      run: |
-        # Lance la génération de la carte en mode console sans écran graphique
-        java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
-
-    - name: 4.5 Nettoyage automatique des fichiers en doublon
-      run: |
-        # Supprime le fichier config.json s'il a été généré à la racine pour éviter les conflits de chemins
-        rm -f ./config.json || true
-        
-        # Double sécurité : si la carte cherche deeds.json mais que vous avez villages.json, on crée une copie de sécurité
-        if [ -f "./data/villages.json" ]; then
-          cp ./data/villages.json ./data/deeds.json 2>/dev/null || true
-        fi
-        if [ -f "./data/guardtowers.json" ]; then
-          cp ./data/guardtowers.json ./data/towers.json 2>/dev/null || true
-        fi
-
-    - name: 5. Generation du rapport des modifications (Changelog)
-      run: |
-        mkdir -p data
-        # Détecte les fichiers JSON modifiés et compte les tuiles d'images mises à jour (.jpg ou .png)
-        JSON_MODIFS=$(git status --porcelain *.json data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
-        IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
-        
-        # Sécurité textuelle si rien n'a changé
-        if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
-        
-        # Crée le fichier JSON complet avec la date du Québec et les statistiques
-        echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
-
-    - name: 6. Sauvegarde et Envoi automatique vers Vercel
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
-        
-        # Prépare l'envoi des nouveaux fichiers de données et des tuiles de la carte actualisées
-        git add data/*.json || true
-        git add *.json || true
-        git add images/ || true
-        git add tiles/ || true
-        
-        # Enregistre le commit. Si aucune image ou coordonnée n'a changé, s'arrête proprement.
-        git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
-        git push origin main
+# Map Generation
+# --------------
+mapGeneratorThreads=2
+mapTileSize=256
+mapGenerateShading=true
+mapShadingModifier=1.0
+mapShadePaths=true
+mapGenerateWater=true
+mapGenerateBridges=true
 
 
 
