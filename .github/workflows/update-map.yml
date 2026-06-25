@@ -2,14 +2,14 @@ name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
   schedule:
-    - cron: '0 4 * * *' # Planification : S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
-  workflow_dispatch: # Manuel : Permet de cliquer sur le bouton gris pour tester à tout moment
+    - cron: '0 4 * * *'
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
-  contents: write # Autorisation stricte pour que GitHub puisse enregistrer vos fichiers
+  contents: write
 
 jobs:
   generate-and-deploy:
@@ -20,22 +20,21 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: 2. Installation de Java 17 et de lftp
+    - name: 2. Installation de Java et lftp
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17' # Version d'exécution recommandée pour WurmMapGen
+        java-version: '17'
+        
     - name: Installer lftp
       run: |
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
 
-    - name: 3. Telechargement de l'INTEGRALITE des bases de donnees Wurm
+    - name: 3. Telechargement des bases de donnees Wurm
       run: |
         mkdir -p ./sqlite_db
         mkdir -p ./sqlite_db/sqlite
-        
-        # Téléchargement forcé des 4 bases de données (.db) et du fichier de relief (.map)
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db;
           get /dist/Doriath-4k-20/sqlite/wurmeconomy.db -o ./sqlite_db/sqlite/wurmeconomy.db;
@@ -47,21 +46,16 @@ jobs:
 
     - name: 3.5 Miroir de securite pour la topographie
       run: |
-        # Double sécurité pour s'assurer que Java trouve le relief peu importe la structure interne lue
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
     - name: 4. Execution de WurmMapGen v2.33
       run: |
-        # Lance la génération de la carte en mode console sans écran graphique
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
     - name: 4.5 Nettoyage des fichiers de configuration generee
       run: |
-        # Supprime le fichier config.json à la racine ET dans le dossier data pour débloquer l'interface Leaflet
         rm -f ./config.json || true
         rm -f ./data/config.json || true
-        
-        # Force la création d'un fichier deeds.json et towers.json au cas où votre code web d'origine les réclame
         if [ -f "./data/villages.json" ]; then
           cp ./data/villages.json ./data/deeds.json 2>/dev/null || true
         fi
@@ -69,7 +63,7 @@ jobs:
           cp ./data/guardtowers.json ./data/towers.json 2>/dev/null || true
         fi
 
-    - name: 4.8 RAPPORT DE CONTROLE : Afficher ce qui a ete cree
+    - name: 4.8 RAPPORT DE CONTROLE
       run: |
         echo "=== FICHIERS LOGS DANS LE DOSSIER DATA ==="
         ls -la ./data/ || true
@@ -79,31 +73,21 @@ jobs:
     - name: 5. Generation du rapport des modifications (Changelog)
       run: |
         mkdir -p data
-        # Détecte les fichiers JSON modifiés et compte les tuiles d'images mises à jour (.jpg ou .png)
         JSON_MODIFS=$(git status --porcelain *.json data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
         IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
-        
-        # Sécurité textuelle si rien n'a changé
         if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
-        
-        # Crée le fichier JSON complet avec la date du Québec et les statistiques
         echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
 
     - name: 6. Sauvegarde et Envoi automatique vers Vercel
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
-        
-        # Prépare l'envoi des nouveaux fichiers de données et des tuiles de la carte actualisées
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
         git add tiles/ || true
-        
-        # Enregistre le commit. Si aucune image ou coordonnée n'a changé, s'arrête proprement.
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
-
 
 
 
