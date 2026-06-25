@@ -9,7 +9,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
-  contents: write # Autorisation pour enregistrer vos fichiers JSON et images
+  contents: write
 
 jobs:
   generate-and-deploy:
@@ -30,17 +30,28 @@ jobs:
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
 
-    - name: 3. Telechargement de la carte et des bases de donnees depuis Legion Hosting
+    - name: 3. Telechargement des bases de donnees et cartes depuis Legion Hosting
       run: |
         mkdir -p ./sqlite_db
         
-        # Téléchargement direct à plat dans ./sqlite_db/ sans créer de sous-dossiers
+        # Télécharge l'intégralité du dossier distant de manière récursive
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
-          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/wurmzones.db;
-          get /dist/Doriath-4k-20/sqlite/wurmeconomy.db -o ./sqlite_db/wurmeconomy.db;
-          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map;
+          cd /dist/Doriath-4k-20;
+          mirror --include=".*\.db$" --include=".*\.map$" ./sqlite_db;
           bye
-        " || echo "⚠️ Attention : Fichiers manquants sur le FTP, poursuite..."
+        " || echo "⚠️ Attention : Fin de la commande de téléchargement."
+
+    - name: 3.5 Extraction et Nettoyage des sous-dossiers
+      run: |
+        # Si lftp a créé un sous-dossier sqlite, on déplace tout son contenu à la racine de sqlite_db
+        if [ -d "./sqlite_db/sqlite" ]; then
+          mv ./sqlite_db/sqlite/* ./sqlite_db/ 2>/dev/null || true
+          rm -rf ./sqlite_db/sqlite
+        fi
+        
+        # Vérification visuelle dans la console des fichiers prêts pour Java
+        echo "=== FICHIERS DANS SQLITE_DB ==="
+        ls -la ./sqlite_db
 
     - name: 4. Execution de WurmMapGen v2.33
       run: |
@@ -65,6 +76,7 @@ jobs:
         
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
+
 
 
 
