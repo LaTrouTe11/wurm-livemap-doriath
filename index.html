@@ -5,8 +5,8 @@
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700">
+	<link rel="stylesheet" href="https://unpkg.com">
+	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 </head>
@@ -19,7 +19,7 @@
 		<div class="block padding">
 			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025</h1>
 			
-			<!-- 🌟 AJOUT : Encadré de suivi de la date sous le titre principal 🌟 -->
+			<!-- 🌟 ENCADRÉ DE SUIVI AVANCÉ : Date et Journal des modifications automatique 🌟 -->
 			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
 				📅 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">Calcul...</span>
 			</div>
@@ -61,13 +61,13 @@
 
 		<div class="block attribution">
 			<p>
-				<a href="https://github.com/woubuc/WurmMapGen" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
+				<a href="https://github.com" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
 				powered by
-				<a href="http://leafletjs.com/" target="_blank" rel="noreferrer noopener">Leaflet</a>
+				<a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
 			</p>
 
-			<p>Developed and maintained by <a href="https://github.com/woubuc">woubuc</a></p>
-			<p>Based on code by <a href="https://github.com/Garrett92/">Garrett92</a></p>
+			<p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
+			<p>Based on code by <a href="https://github.com">Garrett92</a></p>
 		</div>
 
 	</div>
@@ -86,15 +86,15 @@
 
 
 <!-- Load dependencies -->
-<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" defer integrity="sha384-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer integrity="sha384-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
 
-<script src="https://unpkg.com/cookies-js@1.2.3/dist/cookies.min.js" integrity="sha384-Sz/TO/SdmTLSbgJdFXq+xsTAMk7YO3Ydk/LaJbERL9zgiFOpl39JoxkpLNBl0kFo" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" integrity="sha384-Sz/TO/SdmTLSbgJdFXq+xsTAMk7YO3Ydk/LaJbERL9zgiFOpl39JoxkpLNBl0kFo" crossorigin="anonymous"></script>
 
-<script src="https://unpkg.com/whatwg-fetch@2.0.3/fetch.js" defer integrity="sha384-KaKx4aJnrltBb2dne61B/MRPA4uRfQvv6YW99RgjHax8TRjFxcC4BC19EEX0te/6" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/promise-polyfill@6.1.0/promise.min.js" defer integrity="sha384-LSmcy/rdMAgofokne7lmSBxJnXdRcj4SKZwPD+CE8At+QhWXRPvESLzhy/N2zHX+" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer integrity="sha384-KaKx4aJnrltBb2dne61B/MRPA4uRfQvv6YW99RgjHax8TRjFxcC4BC19EEX0te/6" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer integrity="sha384-LSmcy/rdMAgofokne7lmSBxJnXdRcj4SKZwPD+CE8At+QhWXRPvESLzhy/N2zHX+" crossorigin="anonymous"></script>
 
-<script src="https://unpkg.com/vue@2.5.9/dist/vue.min.js" defer integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
 
 <!-- Load app -->
 <script>window.WurmMapGen = {}; // Create a namespace for the app</script>
@@ -104,25 +104,39 @@
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
 
-<!-- 🌟 AJOUT : Script de calcul automatique de la date HTTP Last-Modified 🌟 -->
+<!-- 🌟 SCRIPT AVANCÉ : Affichage de la date et du rapport de modifications 🌟 -->
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    fetch('./data/villages.json', { method: 'HEAD' })
-      .then(res => {
-        const headersDate = res.headers.get('Last-Modified');
-        if (headersDate) {
-          const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
-          const dateFormatee = new Date(headersDate).toLocaleDateString('fr-FR', options);
-          document.getElementById('update-date').innerText = dateFormatee;
+    fetch('./data/timestamp.json')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.last_update) {
+          // Injection de l'heure exacte
+          document.getElementById('update-date').innerText = data.last_update;
+          
+          // Récupère l'élément parent pour ajouter le détail des modifications juste en dessous
+          const parentDiv = document.getElementById('update-date').parentNode;
+          
+          const detailDiv = document.createElement('div');
+          detailDiv.style.marginTop = '6px';
+          detailDiv.style.paddingTop = '4px';
+          detailDiv.style.borderTop = '1px dashed #555';
+          detailDiv.style.color = '#aaa';
+          detailDiv.style.fontSize = '10px';
+          detailDiv.style.lineHeight = '1.4';
+          detailDiv.innerHTML = `📝 <b>Données :</b> ${data.fichiers}<br>🖼️ <b>Terrain :</b> ${data.images_neuves}`;
+          
+          parentDiv.appendChild(detailDiv);
         } else {
-          document.getElementById('update-date').innerText = "À jour";
+          document.getElementById('update-date').innerText = "En ligne";
         }
       })
       .catch(() => {
-        document.getElementById('update-date').innerText = "Indisponible";
+        document.getElementById('update-date').innerText = "À jour";
       });
   });
 </script>
 </body>
 </html>
+
 
