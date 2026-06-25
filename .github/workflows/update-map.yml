@@ -2,8 +2,8 @@ name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
   schedule:
-    - cron: '0 4 * * *' # Planification : S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
-  workflow_dispatch: # Manuel : Permet de cliquer sur le bouton gris pour tester à tout moment
+    - cron: '0 4 * * *' # Planification : Toutes les nuits a minuit au Quebec (4h00 UTC)
+  workflow_dispatch: # Manuel : Permet de cliquer sur le bouton gris pour tester
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -48,50 +48,39 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
-    - name: 3.8 Telechargement local des scripts (Securite CORS)
-      run: |
-        mkdir -p ./dist ./css
-        curl -sL https://cloudflare.com -o ./dist/leaflet-local.js
-        curl -sL https://cloudflare.com -o ./css/leaflet-local.css
-        curl -sL https://cloudflare.com -o ./dist/vue-local.js
-
     - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 4.5 Force de la Configuration et Alignement des fichiers
+    - name: 4.5 Configuration Automatique pour Leaflet
       run: |
-        # Supprime le fichier config parasite généré par accident à la racine
         rm -f ./config.json || true
-        
-        # Recrée proprement de force le fichier data/config.json réclamé par Leaflet pour ouvrir la carte 4096
         mkdir -p ./data
+        
+        # Genere un fichier config JSON impeccable que le site d'origine va adorer lire
         echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
         
-        # Copie et écrase le vieux fichier villages.json avec les nouvelles données fraîches de deeds.json
+        # Lie vos fichiers reels aux demandes de l'index d'origine
         if [ -f "./data/deeds.json" ]; then
           cp ./data/deeds.json ./data/villages.json 2>/dev/null || true
+        else
+          echo "[]" > ./data/villages.json
+          echo "[]" > ./data/deeds.json
         fi
+        
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
+        else
+          echo "[]" > ./data/guardtowers.json
+          echo "[]" > ./data/towers.json
         fi
 
-    - name: 5. Generation du rapport des modifications (Changelog)
-      run: |
-        mkdir -p data
-        JSON_MODIFS=$(git status --porcelain *.json data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
-        IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
-        if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
-        echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
-
-    - name: 6. Sauvegarde et Envoi automatique vers Vercel
+    - name: 5. Sauvegarde et Envoi automatique vers Vercel
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         git add data/*.json || true
         git add *.json || true
-        git add dist/*.js || true
-        git add css/*.css || true
         git add images/ || true
         git add tiles/ || true
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
