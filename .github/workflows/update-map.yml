@@ -9,7 +9,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
-  contents: write # Autorisation stricte pour que GitHub puisse enregistrer vos fichiers
+  contents: write # Autorisation pour enregistrer vos fichiers JSON et images
 
 jobs:
   generate-and-deploy:
@@ -24,47 +24,52 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17' # Version d'exécution recommandée pour WurmMapGen
+        java-version: '17'
     - name: Installer lftp
       run: |
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
 
-    - name: 3. Telechargement des bases de donnees et topo depuis Legion Hosting
+    - name: 3. Telechargement de la carte et des bases de donnees depuis Legion Hosting
       run: |
         mkdir -p ./sqlite_db
-        # Connexion SFTP (Port 2022) et accès direct à votre dossier /sqlite/
+        
+        # Connexion SFTP et téléchargement ciblé des fichiers requis par la v2.33
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
+          # 1. Téléchargement des bases de données dans le sous-dossier /sqlite
           cd /dist/Doriath-4k-20/sqlite;
-          mget -O ./sqlite_db wurmzones.db wurmeconomy.db topography.map;
+          mget -O ./sqlite_db wurmzones.db wurmeconomy.db;
+          
+          # 2. Remonte d'un dossier pour télécharger le fichier top_layer.map requis
+          cd /dist/Doriath-4k-20;
+          mget -O ./sqlite_db top_layer.map;
           bye
-        " || echo "⚠️ Attention : Échec du téléchargement, poursuite du script avec les fichiers existants..."
+        " || echo "⚠️ Attention : Fichiers manquants sur le FTP, poursuite..."
 
     - name: 4. Execution de WurmMapGen v2.33
       run: |
-        # Force Java à s'exécuter en mode console pure (Headless) sans chercher d'écran graphique virtuel
+        # Lance la génération de la carte en mode console sans écran graphique
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
     - name: 5. Generation de la date et heure locale (Quebec)
       run: |
-        # Inscrit le timestamp exact de la synchronisation dans votre dossier data
         mkdir -p data
         TZ="America/Toronto" date +'{"last_update": "%d/%m/%Y a %H:%M"}' > data/timestamp.json
 
-    - name: 6. Sauvegarde et Envoi automatique des changements vers Vercel
+    - name: 6. Sauvegarde et Envoi automatique vers Vercel
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Prépare l'envoi des nouveaux fichiers de données et des tuiles de la carte actualisées
+        # Enregistre tous les fichiers de données et d'images modifiés
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
         git add tiles/ || true
         
-        # Enregistre le commit. Si aucune image ou coordonnée n'a changé, s'arrête proprement.
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
+
 
 
 
