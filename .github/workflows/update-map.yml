@@ -30,33 +30,30 @@ jobs:
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
 
-    - name: 3. Telechargement complet des fichiers requis depuis Legion Hosting
+    - name: 3. Telechargement des fichiers cibles depuis Legion Hosting
       run: |
+        # Crée la structure exacte attendue par WurmMapGen
         mkdir -p ./sqlite_db
+        mkdir -p ./sqlite_db/sqlite
         
-        # Télécharge tout le contenu du dossier et de ses sous-dossiers contenant .db et .map
+        # Téléchargement forcé fichier par fichier aux emplacements exacts recherchés par le .jar
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
-          cd /dist/Doriath-4k-20;
-          mirror --include=".*\.db$" --include=".*\.map$" ./ ./sqlite_db;
+          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db;
+          get /dist/Doriath-4k-20/sqlite/wurmeconomy.db -o ./sqlite_db/sqlite/wurmeconomy.db;
+          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map;
           bye
-        " || echo "⚠️ Fin du téléchargement FTP."
+        " || echo "⚠️ Fin du téléchargement FTP ciblé."
 
-    - name: 3.5 Extraction et Centralisation des fichiers à plat
+    - name: 3.5 Double securite pour les fichiers de topographie
       run: |
-        # Si un sous-dossier sqlite existe, on extrait son contenu à la racine de sqlite_db
-        if [ -d "./sqlite_db/sqlite" ]; then
-          mv ./sqlite_db/sqlite/* ./sqlite_db/ 2>/dev/null || true
-          rm -rf ./sqlite_db/sqlite
-        fi
+        # Crée une copie au cas où WurmMapGen cherche top_layer.map dans le sous-dossier sqlite
+        cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
         
-        # Vérification et renommage automatique si le fichier de carte s'appelle topography.map au lieu de top_layer.map
-        if [ -f "./sqlite_db/topography.map" ] && [ ! -f "./sqlite_db/top_layer.map" ]; then
-          cp ./sqlite_db/topography.map ./sqlite_db/top_layer.map
-        fi
-        
-        # Affichage de contrôle dans la console GitHub pour valider la liste des fichiers
-        echo "=== LISTE DES FILES PRÊTS POUR JAVA ==="
+        # Affiche la liste finale des dossiers pour confirmer que tout est là
+        echo "=== VERIFICATION DU DOSSIER PRINCIPAL ==="
         ls -la ./sqlite_db
+        echo "=== VERIFICATION DU SOUS-DOSSIER SQLITE ==="
+        ls -la ./sqlite_db/sqlite
 
     - name: 4. Execution de WurmMapGen v2.33
       run: |
