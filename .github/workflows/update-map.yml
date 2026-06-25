@@ -5,6 +5,10 @@ on:
     - cron: '0 4 * * *' # Étape automatique : S'exécute toutes les nuits à 4h00 UTC
   workflow_dispatch: # Étape manuelle : Ajoute le bouton gris pour forcer la mise à jour
 
+# Force l'utilisation complète de Node 24 pour supprimer définitivement les avertissements
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write # Donne explicitement le droit à GitHub d'enregistrer vos fichiers JSON
 
