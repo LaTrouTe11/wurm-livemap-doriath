@@ -50,7 +50,6 @@ jobs:
 
     - name: 4. Execution de WurmMapGen v2.33 (Avec Logs Actifs)
       run: |
-        # Le mode headless et le verbose actif vont lister tout le travail du logiciel à l'écran
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
     - name: 4.8 RAPPORT DE CONTROLE : Afficher ce qui a ete cree
