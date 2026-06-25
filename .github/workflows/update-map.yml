@@ -17,14 +17,13 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: 2. Configuration de Node.js
+    - name: 2. Configuration de Node.js (Version 24)
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '24' # 👈 Correction pour utiliser la version exigée par GitHub Actions
 
     - name: 3. Installation des dépendances
-      run: npm ci || npm install
+      run: npm install # 👈 Utilise npm install classique pour ignorer l'absence du package-lock.json
 
     - name: 4. Exécution de vos 1600 lignes de code (server.ts)
       run: npm run sync-map
