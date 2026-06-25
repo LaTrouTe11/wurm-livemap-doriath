@@ -2,8 +2,8 @@ name: "Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)"
 
 on:
   schedule:
-    - cron: '0 4 * * *' # S'exécute automatiquement toutes les nuits à minuit au Québec (4h00 UTC)
-  workflow_dispatch: # Permet de faire réapparaître le bouton gris "Run workflow"
+    - cron: '0 4 * * *'
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -20,21 +20,21 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: 2. Installation de Java 17 et de lftp
+    - name: 2. Installation de Java et lftp
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
+        
     - name: Installer lftp
       run: |
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
 
-    - name: 3. Telechargement de l'INTEGRALITE des bases de donnees Wurm
+    - name: 3. Telechargement des bases de donnees Wurm
       run: |
         mkdir -p ./sqlite_db
         mkdir -p ./sqlite_db/sqlite
-        
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db;
           get /dist/Doriath-4k-20/sqlite/wurmeconomy.db -o ./sqlite_db/sqlite/wurmeconomy.db;
@@ -52,7 +52,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 4.8 RAPPORT DE CONTROLE : Afficher ce qui a ete cree
+    - name: 4.8 RAPPORT DE CONTROLE
       run: |
         echo "=== FICHIERS LOGS DANS LE DOSSIER DATA ==="
         ls -la ./data/ || true
@@ -64,23 +64,20 @@ jobs:
         mkdir -p data
         JSON_MODIFS=$(git status --porcelain *.json data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
         IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
-        
         if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
-        
         echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
 
     - name: 6. Sauvegarde et Envoi automatique vers Vercel
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
+        git config --global user.email "github-actions[bot]@://github.com"
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
         git add tiles/ || true
-        
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
+
 
 
 
