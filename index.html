@@ -5,7 +5,8 @@
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<link rel="stylesheet" href="https://unpkg.com">
+	<!-- Remplacement CDN pour Leaflet CSS -->
+	<link rel="stylesheet" href="https://cloudflare.com" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
@@ -19,7 +20,7 @@
 		<div class="block padding">
 			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025</h1>
 			
-			<!-- ENCADRÉ DE MISE À JOUR : Configuré à plat -->
+			<!-- ENCADRÉ DE MISE À JOUR -->
 			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
 				📅 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
 				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement du monde...</div>
@@ -83,18 +84,17 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Load dependencies -->
-<script src="https://unpkg.com" defer integrity="sha384-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
+<!-- Chargement des dépendances via Cloudflare (Correction CORS) -->
+<script src="https://cloudflare.com" crossorigin="anonymous"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="https://unpkg.com" integrity="sha384-Sz/TO/SdmTLSbgJdFXq+xsTAMk7YO3Ydk/LaJbERL9zgiFOpl39JoxkpLNBl0kFo" crossorigin="anonymous"></script>
-<script src="https://unpkg.com" defer integrity="sha384-KaKx4aJnrltBb2dne61B/MRPA4uRfQvv6YW99RgjHax8TRjFxcC4BC19EEX0te/6" crossorigin="anonymous"></script>
-<script src="https://unpkg.com" defer integrity="sha384-LSmcy/rdMAgofokne7lmSBxJnXdRcj4SKZwPD+CE8At+QhWXRPvESLzhy/N2zHX+" crossorigin="anonymous"></script>
-<script src="https://unpkg.com" defer integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
+<script src="https://cloudflare.com" crossorigin="anonymous"></script>
+<script src="https://cloudflare.com" crossorigin="anonymous"></script>
+<script src="https://cloudflare.com" crossorigin="anonymous"></script>
+<script src="https://cloudflare.com" crossorigin="anonymous"></script>
 
 <!-- Load app -->
 <script>
   window.WurmMapGen = {};
-  // 🌟 INJECTION DE FORCE : Force l'application à démarrer directement sur la taille 4096 sans passer par le config JSON cassé 🌟
   window.WurmMapGen.config = {"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2};
 </script>
 <script type="text/javascript" defer src="app/util.js"></script>
@@ -123,6 +123,7 @@
 </script>
 </body>
 </html>
+
 
 
 
