@@ -30,27 +30,32 @@ jobs:
         sudo apt-get update && sudo apt-get install -y lftp
         mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
 
-    - name: 3. Telechargement des bases de donnees et cartes depuis Legion Hosting
+    - name: 3. Telechargement complet des fichiers requis depuis Legion Hosting
       run: |
         mkdir -p ./sqlite_db
         
-        # Télécharge l'intégralité du dossier distant de manière récursive
+        # Télécharge tout le contenu du dossier et de ses sous-dossiers contenant .db et .map
         lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
           cd /dist/Doriath-4k-20;
-          mirror --include=".*\.db$" --include=".*\.map$" ./sqlite_db;
+          mirror --include=".*\.db$" --include=".*\.map$" ./ ./sqlite_db;
           bye
-        " || echo "⚠️ Attention : Fin de la commande de téléchargement."
+        " || echo "⚠️ Fin du téléchargement FTP."
 
-    - name: 3.5 Extraction et Nettoyage des sous-dossiers
+    - name: 3.5 Extraction et Centralisation des fichiers à plat
       run: |
-        # Si lftp a créé un sous-dossier sqlite, on déplace tout son contenu à la racine de sqlite_db
+        # Si un sous-dossier sqlite existe, on extrait son contenu à la racine de sqlite_db
         if [ -d "./sqlite_db/sqlite" ]; then
           mv ./sqlite_db/sqlite/* ./sqlite_db/ 2>/dev/null || true
           rm -rf ./sqlite_db/sqlite
         fi
         
-        # Vérification visuelle dans la console des fichiers prêts pour Java
-        echo "=== FICHIERS DANS SQLITE_DB ==="
+        # Vérification et renommage automatique si le fichier de carte s'appelle topography.map au lieu de top_layer.map
+        if [ -f "./sqlite_db/topography.map" ] && [ ! -f "./sqlite_db/top_layer.map" ]; then
+          cp ./sqlite_db/topography.map ./sqlite_db/top_layer.map
+        fi
+        
+        # Affichage de contrôle dans la console GitHub pour valider la liste des fichiers
+        echo "=== LISTE DES FILES PRÊTS POUR JAVA ==="
         ls -la ./sqlite_db
 
     - name: 4. Execution de WurmMapGen v2.33
@@ -76,6 +81,7 @@ jobs:
         
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main
+
 
 
 
