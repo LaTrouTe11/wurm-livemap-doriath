@@ -1,81 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>[QC/FR/CAN] QBC Doriath | PVE | MODS 8 K 2025 - WU MapGen</title>
-	<meta charset="utf-8"/>
-	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <title>[QC/FR/CAN] QBC Doriath | PVE | MODS 8 K 2025 - WU MapGen</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<link rel="stylesheet" href="https://unpkg.com" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://googleapis.com">
-	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
-	<link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://googleapis.com">
+    <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-realtime="false">
 
 <div id="gui" :class="{sidebar: sidebarVisible}">
-	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
-	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
-		<div class="block padding">
-			<h1>[QC/FR/CAN] QBC Doriath | PVE | MODS 8 K 2025</h1>
-			
-			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
-				Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
-				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement du monde...</div>
-			</div>
-		</div>
+    <a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
+    <div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
+        <div class="block padding">
+            <h1>[QC/FR/CAN] QBC Doriath | PVE | MODS 8 K 2025</h1>
+            
+            <div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
+                Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
+                <div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement du monde...</div>
+            </div>
+        </div>
 
-		<div class="block">
-			<label for="option-show-villages" class="flex">
-				<input type="checkbox" class="transition" id="option-show-villages" v-model="showVillages">
-				<span>Show deeds</span>
-			</label>
-			<label for="option-show-village-borders" class="flex transition" :class="{inactive:!showVillages}">
-				<input type="checkbox" class="transition" id="option-show-village-borders" v-model="showVillageBorders">
-				<span>Show deed borders</span>
-			</label>
-		</div>
+        <div class="block">
+            <label for="option-show-villages" class="flex">
+                <input type="checkbox" class="transition" id="option-show-villages" v-model="showVillages">
+                <span>Show deeds</span>
+            </label>
+            <label for="option-show-village-borders" class="flex transition" :class="{inactive:!showVillages}">
+                <input type="checkbox" class="transition" id="option-show-village-borders" v-model="showVillageBorders">
+                <span>Show deed borders</span>
+            </label>
+        </div>
 
-		<div class="block">
-			<label for="option-show-towers" class="flex">
-				<input type="checkbox" class="transition" id="option-show-towers" v-model="showTowers"> Show guard towers
-			</label>
-			<label for="option-show-tower-borders" class="flex transition" :class="{inactive:!showTowers}">
-				<input type="checkbox" class="transition" id="option-show-tower-borders" v-model="showTowerBorders">
-				<span>Show guard tower borders</span>
-			</label>
-		</div>
+        <div class="block">
+            <label for="option-show-towers" class="flex">
+                <input type="checkbox" class="transition" id="option-show-towers" v-model="showTowers"> Show guard towers
+            </label>
+            <label for="option-show-tower-borders" class="flex transition" :class="{inactive:!showTowers}">
+                <input type="checkbox" class="transition" id="option-show-tower-borders" v-model="showTowerBorders">
+                <span>Show guard tower borders</span>
+            </label>
+        </div>
 
-		<div class="block">
-			<label for="option-show-portals" class="flex">
-				<input type="checkbox" class="transition" id="option-show-portals" v-model="showPortals"> Show portals
-			</label>
-		</div>
+        <div class="block">
+            <label for="option-show-portals" class="flex">
+                <input type="checkbox" class="transition" id="option-show-portals" v-model="showPortals"> Show portals
+            </label>
+        </div>
 
-		<div class="block">
-			<label for="option-show-structures" class="flex">
-				<input type="checkbox" class="transition" id="option-show-structures" v-model="showStructures"> Show structures
-			</label>
-		</div>
+        <div class="block">
+            <label for="option-show-structures" class="flex">
+                <input type="checkbox" class="transition" id="option-show-structures" v-model="showStructures"> Show structures
+            </label>
+        </div>
 
-		<div class="block attribution">
-			<p>
-				<a href="https://github.com" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
-				powered by
-				<a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
-			</p>
-			<p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
-			<p>Based on code by <a href="https://github.com">Garrett92</a></p>
-		</div>
-	</div>
+        <div class="block attribution">
+            <p>
+                <a href="https://github.com" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
+                powered by
+                <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
+            </p>
+            <p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
+            <p>Based on code by <a href="https://github.com">Garrett92</a></p>
+        </div>
+    </div>
 
-	<div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
-		<input v-model="searchQuery" placeholder="Search map for deeds, players, ..." autocomplete="off">
-		<div id="search-results" v-if="searchQuery !== ''">
-			<div v-for="result in searchResults" :class="result.type" v-html="result.label" @click="focusMap(result.x, result.y); searchQuery = '';"></div>
-		</div>
-	</div>
+    <div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
+        <input v-model="searchQuery" placeholder="Search map for deeds, players, ..." autocomplete="off">
+        <div id="search-results" v-if="searchQuery !== ''">
+            <div v-for="result in searchResults" :class="result.type" v-html="result.label" @click="focusMap(result.x, result.y); searchQuery = '';"></div>
+        </div>
+    </div>
 
-	<div id="map" class="absolute transition z-page"></div>
+    <div id="map" class="absolute transition z-page"></div>
 </div>
 
 <script src="https://unpkg.com" crossorigin="anonymous"></script>
@@ -86,19 +86,19 @@
 <script src="https://unpkg.com" crossorigin="anonymous"></script>
 
 <script>
-  window.WurmMapGen = {};
-  window.WurmMapGen.config = {
-    actualMapSize: 4096,
-    showStructures: true,
-    nativeZoom: 4,
-    mapMinZoom: 2,
-    showGuardTowers: true,
-    mapMaxZoom: 7,
-    mapTileSize: 256,
-    showDeeds: true,
-    maxMapSize: 32768,
-    markerType: 2
-  };
+    window.WurmMapGen = {};
+    window.WurmMapGen.config = {
+        actualMapSize: 4096,
+        showStructures: true,
+        nativeZoom: 4,
+        mapMinZoom: 2,
+        showGuardTowers: true,
+        mapMaxZoom: 7,
+        mapTileSize: 256,
+        showDeeds: true,
+        maxMapSize: 32768,
+        markerType: 2
+    };
 </script>
 
 <script type="text/javascript" defer src="app/util.js"></script>
@@ -108,25 +108,26 @@
 <script type="text/javascript" defer src="app/main.js"></script>
 
 <script>
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      fetch('./data/timestamp.json')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          if (data && data.last_update) {
-            document.getElementById('update-date').innerText = data.last_update;
-            document.getElementById('update-details').innerHTML = "Donnees: " + data.fichiers + "<br>Terrain: " + data.images_neuves;
-          }
-        })
-        .catch(function() {
-          document.getElementById('update-date').innerText = "A jour";
-          document.getElementById('update-details').innerText = "Monde charge";
-        });
-    }, 1500);
-  });
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            fetch('./data/timestamp.json')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data && data.last_update) {
+                        document.getElementById('update-date').innerText = data.last_update;
+                        document.getElementById('update-details').innerHTML = "Donnees: " + data.fichiers + "<br>Terrain: " + data.images_neuves;
+                    }
+                })
+                .catch(function() {
+                    document.getElementById('update-date').innerText = "A jour";
+                    document.getElementById('update-details').innerText = "Monde charge";
+                });
+        }, 1500);
+    });
 </script>
 </body>
 </html>
+
 
 
 
