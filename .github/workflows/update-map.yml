@@ -75,18 +75,23 @@ jobs:
           echo "[]" > ./data/towers.json
         fi
 
-    - name: 5. Sauvegarde et Envoi automatique vers Vercel
+    - name: 5. Sauvegarde et Envoi automatique force vers Vercel et GitHub Pages
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
+        
+        # Force la recuperation de l'historique distant pour eviter les conflits de push
+        git pull origin main --rebase || true
+        
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
         git add tiles/ || true
+        
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
-        git push origin main
-
-
+        
+        # Envoi force pour outrepasser les blocages d'historique de jetons
+        git push origin main --force
 
 
 
