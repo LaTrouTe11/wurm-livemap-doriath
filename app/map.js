@@ -90,13 +90,15 @@ WurmMapGen.map = {
 				{icon: WurmMapGen.markers.getMarker('village', village)}
 			);
 
-			marker.bindPopup([
-				'<div align="center"><b>' + (village.name ? escapeHtml(village.name) : 'Colonie') + '</b></div>',
-				'<b>Maire :</b> ' + (village.mayor ? escapeHtml(village.mayor) : 'Inconnu'),
-				'<b>Citoyens :</b> ' + (village.citizens ? escapeHtml(village.citizens) : '0'),
-				'<b>Créé en :</b> 2026',
-				'<b>Position :</b> ' + (village.x ? Math.floor(village.x) : '0') + ' x, ' + (village.y ? Math.floor(village.y) : '0') + ' y'
-			].join('<br>'));
+			    marker.bindPopup(
+				'<div align="center"><b>' + escapeHtml(village.name) + '</b><br>' +
+				'<i>' + (village.motto ? escapeHtml(village.motto) : '') + '</i></div><br>' +
+				'<b>Maire :</b> ' + (village.mayor ? escapeHtml(village.mayor) : 'Inconnu') + '<br>' +
+				'<b>Citoyens :</b> ' + (village.citizens ? escapeHtml(village.citizens) : '1') + '<br>' +
+				'<b>Créé en :</b> 2026<br>' +
+				'<b>Position :</b> ' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y'
+			);
+
 
 			// Make sure text labels always show on top of other markers
 			if (WurmMapGen.config.markerType === 3) {
