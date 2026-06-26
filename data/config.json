@@ -1,1 +1,1 @@
-{"config":{"actualMapSize":2048,"showStructures":true,"nativeZoom":3,"mapMinZoom":1,"showGuardTowers":true,"mapMaxZoom":6,"mapTileSize":256,"showDeeds":true,"maxMapSize":16384,"markerType":2}}
+{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}
