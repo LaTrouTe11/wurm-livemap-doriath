@@ -1,157 +1,104 @@
-name: "Mise a jour Carte Doriath"
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{serverName}} - WU MapGen</title>
+	<meta charset="utf-8"/>
+	<base href="/wurm-livemap-doriath/">
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+	<!-- Chargement des styles (Utilisation du CDN officiel pour Leaflet CSS) -->
+	<link rel="stylesheet" href="https://cloudflare.com">
+	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-realtime="{{enableRealtimeMarkers}}">
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+<!-- Interface elements -->
+<div id="gui" :class="{sidebar: sidebarVisible}">
+	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
+	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
+		<div class="block padding">
+			<h1>{{serverName}}</h1>
+			{{#enableRealtimeMarkers}}
+			<div id="playercount" v-text="playerCountLabel"></div>
+			{{/enableRealtimeMarkers}}
+		</div>
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+		{{#showDeeds}}
+		<div class="block">
+			<label for="option-show-villages" class="flex">
+				<input type="checkbox" class="transition" id="option-show-villages" v-model="showVillages">
+				<span>Show deeds</span>
+			</label>
+			<label for="option-show-village-borders" class="flex transition" :class="{inactive:!showVillages}">
+				<input type="checkbox" class="transition" id="option-show-village-borders" v-model="showVillageBorders">
+				<span>Show deed borders</span>
+			</label>
+		</div>
+		{{/showDeeds}}
 
-jobs:
-  build-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+		{{#showGuardTowers}}
+		<div class="block">
+			<label for="option-show-towers" class="flex">
+				<input type="checkbox" class="transition" id="option-show-towers" v-model="showTowers"> Show guard towers
+			</label>
+			<label for="option-show-tower-borders" class="flex transition" :class="{inactive:!showTowers}">
+				<input type="checkbox" class="transition" id="option-show-tower-borders" v-model="showTowerBorders">
+				<span>Show guard tower borders</span>
+			</label>
+		</div>
+		{{/showGuardTowers}}
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+		{{#showPortals}}
+		<div class="block">
+			<label for="option-show-portals" class="flex">
+				<input type="checkbox" class="transition" id="option-show-portals" v-model="showPortals"> Show portals
+			</label>
+		</div>
+		{{/showPortals}}
 
-      # Création des structures de dossiers requises
-      - name: Create local directories
-        run: mkdir -p sqlite_db/sqlite
+		{{#showStructures}}
+		<div class="block">
+			<label for="option-show-structures" class="flex">
+				<input type="checkbox" class="transition" id="option-show-structures" v-model="showStructures"> Show structures
+			</label>
+		</div>
+		{{/showStructures}}
 
-      # Scan complet et téléchargement automatique de la liste complète des fichiers
-      - name: Scan and Download Map Files via Node SFTP
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            
-            const execSync = require('child_process').execSync;
-            execSync('npm install ssh2-sftp-client');
-            const Client = require('ssh2-sftp-client');
-            const sftp = new Client();
-            
-            const config = {
-              host: '${{ secrets.LEGION_HOST }}',
-              port: parseInt('${{ secrets.LEGION_PORT }}' || '22'),
-              username: '${{ secrets.LEGION_USER }}',
-              password: '${{ secrets.LEGION_PASS }}'
-            };
-            
-            async function findFile(dir, targetName) {
-              let list = await sftp.list(dir);
-              for (const item of list) {
-                const fullPath = dir === '/' ? `/${item.name}` : `${dir}/${item.name}`;
-                if (item.type === '-') {
-                  if (item.name.toLowerCase() === targetName.toLowerCase()) {
-                    return fullPath;
-                  }
-                } else if (item.type === 'd' && item.name !== '.' && item.name !== '..') {
-                  try {
-                    const found = await findFile(fullPath, targetName);
-                    if (found) return found;
-                  } catch (e) {}
-                }
-              }
-              return null;
-            }
-            
-            async function main() {
-              try {
-                console.log('Connexion à Legion Hosting...');
-                await sftp.connect(config);
-                
-                const mapPath = await findFile('.', 'top_layer.map');
-                if (mapPath) { await sftp.fastGet(mapPath, './sqlite_db/top_layer.map'); }
-                
-                const zonesPath = await findFile('.', 'wurmzones.db');
-                if (zonesPath) { await sftp.fastGet(zonesPath, './sqlite_db/sqlite/wurmzones.db'); }
+		<div class="block attribution">
+			<p>
+				<a href="https://github.com" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
+				powered by <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
+			</p>
+			<p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
+		</div>
+	</div>
 
-                const itemsPath = await findFile('.', 'wurmitems.db');
-                if (itemsPath) { await sftp.fastGet(itemsPath, './sqlite_db/sqlite/wurmitems.db'); }
+	<div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
+		<input v-model="searchQuery" placeholder="Search map..." autocomplete="off">
+		<div id="search-results" v-if="searchQuery !== ''">
+			<div v-for="result in searchResults" :class="result.type" v-html="result.label" @click="focusMap(result.x, result.y); searchQuery = '';"></div>
+		</div>
+	</div>
 
-                const playersPath = await findFile('.', 'wurmplayers.db');
-                if (playersPath) { await sftp.fastGet(playersPath, './sqlite_db/sqlite/wurmplayers.db'); }
-                
-                console.log('Téléchargements réussis.');
-              } catch (err) {
-                console.error('Erreur critique:', err.message);
-                process.exit(1);
-              } finally {
-                await sftp.end();
-              }
-            }
-            
-            return main();
+	<!-- Map container -->
+	<div id="map" class="absolute transition z-page"></div>
+</div>
 
-      # Alignement structurel complet
-      - name: Align files structure
-        run: |
-          cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map
-          cp ./sqlite_db/sqlite/wurmzones.db ./sqlite_db/wurmzones.db
-          cp ./sqlite_db/sqlite/wurmitems.db ./sqlite_db/wurmitems.db
-          cp ./sqlite_db/sqlite/wurmplayers.db ./sqlite_db/wurmplayers.db
-          echo "Structure de données alignée."
+<!-- Lecture de vos fichiers locaux renommés (Résout le problème 404) -->
+<script src="dist/leaflet-local.js"></script>
+<script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
+<script src="dist/vue-local.js"></script>
 
-      # Compilation de la carte (Génère uniquement les tuiles d'images)
-      - name: Run WurmMapGen
-        run: |
-          java -jar WurmMapGen.jar || true
+<script>window.WurmMapGen = {};</script>
+<script type="text/javascript" defer src="app/util.js"></script>
+<script type="text/javascript" defer src="app/markers.js"></script>
+<script type="text/javascript" defer src="app/map.js"></script>
+<script type="text/javascript" defer src="app/gui.js"></script>
+<script type="text/javascript" defer src="app/main.js"></script>
 
-      # CORRECTIF SÉCURISÉ SANS COMMANDE SED BRISÉE
-      - name: Build Clean Index from Template
-        run: |
-          echo "Duplication du modèle propre sans modification..."
-          cp template/index.html ./index.html
-          echo "Vérification de la taille : $(wc -c < index.html) octets."
-
-      # Enregistre l'index fonctionnel dans votre historique GitHub réel
-      - name: Pousser les fichiers corriges sur GitHub
-        run: |
-          git config --local user.name "Doriath-Map-Bot"
-          git config --local user.email "actions@github.com"
-          
-          echo "Dernière compilation réussie le $(date '+%Y-%m-%d a %H:%M:%S')" > generation_report.txt
-          
-          git add index.html generation_report.txt
-          
-          if ! git diff-index --quiet HEAD --; then
-            git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]"
-            git push origin main
-            echo "L'index racine a été enregistré !"
-          else
-            echo "Aucun changement sur l'index."
-          fi
-
-      # Préparation de l'envoi vers le site web
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      # Déploiement final en ligne
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+</body>
+</html>
 
 
 
