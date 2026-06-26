@@ -6,13 +6,14 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Chargement force du style CSS sans lien visible pour le navigateur -->
+	<!-- Injection dynamique masquee des styles pour contourner le bug du traducteur -->
 	<script>
 		(function() {
+			var host = 'cdnjs.' + 'cloudflare.com';
 			var l = document.createElement('link');
 			l.rel = 'stylesheet';
 			l.crossOrigin = 'anonymous';
-			l.href = ['https:/', 'cdnjs.' + 'cloudflare.com', 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
+			l.href = ['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
 			document.head.appendChild(l);
 		})();
 	</script>
@@ -29,15 +30,10 @@
 		<div class="block padding">
 			<h1>{{serverName}}</h1>
 
-			<!-- BLOC CHRONO ET CHANGELOG DYNAMIQUE INTEGRÉ -->
-			<div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
-				Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
-				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Analyse du serveur...</div>
+			<!-- BLOC TEXTE DE SYNCHRONISATION DIRECT ET SOLIDE -->
+			<div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center;">
+				ID_DATE_QUEBEC
 			</div>
-
-			{{#enableRealtimeMarkers}}
-			<div id="playercount" v-text="playerCountLabel"></div>
-			{{/enableRealtimeMarkers}}
 		</div>
 
 		{{#enableRealtimeMarkers}}
@@ -112,7 +108,7 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Injection dynamique masquee des scripts moteurs pour contourner le bug du traducteur -->
+<!-- Injection des scripts moteurs -->
 <script crossorigin="anonymous">
 	(function() {
 		var host = 'cdnjs.' + 'cloudflare.com';
@@ -143,24 +139,6 @@
 				s.defer = true;
 				document.body.appendChild(s);
 			});
-			chrono();
-		}
-
-		function chrono() {
-			setTimeout(function() {
-				fetch('./data/timestamp.json')
-					.then(function(res) { return res.json(); })
-					.then(function(data) {
-						if (data && data.last_update) {
-							document.getElementById('update-date').innerText = data.last_update;
-							document.getElementById('update-details').innerHTML = "Fichiers: " + data.fichiers + "<br>Terrain: " + data.images_neuves;
-						}
-					})
-					.catch(function() {
-						document.getElementById('update-date').innerText = "A jour";
-						document.getElementById('update-details').innerText = "Monde charge";
-					});
-			}, 1500);
 		}
 
 		next(0);
@@ -168,3 +146,4 @@
 </script>
 </body>
 </html>
+
