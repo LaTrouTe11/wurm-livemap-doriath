@@ -5,11 +5,11 @@
     <meta charset="utf-8"/>
     <base href="/wurm-livemap-doriath/">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+
+    <link rel="stylesheet" href="https://jsdelivr.net" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://googleapis.com">
     <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .leaflet-container{overflow:hidden;-ms-touch-action:none;touch-action:none;background:#ddd;outline:0;font:12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif}.leaflet-pane,.leaflet-tile,.leaflet-tile-container{position:absolute;left:0;top:0}.leaflet-pane{z-index:400}.leaflet-tile{-webkit-user-select:none;-moz-user-select:none;-user-select:none;-webkit-user-drag:none;white-space:nowrap}.leaflet-tile-loaded{visibility:inherit}.leaflet-map-pane svg{position:absolute;z-index:200}.leaflet-map-pane canvas{position:absolute;z-index:100}
-    </style>
 </head>
 <body data-realtime="false">
 
@@ -72,17 +72,14 @@
     <div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- LEAFLET ENGINE (Brut sans aucun lien web externe) -->
-<script>
-!function(a,b){var c={};c.extend=function(a){for(var b=1;b<arguments.length;b++)for(var c in arguments[b])a[c]=arguments[b][c];return a},c.lastId=0,c.stamp=function(a){return a._leaflet_id=a._leaflet_id||++c.lastId,a._leaflet_id},a.L={version:"1.2.0",Util:c},a.L.Map=function(a){this._container=document.getElementById(a),this._layers={}},a.L.Map.prototype={addLayer:function(a){this._layers[c.stamp(a)]=a},setView:function(){return this}},a.L.tileLayer=function(){return{onAdd:function(){}}},a.L.CRS={Simple:{}},a.L.point=function(a,b){return{x:a,y:b}},a.L.latLng=function(a,b){return{lat:a,lng:b}}}(window);
-</script>
-
-<!-- VUE.JS ENGINE (Brut sans aucun lien web externe) -->
-<script>
-!function(a){var b=function(a){this.sidebarVisible=!0,this.loaded=!0,this.showVillages=!0,this.showVillageBorders=!0,this.showTowers=!0,this.showTowerBorders=!0,this.showPortals=!0,this.showStructures=!0,this.searchQuery="",this.searchResults=[],this._data=a.data||{}};a.Vue=b}(window);
-</script>
-
+<!-- CHARGEMENT PAR IMPORTATION DIRECTE DE MODULES CONTRE LA REECRITURE AUTOMATIQUE -->
+<script crossorigin="anonymous" src="https://jsdelivr.net"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
+<script crossorigin="anonymous" src="https://jsdelivr.net"></script>
+<script crossorigin="anonymous" src="https://jsdelivr.net" defer></script>
+<script crossorigin="anonymous" src="https://jsdelivr.net" defer></script>
+<script crossorigin="anonymous" src="https://jsdelivr.net"></script>
+
 <script>window.WurmMapGen = {};</script>
 <script type="text/javascript" defer src="app/util.js"></script>
 <script type="text/javascript" defer src="app/markers.js"></script>
@@ -91,4 +88,3 @@
 <script type="text/javascript" defer src="app/main.js"></script>
 </body>
 </html>
-
