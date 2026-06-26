@@ -66,9 +66,9 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
         
-        # Injection de l heure de synchronisation du Quebec directement dans le fichier final genere
+        # CORRECTION UNIVERSELLE : Utilisation de | pour eviter le bug de la barre oblique /
         DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
-        sed -i "s/id=\"repo-sync-label\">Based on code by/id=\"repo-sync-label\"><span style=\"display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;\">Synchro : $DATE_QC<\/span>Based on code by/g" index.html
+        sed -i "s|id=\"repo-sync-label\">Based on code by|id=\"repo-sync-label\"><span style=\"display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;\">Synchro : $DATE_QC</span>Based on code by|g" index.html
 
     - name: 6. Sauvegarde et Envoi automatique force
       run: |
@@ -89,4 +89,5 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
+
 
