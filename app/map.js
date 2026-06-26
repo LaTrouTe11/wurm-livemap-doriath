@@ -130,11 +130,14 @@ WurmMapGen.map = {
 			);
 
 			marker.bindPopup([
-				'<div align="center"><b>Guard Tower</b>',
-				'<i>Created by ' + escapeHtml(tower.creator) + '</i></div>',
-				'<b>QL:</b> ' + escapeHtml(tower.ql),
-				'<b>DMG:</b> ' + escapeHtml(tower.dmg)
-				].join('<br>'));
+				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
+				'<i>' + escapeHtml(village.motto) + '</i></div>',
+				'<b>Maire :</b> ' + escapeHtml(village.mayor),
+				'<b>Citoyens :</b> ' + escapeHtml(village.citizens),
+				'<b>Créé le :</b> ' + (village.creation ? escapeHtml(village.creation) + ' 2026' : 'En 2026'),
+				'<b>Position :</b> ' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y'
+			].join('<br>'));
+
 
 			// Open the marker popup when the border is clicked
 			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
