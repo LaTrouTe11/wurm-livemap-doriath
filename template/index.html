@@ -6,12 +6,14 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Chargement securise du CSS Leaflet via esm.sh neutre -->
+	<!-- Injection dynamique securisee des styles pour contourner le bug du traducteur -->
 	<script>
 		(function() {
+			var host = 'cdnjs.' + 'cloudflare.com';
 			var l = document.createElement('link');
 			l.rel = 'stylesheet';
-			l.href = ['https:/', 'esm.sh', 'leaflet@1.2.0', 'dist', 'leaflet.css'].join('/');
+			l.crossOrigin = 'anonymous';
+			l.href = ['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
 			document.head.appendChild(l);
 		})();
 	</script>
@@ -104,26 +106,26 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement dynamique securise des modules via esm.sh -->
+<!-- Chargement dynamique securise au format standard classique (UMD) sans conflit de module -->
 <script crossorigin="anonymous">
 	(function() {
-		var base = ['https:/', 'esm.sh'].join('/');
-		var files = [
-			[base, 'leaflet@1.2.0', 'dist', 'leaflet.js'].join('/'),
+		var host = 'cdnjs.' + 'cloudflare.com';
+		var scripts = [
+			['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
 			'dist/Leaflet.Coordinates-0.1.5.min.js',
-			[base, 'cookies-js@1.2.3', 'dist', 'cookies.min.js'].join('/'),
-			[base, 'whatwg-fetch@2.0.3', 'fetch.js'].join('/'),
-			[base, 'promise-polyfill@6.1.0', 'promise.min.js'].join('/'),
-			[base, 'vue@2.5.9', 'dist', 'vue.min.js'].join('/')
+			['https:/', host, 'ajax', 'libs', 'cookies.js', '1.2.3', 'cookies.min.js'].join('/'),
+			['https:/', host, 'ajax', 'libs', 'fetch', '2.0.3', 'fetch.min.js'].join('/'),
+			['https:/', host, 'ajax', 'libs', 'es6-promise', '4.1.1', 'es6-promise.auto.min.js'].join('/'),
+			['https:/', host, 'ajax', 'libs', 'vue', '2.5.9', 'vue.min.js'].join('/')
 		];
 		
 		function next(i) {
-			if (i >= files.length) {
+			if (i >= scripts.length) {
 				start();
 				return;
 			}
 			var s = document.createElement('script');
-			s.src = files[i];
+			s.src = scripts[i];
 			s.crossOrigin = 'anonymous';
 			s.onload = function() { next(i + 1); };
 			document.body.appendChild(s);
@@ -131,8 +133,8 @@
 		
 		function start() {
 			window.WurmMapGen = {};
-			var apps = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
-			apps.forEach(function(src) {
+			var core = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
+			core.forEach(function(src) {
 				var s = document.createElement('script');
 				s.src = src;
 				s.defer = true;
