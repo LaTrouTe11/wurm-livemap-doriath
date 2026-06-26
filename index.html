@@ -6,7 +6,8 @@
     <base href="/wurm-livemap-doriath/">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-    <link rel="stylesheet" href="https://jsdelivr.net" crossorigin="anonymous">
+    <!-- Lecture des styles locaux enregistres par le script cloud -->
+    <link rel="stylesheet" href="dist/leaflet.css">
     <link rel="stylesheet" href="https://googleapis.com">
     <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
     <link rel="stylesheet" href="css/style.css">
@@ -72,13 +73,10 @@
     <div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- CHARGEMENT PAR IMPORTATION DIRECTE DE MODULES CONTRE LA REECRITURE AUTOMATIQUE -->
-<script crossorigin="anonymous" src="https://jsdelivr.net"></script>
+<!-- Lecture des fichiers moteurs locaux sans aucune requete internet externe -->
+<script src="dist/leaflet.js"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script crossorigin="anonymous" src="https://jsdelivr.net"></script>
-<script crossorigin="anonymous" src="https://jsdelivr.net" defer></script>
-<script crossorigin="anonymous" src="https://jsdelivr.net" defer></script>
-<script crossorigin="anonymous" src="https://jsdelivr.net"></script>
+<script src="dist/vue.js"></script>
 
 <script>window.WurmMapGen = {};</script>
 <script type="text/javascript" defer src="app/util.js"></script>
@@ -88,3 +86,4 @@
 <script type="text/javascript" defer src="app/main.js"></script>
 </body>
 </html>
+
