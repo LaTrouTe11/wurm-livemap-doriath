@@ -6,17 +6,7 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Injection dynamique securisee des styles pour contourner le bug du traducteur -->
-	<script>
-		(function() {
-			var host = 'cdnjs.' + 'cloudflare.com';
-			var l = document.createElement('link');
-			l.rel = 'stylesheet';
-			l.crossOrigin = 'anonymous';
-			l.href = ['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
-			document.head.appendChild(l);
-		})();
-	</script>
+	<link rel="stylesheet" href="dist/leaflet.css">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 </head>
@@ -91,12 +81,11 @@
 				powered by <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
 			</p>
 			<p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
-			<p id="repo-sync-label">Based on code by <a href="https://github.com">Garrett92</a></p>
 		</div>
 	</div>
 
 	<div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
-		<input v-model="searchQuery" placeholder="Search map for deeds, players, ..." autocomplete="off">
+		<input v-model="searchQuery" placeholder="Search map..." autocomplete="off">
 		<div id="search-results" v-if="searchQuery !== ''">
 			<div v-for="result in searchResults" :class="result.type" v-html="result.label" @click="focusMap(result.x, result.y); searchQuery = '';"></div>
 		</div>
@@ -106,45 +95,17 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Liens corriges et valides sur CDNJS -->
-<script crossorigin="anonymous">
-	(function() {
-		var host = 'cdnjs.' + 'cloudflare.com';
-		var scripts = [
-			['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
-			'dist/Leaflet.Coordinates-0.1.5.min.js',
-			['https:/', host, 'ajax', 'libs', 'js-cookie', '2.2.1', 'js.cookie.min.js'].join('/'),
-			['https:/', host, 'ajax', 'libs', 'fetch', '2.0.4', 'fetch.min.js'].join('/'),
-			['https:/', host, 'ajax', 'libs', 'es6-promise', '4.2.8', 'es6-promise.auto.min.js'].join('/'),
-			['https:/', host, 'ajax', 'libs', 'vue', '2.5.9', 'vue.min.js'].join('/')
-		];
-		
-		function next(i) {
-			if (i >= scripts.length) {
-				start();
-				return;
-			}
-			var s = document.createElement('script');
-			s.src = scripts[i];
-			s.crossOrigin = 'anonymous';
-			s.onload = function() { next(i + 1); };
-			document.body.appendChild(s);
-		}
-		
-		function start() {
-			window.WurmMapGen = {};
-			var core = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
-			core.forEach(function(src) {
-				var s = document.createElement('script');
-				s.src = src;
-				s.defer = true;
-				document.body.appendChild(s);
-			});
-		}
+<script src="dist/leaflet.js"></script>
+<script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
+<script src="dist/vue.js"></script>
 
-		next(0);
-	})();
-</script>
+<script>window.WurmMapGen = {};</script>
+<script type="text/javascript" defer src="app/util.js"></script>
+<script type="text/javascript" defer src="app/markers.js"></script>
+<script type="text/javascript" defer src="app/map.js"></script>
+<script type="text/javascript" defer src="app/gui.js"></script>
+<script type="text/javascript" defer src="app/main.js"></script>
+
 </body>
 </html>
 
