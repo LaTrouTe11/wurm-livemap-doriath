@@ -29,11 +29,9 @@
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
 			<h1>{{serverName}}</h1>
-
-			<!-- BLOC TEXTE DE SYNCHRONISATION DIRECT ET SOLIDE -->
-			<div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center;">
-				ID_DATE_QUEBEC
-			</div>
+			{{#enableRealtimeMarkers}}
+			<div id="playercount" v-text="playerCountLabel"></div>
+			{{/enableRealtimeMarkers}}
 		</div>
 
 		{{#enableRealtimeMarkers}}
@@ -146,4 +144,5 @@
 </script>
 </body>
 </html>
+
 
