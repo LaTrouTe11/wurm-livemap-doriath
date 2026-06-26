@@ -91,18 +91,18 @@ WurmMapGen.map = {
 			);
 
 			marker.bindPopup([
-				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
-				'<i>' + (village.motto ? escapeHtml(village.motto) : '') + '</i></div>',
-				'<b>Maire :</b> ' + escapeHtml(village.mayor),
-				'<b>Citoyens :</b> ' + escapeHtml(village.citizens),
+				'<div align="center"><b>' + (village.name ? escapeHtml(village.name) : 'Colonie') + '</b></div>',
+				'<b>Maire :</b> ' + (village.mayor ? escapeHtml(village.mayor) : 'Inconnu'),
+				'<b>Citoyens :</b> ' + (village.citizens ? escapeHtml(village.citizens) : '0'),
 				'<b>Créé en :</b> 2026',
-				'<b>Position :</b> ' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y'
+				'<b>Position :</b> ' + (village.x ? Math.floor(village.x) : '0') + ' x, ' + (village.y ? Math.floor(village.y) : '0') + ' y'
 			].join('<br>'));
 
 			// Make sure text labels always show on top of other markers
 			if (WurmMapGen.config.markerType === 3) {
 				marker.setZIndexOffset(1000);
 			}
+
 
 
 			// Open the marker popup when the border is clicked
