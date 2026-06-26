@@ -6,7 +6,6 @@
     <base href="/wurm-livemap-doriath/">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-    <!-- Utilisation stricte des fichiers CSS locaux du depot -->
     <link rel="stylesheet" href="dist/leaflet.css">
     <link rel="stylesheet" href="https://googleapis.com">
     <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
@@ -19,6 +18,12 @@
     <div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
         <div class="block padding">
             <h1>[QC/FR/CAN] QBC Doriath</h1>
+            
+            <!-- ENCADRE DE SYNCHRONISATION (CHANGELOG) -->
+            <div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
+                Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
+                <div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement du monde...</div>
+            </div>
         </div>
 
         <div class="block">
@@ -73,7 +78,6 @@
     <div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Utilisation stricte des fichiers JavaScript locaux (Aucune adresse jsdelivr brute) -->
 <script src="dist/leaflet.js"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
 <script src="dist/vue.js"></script>
@@ -84,5 +88,25 @@
 <script type="text/javascript" defer src="app/map.js"></script>
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
+
+<!-- APPLICATION SÉCURISÉE DU LOG DE SYNCHRONISATION -->
+<script>
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            fetch('./data/timestamp.json')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data && data.last_update) {
+                        document.getElementById('update-date').innerText = data.last_update;
+                        document.getElementById('update-details').innerHTML = "Fichiers: " + data.fichiers + "<br>Terrain: " + data.images_neuves;
+                    }
+                })
+                .catch(function() {
+                    document.getElementById('update-date').innerText = "A jour";
+                    document.getElementById('update-details').innerText = "Monde charge";
+                });
+        }, 1500);
+    });
+</script>
 </body>
 </html>
