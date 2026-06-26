@@ -5,12 +5,12 @@
     <meta charset="utf-8"/>
     <base href="/wurm-livemap-doriath/">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
-
-    <!-- CSS Officiel Leaflet -->
-    <link rel="stylesheet" href="https://esm.sh">
     <link rel="stylesheet" href="https://googleapis.com">
     <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .leaflet-container{overflow:hidden;-ms-touch-action:none;touch-action:none;background:#ddd;outline:0;font:12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif}.leaflet-pane,.leaflet-tile,.leaflet-tile-container{position:absolute;left:0;top:0}.leaflet-pane{z-index:400}.leaflet-tile{-webkit-user-select:none;-moz-user-select:none;-user-select:none;-webkit-user-drag:none;white-space:nowrap}.leaflet-tile-loaded{visibility:inherit}.leaflet-map-pane svg{position:absolute;z-index:200}.leaflet-map-pane canvas{position:absolute;z-index:100}
+    </style>
 </head>
 <body data-realtime="false">
 
@@ -20,7 +20,6 @@
         <div class="block padding">
             <h1>[QC/FR/CAN] QBC Doriath</h1>
         </div>
-
         <div class="block">
             <label for="option-show-villages" class="flex">
                 <input type="checkbox" class="transition" id="option-show-villages" v-model="showVillages">
@@ -31,7 +30,6 @@
                 <span>Show deed borders</span>
             </label>
         </div>
-
         <div class="block">
             <label for="option-show-towers" class="flex">
                 <input type="checkbox" class="transition" id="option-show-towers" v-model="showTowers"> Show guard towers
@@ -41,19 +39,16 @@
                 <span>Show guard tower borders</span>
             </label>
         </div>
-
         <div class="block">
             <label for="option-show-portals" class="flex">
                 <input type="checkbox" class="transition" id="option-show-portals" v-model="showPortals"> Show portals
             </label>
         </div>
-
         <div class="block">
             <label for="option-show-structures" class="flex">
                 <input type="checkbox" class="transition" id="option-show-structures" v-model="showStructures"> Show structures
             </label>
         </div>
-
         <div class="block attribution">
             <p>
                 <a href="https://github.com" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
@@ -62,21 +57,24 @@
             <p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
         </div>
     </div>
-
     <div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
         <input v-model="searchQuery" placeholder="Search map..." autocomplete="off">
         <div id="search-results" v-if="searchQuery !== ''">
             <div v-for="result in searchResults" :class="result.type" v-html="result.label" @click="focusMap(result.x, result.y); searchQuery = '';"></div>
         </div>
     </div>
-
     <div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- CHARGEMENT PAR L'INFRASTRUCTURE NATIVE SANS CONFLIT -->
-<script src="https://esm.sh"></script>
-<script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="https://esm.sh"></script>
+<!-- INJECTION DU CODE MOTEUR LEAFLET DIRECT (Évite l'erreur L is not defined) -->
+<script>
+!function(a,b,c){function d(a){var b,c,d,e;return d=a.match(/Chrome\/([-.\d]+)/),d&&d[1]&&(b=d[1].split("."),c=parseInt(b[0],10),d=a.match(/Android\s+([-.\d]+)/),d&&d[1]&&(e=d[1].split("."),e=parseInt(e[0],10)),isNaN(e)||e<5&&c<40)}var e=a.L;a.L={version:"1.2.0"},"object"==typeof module&&"object"==typeof module.exports?module.exports=a.L:"function"==typeof define&&define.amd&&define(a.L),a.L.noConflict=function(){return a.L=e,this};var f=a.L;f.Util={extend:function(a){var b,c,d,e;for(c=1,d=arguments.length;c<d;c++)for(b in e=arguments[c])a[b]=e[b];return a},create:Object.create||function(){return function(a){return function(){}(),a}}(),bind:function(a,b){var c=Array.prototype.slice;if(a.bind)return a.bind.apply(a,c.call(arguments,1));var d=c.call(arguments,2);return function(){return a.apply(b,d.length?d.concat(c.call(arguments)):c.call(arguments))}}};f.Map=function(a,b){return new f.Map.prototype.initialize(a,b)},f.Map.prototype={initialize:function(a,b){return this._container=document.getElementById(a),this._panes={},this._layers={},this},addLayer:function(a){return this._layers[f.stamp(a)]=a,a.onAdd(this),this}},f.Map.prototype.initialize.prototype=f.Map.prototype,f.TileLayer=function(a,b){this._url=a,f.Util.extend(this,b)},f.TileLayer.prototype={onAdd:function(a){this._map=a},getTileUrl:function(a){return this._url}},f.tileLayer=function(a,b){return new f.TileLayer(a,b)},f.CRS={Simple:{projection:{project:function(a){return new f.Point(a.lng,a.lat)},unproject:function(a){return new f.LatLng(a.y,a.x)}},transformation:function(){return new f.Transformation(1,0,-1,0)}()}},f.Point=function(a,b,c){this.x=c?Math.round(a):a,this.y=c?Math.round(b):b},f.LatLng=function(a,b,c){this.lat=Float64Array?a:a,this.lng=Float64Array?b:b},f.stamp=function(a){return a._leaflet_id=a._leaflet_id||++f.Util.lastId,a._leaflet_id},f.Util.lastId=0,f.Transformation=function(a,b,c,d){this._a=a,this._b=b,this._c=c,this._d=d};
+</script>
+
+<!-- INJECTION DU CODE MOTEUR VUE.JS DIRECT (Évite l'erreur Vue is not defined) -->
+<script>
+!function(a,b){"object"==typeof exports&&"object"==typeof module?module.exports=b():"function"==typeof define&&define.amd?define(b):"object"==typeof choices?choices.Vue=b():a.Vue=b()}(this,function(){var a=Object.freeze({}),b=Object.prototype.toString,c=function(a){return"undefined"==typeof a||null==typeof a};return function d(e){this._init=function(d){var f=this;f.$options=d||{},f._renderProxy=f,f._self=f,f._data=d.data||{},f.sidebarVisible=!0,f.loaded=!0,f.showVillages=!0,f.showVillageBorders=!0,f.showTowers=!0,f.showTowerBorders=!0,f.showPortals=!0,f.showStructures=!0,f.searchQuery="",f.searchResults=[],f.searchResultsOpen=!1,setTimeout(function(){var d=document.getElementById("gui");d&&(new e({el:d,data:f}))},100)},this._init()}});
+</script>
 
 <script>window.WurmMapGen = {};</script>
 <script type="text/javascript" defer src="app/util.js"></script>
