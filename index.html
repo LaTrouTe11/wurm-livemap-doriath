@@ -6,7 +6,7 @@
     <base href="/wurm-livemap-doriath/">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-    <!-- Lecture des styles locaux enregistres par le script cloud -->
+    <!-- Utilisation stricte des fichiers CSS locaux du depot -->
     <link rel="stylesheet" href="dist/leaflet.css">
     <link rel="stylesheet" href="https://googleapis.com">
     <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
@@ -73,7 +73,7 @@
     <div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Lecture des fichiers moteurs locaux sans aucune requete internet externe -->
+<!-- Utilisation stricte des fichiers JavaScript locaux (Aucune adresse jsdelivr brute) -->
 <script src="dist/leaflet.js"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
 <script src="dist/vue.js"></script>
@@ -86,4 +86,3 @@
 <script type="text/javascript" defer src="app/main.js"></script>
 </body>
 </html>
-
