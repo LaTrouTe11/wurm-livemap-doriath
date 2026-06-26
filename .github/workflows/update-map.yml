@@ -66,16 +66,22 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
 
-    - name: 6. Sauvegarde et Envoi automatique force
+    - name: 6. Sauvegarde et Envoi automatique force (Generation de votre phrase Quebecoise)
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
+        
+        # Generation precise de la date au format AA-MM-JJ et de l heure avec les secondes au Quebec
+        DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
+        
         git pull origin main --rebase || true
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
         git add tiles/ || true
-        git commit --allow-empty -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]"
+        
+        # Enregistrement de votre phrase exacte lue par l API
+        git commit --allow-empty -m "Derniere compilation reussie le $DATE_COMPIL [skip ci]"
         git push origin main --force
 
     - name: 7. Televersement natif vers GitHub Pages
@@ -85,6 +91,7 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
+
 
 
 
