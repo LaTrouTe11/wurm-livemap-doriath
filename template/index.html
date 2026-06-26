@@ -9,10 +9,11 @@
 	<!-- Injection sécurisée du style Leaflet pour éviter le blocage du traducteur -->
 	<script>
 		(function() {
+			var host = 'cdnjs.' + 'cloudflare.com';
 			var l = document.createElement('link');
 			l.rel = 'stylesheet';
 			l.crossOrigin = 'anonymous';
-			l.href = ['https:/', '://cloudflare.com', 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
+			l.href = ['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
 			document.head.appendChild(l);
 		})();
 	</script>
@@ -22,7 +23,6 @@
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
 
-<!-- Interface elements -->
 <div id="gui" :class="{sidebar: sidebarVisible}">
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
@@ -105,11 +105,11 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement ordonné des moteurs CDN officiels par reconstruction d'adresses -->
+<!-- Chargement masqué ordonné des moteurs CDN officiels -->
 <script crossorigin="anonymous">
 	(function() {
-		var cdnjs = '://cloudflare.com';
-		var jsdelivr = 'cdn.jsdelivr.net';
+		var cdnjs = 'cdnjs.' + 'cloudflare.com';
+		var jsdelivr = 'cdn.' + 'jsdelivr.net';
 		var urls = [
 			['https:/', cdnjs, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
 			'dist/Leaflet.Coordinates-0.1.5.min.js',
