@@ -30,44 +30,42 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Création du dossier local requis par WurmMapGen
+      # Création propre du dossier local de réception
       - name: Create local directories
         run: mkdir -p sqlite_db
 
-      # Téléchargement par SFTP avec le chemin corrigé pour Legion Hosting
-      - name: Download Map via SFTP
+      # Téléchargement sécurisé et forcé avec CURL (Spécifique Legion Hosting / Pterodactyl)
+      - name: Download Map via Curl SFTP
         run: |
-          sudo apt-get update && sudo apt-get install -y sshpass
-          export SSHPASS="${{ secrets.LEGION_PASS }}"
-          sshpass -e sftp -o StrictHostKeyChecking=no -P ${{ secrets.LEGION_PORT }} ${{ secrets.LEGION_USER }}@${{ secrets.LEGION_HOST }} <<EOF
-          get dist/Doriath-4k-20/sqlite/top_layer.map ./sqlite_db/top_layer.map
-          quit
-          EOF
+          curl -k --user "${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}" \
+            "sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}/dist/Doriath-4k-20/sqlite/top_layer.map" \
+            -o ./sqlite_db/top_layer.map
 
-      # Vérification de sécurité
+      # Vérification stricte du fichier avant de lancer l'application Java
       - name: Verify file position
         run: |
-          if [ -f "./sqlite_db/top_layer.map" ]; then
-            echo "Succès : Le fichier top_layer.map a été récupéré de Legion Hosting."
+          if [ -s "./sqlite_db/top_layer.map" ]; then
+            echo "Succès total : Le fichier top_layer.map est valide et pèse $(du -sh ./sqlite_db/top_layer.map | cut -f1)."
           else
-            echo "Erreur : Le fichier n'a pas pu être téléchargé."
+            echo "Échec critique : Le fichier n'a pas pu être récupéré ou est vide."
             exit 1
           fi
 
-      # Compilation de la carte et mise à jour automatique de l'index racine
+      # Compilation de la carte et correction de l'index de la racine
       - name: Run WurmMapGen
         run: |
           java -jar WurmMapGen.jar WurmMapGen.properties
 
-      # Préparation du site corrigé
+      # Préparation du site
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
-      # Déploiement final en ligne
+      # Déploiement en ligne
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
 
 
 
