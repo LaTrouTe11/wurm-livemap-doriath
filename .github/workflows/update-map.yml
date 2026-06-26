@@ -122,19 +122,22 @@ jobs:
           cp template/index.html ./index.html
           echo "Index cloné avec succès : $(wc -c < ./index.html) octets."
 
-      # Sauvegarde de l'index final sur votre historique GitHub réel
+      # CORRECTIF : Sauvegarde globale et sécurisée des images et de l'index sur votre historique GitHub
       - name: Pousser les fichiers corriges sur GitHub
         run: |
           git config --local user.name "Doriath-Map-Bot"
           git config --local user.email "actions@github.com"
           
-          git add index.html
+          # Ajoute l'index, les fichiers de données des deeds et toutes les images du relief générées
+          git add index.html data/*.json images/*.png app/map.js
+          
+          # Effectue la sauvegarde uniquement s'il y a des changements réels détectés
           if ! git diff-index --quiet HEAD --; then
             git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]"
             git push origin main
-            echo "L'index racine a été enregistré !"
+            echo "Succès : L'index et les images ont été sauvegardés sur votre dépôt !"
           else
-            echo "Aucun changement sur l'index."
+            echo "Aucune modification détectée."
           fi
 
       # Préparation de l'envoi vers le site web
@@ -145,7 +148,9 @@ jobs:
 
       # Déploiement final en ligne
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
+
 
 
 
