@@ -92,10 +92,13 @@ WurmMapGen.map = {
 
 			marker.bindPopup([
 				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
-				'<i>' + escapeHtml(village.motto) + '</i></div>',
-				'<b>Mayor:</b> ' + escapeHtml(village.mayor),
-				'<b>Citizens:</b> ' + escapeHtml(village.citizens)
-				].join('<br>'));
+				'<i>' + (village.motto ? escapeHtml(village.motto) : '') + '</i></div>',
+				'<b>Maire :</b> ' + escapeHtml(village.mayor),
+				'<b>Citoyens :</b> ' + escapeHtml(village.citizens),
+				'<b>Créé en :</b> 2026',
+				'<b>Position :</b> ' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y'
+			].join('<br>'));
+
 
 			// Make sure text labels always show on top of other markers
 			if (WurmMapGen.config.markerType === 3) {
