@@ -17,12 +17,12 @@
     <a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
     <div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
         <div class="block padding">
-            <h1>[QC/FR/CAN] QBC Doriath</h1>
+            <h1>[QC/FR/CAN] QBC Doriath | PVE | MODS 8 K 2025</h1>
             
-            <!-- BLOC CHRONO ET CHANGELOG DYNAMIQUE -->
-            <div style="margin-top: 10px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
-                📅 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
-                <div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Analyse du serveur...</div>
+            <!-- ENCADRE DE SYNCHRONISATION EXACTEMENT COMME TANTÔT -->
+            <div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
+                Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
+                <div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement du monde...</div>
             </div>
         </div>
 
@@ -89,7 +89,6 @@
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
 
-<!-- DEPLOYMENT DETECTOR -->
 <script>
     window.addEventListener('load', function() {
         setTimeout(function() {
@@ -98,7 +97,7 @@
                 .then(function(data) {
                     if (data && data.last_update) {
                         document.getElementById('update-date').innerText = data.last_update;
-                        document.getElementById('update-details').innerHTML = "📝 <b>Donnees :</b> " + data.fichiers + "<br>🖼️ <b>Terrain :</b> " + data.images_neuves;
+                        document.getElementById('update-details').innerHTML = "Fichiers: " + data.fichiers + "<br>Terrain: " + data.images_neuves;
                     }
                 })
                 .catch(function() {
@@ -110,3 +109,4 @@
 </script>
 </body>
 </html>
+
