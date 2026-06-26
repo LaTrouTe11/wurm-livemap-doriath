@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,18 +22,22 @@
 			{{#enableRealtimeMarkers}}
 			<div id="playercount" v-text="playerCountLabel"></div>
 			{{/enableRealtimeMarkers}}
-		</div>
-
-		{{#enableRealtimeMarkers}}
-			{{#showPlayers}}
-			<div class="block">
-				<label for="option-show-players" class="flex">
-					<input type="checkbox" class="transition" id="option-show-players" v-model="showPlayers">
-					<span>Show players</span>
-				</label>
+			
+			<!-- ENCADRÉ DE SYNCHRONISATION ET CHANGELOG DYNAMIQUE -->
+			<div style="margin-top: 12px; background: rgba(0, 0, 0, 0.5); border: 1px solid #444; padding: 8px 12px; border-radius: 4px; font-size: 11px;">
+				<div style="font-weight: bold; color: #00ffb7;">
+					📅 Synchro : <span id="live-update-date">En cours...</span>
+				</div>
+				<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #555; color: #ccc; font-size: 10px; line-height: 1.4;">
+					<strong>Derniers changements :</strong>
+					<ul style="margin: 4px 0 0 0; padding-left: 12px; list-style-type: square;">
+						<li>Mise à jour automatique SFTP</li>
+						<li>Correction de l'interface graphique</li>
+						<li>Actualisation des structures (4K)</li>
+					</ul>
+				</div>
 			</div>
-			{{/showPlayers}}
-		{{/enableRealtimeMarkers}}
+		</div>
 
 		{{#showDeeds}}
 		<div class="block">
@@ -45,7 +50,7 @@
 				<span>Show deed borders</span>
 			</label>
 		</div>
-		{{/showDeeds}}
+		{{#showDeeds}}
 
 		{{#showGuardTowers}}
 		<div class="block">
@@ -106,8 +111,26 @@
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
 
+<!-- SCRIPT DE LECTURE DE LA DATE AUTOMATIQUE -->
+<script>
+	window.addEventListener('load', function() {
+		fetch('generation_report.txt')
+			.then(function(response) {
+				return response.text();
+			})
+			.then(function(text) {
+				if(text && text.includes('réussie le')) {
+					document.getElementById('live-update-date').innerText = text.replace('Dernière compilation réussie le ', '');
+				} else {
+					document.getElementById('live-update-date').innerText = "En ligne";
+				}
+			})
+			.catch(function() {
+				document.getElementById('live-update-date').innerText = "À jour";
+			});
+	});
+</script>
 </body>
 </html>
-
 
 
