@@ -71,6 +71,9 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
+        # Supprime physiquement les anciens fichiers corrompus dist/leaflet.js et dist/vue.js du depot s'ils existent
+        rm -f dist/leaflet.js dist/leaflet.css dist/vue.js 2>/dev/null || true
+        
         JSON_MODIFS=$(git status --porcelain data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
         IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
         
@@ -79,6 +82,7 @@ jobs:
         echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
         
         git pull origin main --rebase || true
+        git rm dist/leaflet.js dist/leaflet.css dist/vue.js 2>/dev/null || true
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
