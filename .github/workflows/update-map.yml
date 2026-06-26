@@ -34,7 +34,7 @@ jobs:
       - name: Create local directories
         run: mkdir -p sqlite_db
 
-      # Téléchargement robuste en Javascript natif (SFTP pur avec mot de passe)
+      # Téléchargement robuste avec détection adaptative du chemin
       - name: Download Map via Node SFTP
         uses: actions/github-script@v7
         with:
@@ -42,7 +42,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            // Installation rapide de la bibliothèque SFTP officielle de Node
+            // Installation de la bibliothèque SFTP
             const execSync = require('child_process').execSync;
             execSync('npm install ssh2-sftp-client');
             const Client = require('ssh2-sftp-client');
@@ -59,15 +59,41 @@ jobs:
               try {
                 console.log('Connexion sécurisée à Legion Hosting...');
                 await sftp.connect(config);
-                console.log('Connexion réussie. Téléchargement du fichier de carte...');
+                console.log('Connexion réussie.');
                 
-                const remotePath = 'dist/Doriath-4k-20/sqlite/top_layer.map';
                 const localPath = './sqlite_db/top_layer.map';
                 
-                await sftp.fastGet(remotePath, localPath);
-                console.log('Téléchargement terminé avec succès !');
+                // Liste des chemins possibles à tester sur le serveur
+                const pathOptions = [
+                  'sqlite/top_layer.map',
+                  'dist/Doriath-4k-20/sqlite/top_layer.map',
+                  '/home/container/dist/Doriath-4k-20/sqlite/top_layer.map'
+                ];
+                
+                let fileDownloaded = false;
+                
+                for (const remotePath of pathOptions) {
+                  try {
+                    console.log(`Tentative de lecture du chemin : ${remotePath}`);
+                    const exists = await sftp.exists(remotePath);
+                    if (exists) {
+                      console.log(`Fichier trouvé ! Téléchargement de : ${remotePath}`);
+                      await sftp.fastGet(remotePath, localPath);
+                      console.log('Téléchargement terminé avec succès !');
+                      fileDownloaded = true;
+                      break;
+                    }
+                  } catch (e) {
+                    console.log(`Chemin non valide : ${remotePath} (${e.message})`);
+                  }
+                }
+                
+                if (!fileDownloaded) {
+                  throw new Error('Le fichier top_layer.map est introuvable sur tous les chemins testés.');
+                }
+                
               } catch (err) {
-                console.error('Erreur durant le transfert SFTP:', err.message);
+                console.error('Erreur critique:', err.message);
                 process.exit(1);
               } finally {
                 await sftp.end();
@@ -80,7 +106,7 @@ jobs:
       - name: Verify file position
         run: |
           if [ -s "./sqlite_db/top_layer.map" ]; then
-            echo "Succès absolu : Le fichier top_layer.map est téléchargé et prêt."
+            echo "Succès absolu : Le fichier top_layer.map est prêt pour WurmMapGen."
           else
             echo "Erreur : Le fichier n'a pas pu être récupéré ou est vide."
             exit 1
