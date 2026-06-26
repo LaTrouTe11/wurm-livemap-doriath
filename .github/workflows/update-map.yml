@@ -50,13 +50,6 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
-    - name: 3.8 Securisation absolue des moteurs (Telechargement Local Force)
-      run: |
-        mkdir -p ./dist
-        curl -sL "https://unpkg.com" -o ./dist/leaflet.js
-        curl -sL "https://unpkg.com" -o ./dist/leaflet.css
-        curl -sL "https://unpkg.com" -o ./dist/vue.js
-
     - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
@@ -83,14 +76,11 @@ jobs:
         
         if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
         
-        # Ecriture propre pour l index
         echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
         
         git pull origin main --rebase || true
         git add data/*.json || true
         git add *.json || true
-        git add dist/*.js || true
-        git add dist/*.css || true
         git add images/ || true
         git add tiles/ || true
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
