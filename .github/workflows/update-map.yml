@@ -66,23 +66,22 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
 
-    - name: 5. Generation du rapport complet (Changelog) et Sauvegarde
+    - name: 5. Generation forcee du rapport de synchronisation (Changelog)
       run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
-        
-        # Supprime physiquement les anciens fichiers corrompus dist/leaflet.js et dist/vue.js du depot s'ils existent
-        rm -f dist/leaflet.js dist/leaflet.css dist/vue.js 2>/dev/null || true
-        
+        mkdir -p ./data
         JSON_MODIFS=$(git status --porcelain data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
         IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
         
         if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
         
-        echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
-        
+        # Ecriture forcee au propre lue par le modele index.html
+        echo "{\"last_update\": \"$(TZ=\"America/Toronto\" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > ./data/timestamp.json
+
+    - name: 6. Sauvegarde et Envoi automatique
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@://github.com"
         git pull origin main --rebase || true
-        git rm dist/leaflet.js dist/leaflet.css dist/vue.js 2>/dev/null || true
         git add data/*.json || true
         git add *.json || true
         git add images/ || true
@@ -90,11 +89,10 @@ jobs:
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
         git push origin main --force
 
-    - name: 6. Televersement natif vers GitHub Pages
+    - name: 7. Televersement natif vers GitHub Pages
       uses: actions/upload-pages-artifact@v3
       with:
         path: '.'
 
-    - name: 7. Deploiement Final au Vert
+    - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
-
