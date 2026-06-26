@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Manuel : Bouton gris pour tester
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 permissions:
   contents: write
@@ -50,11 +50,11 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
-    - name: 4. Injection de la date Quebecoise en direct dans le Template
+    - name: 4. Injection Securisee de la Date Quebecoise dans le Pied de Page
       run: |
         DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
-        # Remplace la balise specifique de notre bloc par la vraie valeur texte
-        sed -i "s/ID_DATE_QUEBEC/Synchronise le $DATE_QC/g" template/index.html
+        # Injection propre dans une balise neutre que Java accepte sans bloquer
+        sed -i "s/Garrett92/Garrett92<\/a><\/p><p style=\"font-size:10px;color:#00ffb7;margin-top:5px;font-weight:bold;\">Synchro: $DATE_QC/g" template/index.html
 
     - name: 5. Execution de WurmMapGen v2.33
       run: |
@@ -72,7 +72,7 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
 
-    - name: 6. Sauvegarde et Envoi automatique
+    - name: 6. Sauvegarde et Envoi automatique force
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
@@ -91,3 +91,4 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
+
