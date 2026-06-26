@@ -34,14 +34,18 @@ jobs:
       - name: Create local directories
         run: mkdir -p sqlite_db
 
-      # Téléchargement ultra-rapide et direct via protocole SFTP sécurisé Wget
-      - name: Download Map via Wget
-        run: |
-          wget --no-check-certificate \
-            --user="${{ secrets.LEGION_USER }}" \
-            --password="${{ secrets.LEGION_PASS }}" \
-            "sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}/dist/Doriath-4k-20/sqlite/top_layer.map" \
-            -O ./sqlite_db/top_layer.map
+      # Téléchargement robuste via l'action SFTP officielle
+      - name: Download Map via SFTP Action
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          username: ${{ secrets.LEGION_USER }}
+          password: ${{ secrets.LEGION_PASS }}
+          server: ${{ secrets.LEGION_HOST }}
+          port: ${{ secrets.LEGION_PORT }}
+          local_path: './sqlite_db/top_layer.map'
+          remote_path: 'dist/Doriath-4k-20/sqlite/top_layer.map'
+          sftp_only: true
+          download: true # Force l'action à télécharger au lieu d'envoyer
 
       # Vérification stricte du fichier avant de lancer WurmMapGen
       - name: Verify file position
@@ -49,7 +53,7 @@ jobs:
           if [ -s "./sqlite_db/top_layer.map" ]; then
             echo "Succès absolu : Le fichier top_layer.map est téléchargé."
           else
-            echo "Erreur : Le fichier n'a pas pu être récupéré."
+            echo "Erreur : Le fichier n'a pas pu être récupéré ou est vide."
             exit 1
           fi
 
