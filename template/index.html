@@ -6,9 +6,8 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Utilisation de vos fichiers locaux stables sans cloudflare ni unpkg -->
 	<link rel="stylesheet" href="dist/leaflet.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700">
+	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 </head>
@@ -21,7 +20,7 @@
 		<div class="block padding">
 			<h1>{{serverName}}</h1>
 
-			<!-- BLOC CHRONO ET CHANGELOG DYNAMIQUE AJOUTÉ SOUS LE NOM DU SERVEUR -->
+			<!-- BLOC CHRONO ET CHANGELOG DYNAMIQUE INTEGRÉ SANS CASSER LE MOTEUR -->
 			<div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
 				Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
 				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Analyse du serveur...</div>
@@ -86,15 +85,12 @@
 
 		<div class="block attribution">
 			<p>
-				<a href="https://github.com/woubuc/WurmMapGen" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
-				powered by
-				<a href="http://leafletjs.com/" target="_blank" rel="noreferrer noopener">Leaflet</a>
+				<a href="https://github.com" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
+				powered by <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
 			</p>
-
-			<p>Developed and maintained by <a href="https://github.com/woubuc">woubuc</a></p>
-			<p>Based on code by <a href="https://github.com/Garrett92/">Garrett92</a></p>
+			<p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
+			<p>Based on code by <a href="https://github.com">Garrett92</a></p>
 		</div>
-
 	</div>
 
 	<div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
@@ -104,24 +100,22 @@
 		</div>
 	</div>
 
-	<!-- Map container -->
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement exclusif de vos scripts moteurs locaux pour bloquer le bug du traducteur -->
-<script src="dist/leaflet.js"></script>
+<!-- Restauration de l ordre exact des dependances d origine de l application -->
+<script src="dist/leaflet.js" defer></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="dist/vue.js"></script>
+<script src="dist/vue.js" defer></script>
 
-<!-- Load app -->
-<script>window.WurmMapGen = {}; // Create a namespace for the app</script>
+<script>window.WurmMapGen = {};</script>
 <script type="text/javascript" defer src="app/util.js"></script>
 <script type="text/javascript" defer src="app/markers.js"></script>
 <script type="text/javascript" defer src="app/map.js"></script>
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
 
-<!-- SYSTEME DE LECTURE AUTOMATIQUE DU CHANGELOG -->
+<!-- SYSTEME DE LECTURE AUTOMATIQUE -->
 <script>
     window.addEventListener('load', function() {
         setTimeout(function() {
