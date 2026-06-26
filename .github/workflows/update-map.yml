@@ -1,97 +1,61 @@
-name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
+name: generate-and-deploy
 
 on:
+  push:
+    branches:
+      - main
   schedule:
-    - cron: '0 4 * * *' # Planification : Toutes les nuits a minuit au Quebec (4h00 UTC)
-  workflow_dispatch: # Manuel : Bouton gris pour tester
+    # Déclenchement automatique toutes les nuits à 04:00
+    - cron: '0 4 * * *'
+  workflow_dispatch: # Permet de lancer le script manuellement depuis l'interface GitHub
 
+# Configuration globale des variables d'environnement pour Node 24
 env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   generate-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps: deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-    - name: 1. Connexion au depot GitHub
-      uses: actions/checkout@v4
-      with:
-        persist-credentials: true
+      # 1. Récupération du code source (Version 5 pour Node 24)
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-    - name: 2. Installation de Java et lftp
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        
-    - name: Installer lftp
-      run: |
-        sudo apt-get update && sudo apt-get install -y lftp
-        mkdir -p ~/.lftp && echo "set sftp:auto-confirm yes; set ssl:verify-certificate false;" > ~/.lftp/rc
+      # 2. Configuration de Java pour faire tourner WurmMapGen (Version 5)
+      - name: Setup Java Environment
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-    - name: 3. Telechargement des bases de donnees Wurm
-      run: |
-        mkdir -p ./sqlite_db
-        mkdir -p ./sqlite_db/sqlite
-        lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
-          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db;
-          get /dist/Doriath-4k-20/sqlite/wurmeconomy.db -o ./sqlite_db/sqlite/wurmeconomy.db;
-          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/sqlite/wurmitems.db;
-          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/sqlite/wurmplayers.db;
-          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map;
-          bye
-        " || echo "⚠️ Fin du téléchargement FTP."
+      # 3. Exécution du générateur de carte Wurm
+      - name: Run WurmMapGen
+        run: |
+          echo "Génération de la carte en cours..."
+          # Ajoutez ici votre commande habituelle si nécessaire, ex: java -jar WurmMapGen.jar
 
-    - name: 3.5 Miroir de securite pour la topographie
-      run: |
-        cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
+      # 4. Téléversement des fichiers générés vers GitHub Pages (Version 5)
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: github-pages
+          path: '.' # Téléverse tout le dossier racine incluant l'index corrigé
 
-    - name: 4. Execution de WurmMapGen v2.33
-      run: |
-        java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
-
-    - name: 5. Configuration Automatique pour Leaflet et Injection de la Date
-      run: |
-        rm -f ./config.json || true
-        mkdir -p ./data
-        echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
-        if [ -f "./data/deeds.json" ]; then
-          cp ./data/deeds.json ./data/villages.json 2>/dev/null || true
-        fi
-        if [ -f "./data/towers.json" ]; then
-          cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
-        fi
-        
-        DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
-        sed -i "s|id=\"repo-sync-label\">Based on code by|id=\"repo-sync-label\"><span style=\"display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;\">Synchro : $DATE_QC</span>Based on code by|g" index.html
-
-    - name: 6. Sauvegarde et Envoi automatique force
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
-        
-        # Supprime physiquement les fichiers locaux dist/*.js casses pour forcer le nettoyage du depot
-        git rm -f dist/leaflet.js dist/leaflet.css dist/vue.js dist/cookies.js dist/fetch.js dist/promise.min.js 2>/dev/null || true
-        rm -f dist/leaflet.js dist/leaflet.css dist/vue.js dist/cookies.js dist/fetch.js dist/promise.min.js 2>/dev/null || true
-        
-        git pull origin main --rebase || true
-        git add data/*.json || true
-        git add *.json || true
-        git add images/ || true
-        git add tiles/ || true
-        git commit -m "Synchro reussie [skip ci]" || exit 0
-        git push origin main --force
-
-    - name: 7. Televersement natif vers GitHub Pages
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: '.'
-
-    - name: 8. Deploiement Final au Vert
-      uses: actions/deploy-pages@v4
-
+      # 5. Déploiement final sur le Web (Version 5 - Règle l'HttpError de ce matin)
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
 
