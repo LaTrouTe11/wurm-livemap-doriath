@@ -86,7 +86,7 @@ WurmMapGen.map = {
 				weight: 1
 			});
 
-			var marker = L.marker(xy(village.x, village.y),
+		var marker = L.marker(xy(village.x, village.y),
 				{icon: WurmMapGen.markers.getMarker('village', village)}
 			);
 
@@ -99,11 +99,11 @@ WurmMapGen.map = {
 				'<b>Position :</b> ' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y'
 			].join('<br>'));
 
-
 			// Make sure text labels always show on top of other markers
 			if (WurmMapGen.config.markerType === 3) {
 				marker.setZIndexOffset(1000);
 			}
+
 
 			// Open the marker popup when the border is clicked
 			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
