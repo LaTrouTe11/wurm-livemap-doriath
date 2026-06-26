@@ -50,11 +50,17 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
-    - name: 4. Execution de WurmMapGen v2.33
+    - name: 4. Injection de la date Quebecoise en direct dans le Template
+      run: |
+        DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
+        # Remplace la balise specifique de notre bloc par la vraie valeur texte
+        sed -i "s/ID_DATE_QUEBEC/Synchronise le $DATE_QC/g" template/index.html
+
+    - name: 5. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 4.5 Configuration Automatique pour Leaflet
+    - name: 5.5 Configuration Automatique pour Leaflet
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -65,17 +71,6 @@ jobs:
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
-
-    - name: 5. Generation forcee du rapport de synchronisation (Changelog)
-      run: |
-        mkdir -p ./data
-        JSON_MODIFS=$(git status --porcelain data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
-        IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
-        
-        if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
-        
-        # Ecriture forcee au propre lue par le modele index.html
-        echo "{\"last_update\": \"$(TZ=\"America/Toronto\" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > ./data/timestamp.json
 
     - name: 6. Sauvegarde et Envoi automatique
       run: |
