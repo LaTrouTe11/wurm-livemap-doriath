@@ -50,17 +50,11 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
-    - name: 4. Injection Securisee de la Date Quebecoise dans le Pied de Page
-      run: |
-        DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
-        # Injection propre dans une balise neutre que Java accepte sans bloquer
-        sed -i "s/Garrett92/Garrett92<\/a><\/p><p style=\"font-size:10px;color:#00ffb7;margin-top:5px;font-weight:bold;\">Synchro: $DATE_QC/g" template/index.html
-
-    - name: 5. Execution de WurmMapGen v2.33
+    - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5.5 Configuration Automatique pour Leaflet
+    - name: 5. Configuration Automatique pour Leaflet et Injection de la Date
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -71,6 +65,10 @@ jobs:
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
+        
+        # Injection de l heure de synchronisation du Quebec directement dans le fichier final genere
+        DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
+        sed -i "s/id=\"repo-sync-label\">Based on code by/id=\"repo-sync-label\"><span style=\"display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;\">Synchro : $DATE_QC<\/span>Based on code by/g" index.html
 
     - name: 6. Sauvegarde et Envoi automatique force
       run: |
