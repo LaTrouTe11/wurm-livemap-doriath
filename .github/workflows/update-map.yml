@@ -48,6 +48,14 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
+    - name: 3.8 Securisation des fichiers moteurs (Telechargement direct Cloud)
+      run: |
+        # Telecharge les vrais fichiers moteurs officiels de Leaflet et de Vue directement dans votre dossier local dist/
+        mkdir -p ./dist
+        curl -sL "https://unpkg.com" -o ./dist/leaflet.js
+        curl -sL "https://unpkg.com" -o ./dist/leaflet.css
+        curl -sL "https://unpkg.com" -o ./dist/vue.js
+
     - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
@@ -56,43 +64,27 @@ jobs:
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
-        
-        # Genere un fichier config JSON impeccable que le site d'origine va adorer lire pour la taille 4096
         echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
-        
-        # Aligne vos fichiers reels genere par la v2.33 avec les demandes de l'index d'origine
         if [ -f "./data/deeds.json" ]; then
           cp ./data/deeds.json ./data/villages.json 2>/dev/null || true
-        else
-          echo "[]" > ./data/villages.json
-          echo "[]" > ./data/deeds.json
         fi
-        
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
-        else
-          echo "[]" > ./data/guardtowers.json
-          echo "[]" > ./data/towers.json
         fi
 
     - name: 5. Sauvegarde et Envoi automatique force vers Vercel et GitHub Pages
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
-        
-        # Force la recuperation de l'historique distant pour eviter les conflits de push
         git pull origin main --rebase || true
-        
         git add data/*.json || true
         git add *.json || true
+        git add dist/*.js || true
+        git add dist/*.css || true
         git add images/ || true
         git add tiles/ || true
-        
         git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
-        
-        # Envoi force pour outrepasser les blocages d'historique de jetons
         git push origin main --force
-
 
 
 
