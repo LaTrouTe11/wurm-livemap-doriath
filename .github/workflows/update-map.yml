@@ -30,12 +30,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Création propre du dossier local de réception
+      # Création de l'arborescence exacte demandée par votre fichier properties
       - name: Create local directories
-        run: mkdir -p sqlite_db
+        run: mkdir -p sqlite_db/sqlite
 
-      # Scan complet et téléchargement automatique du fichier
-      - name: Scan and Download Map via Node SFTP
+      # Scan complet et téléchargement automatique de TOUS les fichiers requis
+      - name: Scan and Download Map Files via Node SFTP
         uses: actions/github-script@v7
         with:
           script: |
@@ -55,9 +55,8 @@ jobs:
               password: '${{ secrets.LEGION_PASS }}'
             };
             
-            // Fonction récursive pour chercher le fichier partout sur le serveur
+            // Fonction récursive pour chercher les fichiers requis partout sur le serveur
             async function findFile(dir, targetName) {
-              console.log(`Recherche dans le dossier : ${dir}`);
               let list = await sftp.list(dir);
               for (const item of list) {
                 const fullPath = dir === '/' ? `/${item.name}` : `${dir}/${item.name}`;
@@ -81,20 +80,29 @@ jobs:
               try {
                 console.log('Connexion à Legion Hosting...');
                 await sftp.connect(config);
-                console.log('Connexion établie. Lancement de la recherche automatique du fichier...');
+                console.log('Connexion établie. Recherche des fichiers Wurm...');
                 
-                // Démarre la recherche à la racine visible du SFTP
-                const remotePath = await findFile('.', 'top_layer.map');
-                
-                if (!remotePath) {
-                  throw new Error('Le fichier top_layer.map est introuvable sur votre serveur Legion Hosting.');
+                // 1. Récupération du fichier top_layer.map
+                const mapPath = await findFile('.', 'top_layer.map');
+                if (mapPath) {
+                  console.log(`Fichier localisé : ${mapPath}`);
+                  await sftp.fastGet(mapPath, './sqlite_db/sqlite/top_layer.map');
+                  console.log('top_layer.map téléchargé.');
+                } else {
+                  throw new Error('top_layer.map introuvable.');
                 }
                 
-                console.log(`Fichier localisé à l'emplacement exact : ${remotePath}`);
-                console.log('Téléchargement en cours...');
-                await sftp.fastGet(remotePath, './sqlite_db/top_layer.map');
-                console.log('Téléchargement terminé avec succès !');
+                // 2. Récupération du fichier wurmzones.db
+                const zonesPath = await findFile('.', 'wurmzones.db');
+                if (zonesPath) {
+                  console.log(`Fichier localisé : ${zonesPath}`);
+                  await sftp.fastGet(zonesPath, './sqlite_db/sqlite/wurmzones.db');
+                  console.log('wurmzones.db téléchargé.');
+                } else {
+                  throw new Error('wurmzones.db introuvable.');
+                }
                 
+                console.log('Tous les fichiers requis ont été rapatriés avec succès !');
               } catch (err) {
                 console.error('Erreur critique:', err.message);
                 process.exit(1);
@@ -105,20 +113,20 @@ jobs:
             
             return main();
 
-      # Vérification stricte du fichier avant de lancer WurmMapGen
-      - name: Verify file position
+      # Vérification de sécurité
+      - name: Verify files position
         run: |
-          if [ -s "./sqlite_db/top_layer.map" ]; then
-            echo "Succès absolu : Le fichier top_layer.map est prêt."
+          if [ -s "./sqlite_db/sqlite/top_layer.map" ] && [ -s "./sqlite_db/sqlite/wurmzones.db" ]; then
+            echo "Succès absolu : Les fichiers de base de données sont prêts."
           else
-            echo "Erreur : Le fichier est absent ou vide."
+            echo "Erreur : Des fichiers indispensables sont manquants ou vides."
             exit 1
           fi
 
-      # Compilation de la carte et correction automatique de l'index racine
+      # Commande Java nettoyée (sans l'argument properties de trop)
       - name: Run WurmMapGen
         run: |
-          java -jar WurmMapGen.jar WurmMapGen.properties
+          java -jar WurmMapGen.jar
 
       # Préparation du site
       - name: Upload Artifact
@@ -129,6 +137,7 @@ jobs:
       # Déploiement final en ligne
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
 
 
 
