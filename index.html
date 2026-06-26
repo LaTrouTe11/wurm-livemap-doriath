@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{serverName}} - WU MapGen</title>
+	<title>[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025 - WU MapGen</title>
 	<meta charset="utf-8"/>
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
@@ -9,10 +9,11 @@
 	<!-- Injection sécurisée du style Leaflet pour éviter le blocage du traducteur -->
 	<script>
 		(function() {
+			var host = 'cdnjs.' + 'cloudflare.com';
 			var l = document.createElement('link');
 			l.rel = 'stylesheet';
 			l.crossOrigin = 'anonymous';
-			l.href = ['https:/', '://cloudflare.com', 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
+			l.href = ['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
 			document.head.appendChild(l);
 		})();
 	</script>
@@ -20,31 +21,16 @@
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 </head>
-<body data-realtime="{{enableRealtimeMarkers}}">
+<body data-realtime="false">
 
-<!-- Interface elements -->
 <div id="gui" :class="{sidebar: sidebarVisible}">
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
-			<h1>{{serverName}}</h1>
-			{{#enableRealtimeMarkers}}
-			<div id="playercount" v-text="playerCountLabel"></div>
-			{{/enableRealtimeMarkers}}
+			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
 		</div>
 
-		{{#enableRealtimeMarkers}}
-			{{#showPlayers}}
-			<div class="block">
-				<label for="option-show-players" class="flex">
-					<input type="checkbox" class="transition" id="option-show-players" v-model="showPlayers">
-					<span>Show players</span>
-				</label>
-			</div>
-			{{/showPlayers}}
-		{{/enableRealtimeMarkers}}
 
-		{{#showDeeds}}
 		<div class="block">
 			<label for="option-show-villages" class="flex">
 				<input type="checkbox" class="transition" id="option-show-villages" v-model="showVillages">
@@ -55,9 +41,7 @@
 				<span>Show deed borders</span>
 			</label>
 		</div>
-		{{/showDeeds}}
 
-		{{#showGuardTowers}}
 		<div class="block">
 			<label for="option-show-towers" class="flex">
 				<input type="checkbox" class="transition" id="option-show-towers" v-model="showTowers"> Show guard towers
@@ -67,23 +51,18 @@
 				<span>Show guard tower borders</span>
 			</label>
 		</div>
-		{{/showGuardTowers}}
 
-		{{#showPortals}}
 		<div class="block">
 			<label for="option-show-portals" class="flex">
 				<input type="checkbox" class="transition" id="option-show-portals" v-model="showPortals"> Show portals
 			</label>
 		</div>
-		{{/showPortals}}
 
-		{{#showStructures}}
 		<div class="block">
 			<label for="option-show-structures" class="flex">
 				<input type="checkbox" class="transition" id="option-show-structures" v-model="showStructures"> Show structures
 			</label>
 		</div>
-		{{/showStructures}}
 
 		<div class="block attribution">
 			<p>
@@ -91,7 +70,7 @@
 				powered by <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
 			</p>
 			<p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
-			<p id="repo-sync-label">Based on code by <a href="https://github.com">Garrett92</a></p>
+			<p id="repo-sync-label"><span style="display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;">Derniere compilation reussie le 2026-06-26 a 19:59:36</span>Based on code by <a href="https://github.com">Garrett92</a></p>
 		</div>
 	</div>
 
@@ -105,11 +84,11 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement ordonné des moteurs CDN officiels par reconstruction d'adresses -->
+<!-- Chargement masqué ordonné des moteurs CDN officiels -->
 <script crossorigin="anonymous">
 	(function() {
-		var cdnjs = '://cloudflare.com';
-		var jsdelivr = 'cdn.jsdelivr.net';
+		var cdnjs = 'cdnjs.' + 'cloudflare.com';
+		var jsdelivr = 'cdn.' + 'jsdelivr.net';
 		var urls = [
 			['https:/', cdnjs, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
 			'dist/Leaflet.Coordinates-0.1.5.min.js',

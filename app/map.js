@@ -86,26 +86,21 @@ WurmMapGen.map = {
 				weight: 1
 			});
 
-		var marker = L.marker(xy(village.x, village.y),
+			var marker = L.marker(xy(village.x, village.y),
 				{icon: WurmMapGen.markers.getMarker('village', village)}
 			);
 
-			    marker.bindPopup(
-				'<div align="center"><b>' + escapeHtml(village.name) + '</b><br>' +
-				'<i>' + (village.motto ? escapeHtml(village.motto) : '') + '</i></div><br>' +
-				'<b>Maire :</b> ' + (village.mayor ? escapeHtml(village.mayor) : 'Inconnu') + '<br>' +
-				'<b>Citoyens :</b> ' + (village.citizens ? escapeHtml(village.citizens) : '1') + '<br>' +
-				'<b>Créé en :</b> 2026<br>' +
-				'<b>Position :</b> ' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y'
-			);
-
+			marker.bindPopup([
+				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
+				'<i>' + escapeHtml(village.motto) + '</i></div>',
+				'<b>Mayor:</b> ' + escapeHtml(village.mayor),
+				'<b>Citizens:</b> ' + escapeHtml(village.citizens)
+				].join('<br>'));
 
 			// Make sure text labels always show on top of other markers
 			if (WurmMapGen.config.markerType === 3) {
 				marker.setZIndexOffset(1000);
 			}
-
-
 
 			// Open the marker popup when the border is clicked
 			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
@@ -135,14 +130,11 @@ WurmMapGen.map = {
 			);
 
 			marker.bindPopup([
-				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
-				'<i>' + escapeHtml(village.motto) + '</i></div>',
-				'<b>Maire :</b> ' + escapeHtml(village.mayor),
-				'<b>Citoyens :</b> ' + escapeHtml(village.citizens),
-				'<b>Créé le :</b> ' + (village.creation ? escapeHtml(village.creation) + ' 2026' : 'En 2026'),
-				'<b>Position :</b> ' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y'
-			].join('<br>'));
-
+				'<div align="center"><b>Guard Tower</b>',
+				'<i>Created by ' + escapeHtml(tower.creator) + '</i></div>',
+				'<b>QL:</b> ' + escapeHtml(tower.ql),
+				'<b>DMG:</b> ' + escapeHtml(tower.dmg)
+				].join('<br>'));
 
 			// Open the marker popup when the border is clicked
 			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
