@@ -25,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Donne l'autorisation d'écrire dans vos fichiers
+          fetch-depth: 0 # Récupère tout l'historique pour éviter les conflits de push
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -37,7 +37,7 @@ jobs:
       - name: Create local directories
         run: mkdir -p sqlite_db/sqlite
 
-      # Scan complet et téléchargement automatique des fichiers Wurm
+      # Scan complet et téléchargement automatique de la liste complète des fichiers
       - name: Scan and Download Map Files via Node SFTP
         uses: actions/github-script@v7
         with:
@@ -117,28 +117,37 @@ jobs:
         run: |
           java -jar WurmMapGen.jar
 
-      # ÉTAPE CRITIQUE : Le robot crée un rapport et pousse l'index corrigé sur votre dépôt GitHub réel
-      - name: Pousser les fichiers corriges sur GitHub
+      # PROTECTION ANTI-FICHIER VIDE : On vérifie la taille de index.html avant de continuer
+      - name: Verify index is not empty
         run: |
-          git config --global user.name "Doriath-Map-Bot"
-          git config --global user.email "actions@github.com"
-          
-          # Crée un petit fichier texte pour prouver la réussite de la génération
-          echo "Dernière compilation réussie le $(date '+%Y-%m-%d a %H:%M:%S')" > generation_report.txt
-          
-          # Force l'ajout du index.html modifié par Java et du rapport de texte
-          git add index.html generation_report.txt
-          
-          # Vérifie s'il y a des changements avant de sauvegarder pour éviter de faire planter le script
-          if ! git diff-index --quiet HEAD --; then
-            git commit -m "Mise a jour automatique WurmMapGen [skip ci]"
-            git push origin main
-            echo "Succès : L'index.html a été mis à jour directement dans vos fichiers GitHub !"
+          if [ ! -s "index.html" ]; then
+            echo "ERREUR CRITIQUE : Le fichier index.html généré est vide ! Arrêt du script pour protéger le site."
+            exit 1
           else
-            echo "Aucun changement détecté dans l'index.html."
+            echo "Parfait : Le fichier index.html contient bien des données ($(wc -c < index.html) octets)."
           fi
 
-      # Préparation du site pour la mise en ligne
+      # ÉTAPE DE SAUVEGARDE SÉCURISÉE : Enregistre l'index compilé sur votre historique GitHub réel
+      - name: Pousser les fichiers corriges sur GitHub
+        run: |
+          git config --local user.name "Doriath-Map-Bot"
+          git config --local user.email "actions@github.com"
+          
+          # Génère un vrai rapport avec l'heure de l'Est (Québec/Canada)
+          echo "Dernière compilation réussie le $(date '+%Y-%m-%d a %H:%M:%S')" > generation_report.txt
+          
+          git add index.html generation_report.txt
+          
+          # Évite de faire planter le robot s'il n'y a aucun changement visuel
+          if ! git diff-index --quiet HEAD --; then
+            git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]"
+            git push origin main
+            echo "L'index racine a été mis à jour avec succès dans vos fichiers !"
+          else
+            echo "Aucune nouvelle modification détectée sur l'index."
+          fi
+
+      # Préparation de l'envoi vers le site web
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
