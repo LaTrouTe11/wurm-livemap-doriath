@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -31,7 +31,9 @@ jobs:
           java-version: '17'
 
       - name: Run WurmMapGen
-        run: echo "Execution du generateur..."
+        run: |
+          # Commande critique pour executer le logiciel Java présent à votre racine
+          java -jar WurmMapGen.jar WurmMapGen.properties
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
