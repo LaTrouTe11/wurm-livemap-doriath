@@ -6,17 +6,20 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps: deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,15 +32,15 @@ jobs:
           java-version: '17'
 
       - name: Run WurmMapGen
-        run: echo "Execution..."
+        run: echo "Execution du generateur..."
 
-      - name: Upload
-        uses: actions/upload-artifact@v5
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: github-pages
-          path: '.'
+          path: '.' # Dossier contenant votre fichier index.html corrigé
 
-      - name: Deploy
-        uses: actions/deploy-pages@v5
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
 
