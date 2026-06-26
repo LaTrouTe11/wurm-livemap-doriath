@@ -2,8 +2,8 @@ name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
   schedule:
-    - cron: '0 4 * * *'
-  workflow_dispatch:
+    - cron: '0 4 * * *' # Planification : Toutes les nuits a minuit au Quebec (4h00 UTC)
+  workflow_dispatch: # Manuel : Bouton gris pour tester
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
@@ -50,16 +50,6 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
-    - name: 3.8 Telechargement securise des moteurs locaux sur le serveur virtuel
-      run: |
-        mkdir -p ./dist
-        curl -sL "https://cloudflare.com" -o ./dist/leaflet.js
-        curl -sL "https://cloudflare.com" -o ./dist/leaflet.css
-        curl -sL "https://cloudflare.com" -o ./dist/vue.js
-        curl -sL "https://cloudflare.com" -o ./dist/cookies.js
-        curl -sL "https://cloudflare.com" -o ./dist/fetch.js
-        curl -sL "https://cloudflare.com" -o ./dist/promise.min.js
-
     - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
@@ -83,11 +73,14 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
+        
+        # Supprime physiquement les fichiers locaux dist/*.js casses pour forcer le nettoyage du depot
+        git rm -f dist/leaflet.js dist/leaflet.css dist/vue.js dist/cookies.js dist/fetch.js dist/promise.min.js 2>/dev/null || true
+        rm -f dist/leaflet.js dist/leaflet.css dist/vue.js dist/cookies.js dist/fetch.js dist/promise.min.js 2>/dev/null || true
+        
         git pull origin main --rebase || true
         git add data/*.json || true
         git add *.json || true
-        git add dist/*.js || true
-        git add dist/*.css || true
         git add images/ || true
         git add tiles/ || true
         git commit -m "Synchro reussie [skip ci]" || exit 0
