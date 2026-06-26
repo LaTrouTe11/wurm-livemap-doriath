@@ -1,7 +1,8 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>[QC/FR/CAN] QBC Doriath | PVE | MODS 8 K 2025 - WU MapGen</title>
+    <title>[QC/FR/CAN] QBC Doriath | PVE | MODS 4 K 2025 - WU MapGen</title>
     <meta charset="utf-8"/>
     <base href="/wurm-livemap-doriath/">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
@@ -17,9 +18,9 @@
     <a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
     <div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
         <div class="block padding">
-            <h1>[QC/FR/CAN] QBC Doriath | PVE | MODS 8 K 2025</h1>
+            <h1>[QC/FR/CAN] QBC Doriath | PVE | MODS 4 K 2025</h1>
             
-            <!-- ENCADRE DE SYNCHRONISATION DYNAMIQUE -->
+            <!-- ENCADRE DE SYNCHRONISATION ET CHANGELOG DYNAMIQUE -->
             <div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
                 Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
                 <div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Chargement du monde...</div>
@@ -89,7 +90,7 @@
 <script type="text/javascript" defer src="app/gui.js"></script>
 <script type="text/javascript" defer src="app/main.js"></script>
 
-<!-- DEPLOYMENT DETECTOR -->
+<!-- DEPLOYMENT DETECTOR (Lit le fichier data/timestamp.json genere par votre script) -->
 <script>
     window.addEventListener('load', function() {
         setTimeout(function() {
@@ -110,5 +111,4 @@
 </script>
 </body>
 </html>
-
 
