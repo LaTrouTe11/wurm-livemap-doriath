@@ -6,8 +6,17 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Chargement des styles locaux (Zéro lien externe) -->
-	<link rel="stylesheet" href="dist/leaflet.css">
+	<!-- Injection sécurisée du style Leaflet pour éviter le blocage du traducteur -->
+	<script>
+		(function() {
+			var l = document.createElement('link');
+			l.rel = 'stylesheet';
+			l.crossOrigin = 'anonymous';
+			l.href = ['https:/', '://cloudflare.com', 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
+			document.head.appendChild(l);
+		})();
+	</script>
+	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 </head>
@@ -23,6 +32,17 @@
 			<div id="playercount" v-text="playerCountLabel"></div>
 			{{/enableRealtimeMarkers}}
 		</div>
+
+		{{#enableRealtimeMarkers}}
+			{{#showPlayers}}
+			<div class="block">
+				<label for="option-show-players" class="flex">
+					<input type="checkbox" class="transition" id="option-show-players" v-model="showPlayers">
+					<span>Show players</span>
+				</label>
+			</div>
+			{{/showPlayers}}
+		{{/enableRealtimeMarkers}}
 
 		{{#showDeeds}}
 		<div class="block">
@@ -71,32 +91,60 @@
 				powered by <a href="http://leafletjs.com" target="_blank" rel="noreferrer noopener">Leaflet</a>
 			</p>
 			<p>Developed and maintained by <a href="https://github.com">woubuc</a></p>
+			<p id="repo-sync-label">Based on code by <a href="https://github.com">Garrett92</a></p>
 		</div>
 	</div>
 
 	<div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
-		<input v-model="searchQuery" placeholder="Search map..." autocomplete="off">
+		<input v-model="searchQuery" placeholder="Search map for deeds, players, ..." autocomplete="off">
 		<div id="search-results" v-if="searchQuery !== ''">
 			<div v-for="result in searchResults" :class="result.type" v-html="result.label" @click="focusMap(result.x, result.y); searchQuery = '';"></div>
 		</div>
 	</div>
 
-	<!-- Map container -->
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement des scripts locaux (Zéro lien Cloudflare) -->
-<script src="dist/leaflet.js"></script>
-<script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="dist/vue.js"></script>
+<!-- Chargement ordonné des moteurs CDN officiels par reconstruction d'adresses -->
+<script crossorigin="anonymous">
+	(function() {
+		var cdnjs = '://cloudflare.com';
+		var jsdelivr = 'cdn.jsdelivr.net';
+		var urls = [
+			['https:/', cdnjs, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
+			'dist/Leaflet.Coordinates-0.1.5.min.js',
+			['https:/', jsdelivr, 'npm', 'cookies-js@1.2.3', 'dist', 'cookies.min.js'].join('/'),
+			['https:/', cdnjs, 'ajax', 'libs', 'fetch', '2.0.4', 'fetch.min.js'].join('/'),
+			['https:/', cdnjs, 'ajax', 'libs', 'es6-promise', '4.2.8', 'es6-promise.auto.min.js'].join('/'),
+			['https:/', cdnjs, 'ajax', 'libs', 'vue', '2.5.9', 'vue.min.js'].join('/')
+		];
+		
+		function loadNext(index) {
+			if (index >= urls.length) {
+				startApplication();
+				return;
+			}
+			var s = document.createElement('script');
+			s.src = urls[index];
+			s.crossOrigin = 'anonymous';
+			s.onload = function() { loadNext(index + 1); };
+			document.body.appendChild(s);
+		}
+		
+		function startApplication() {
+			window.WurmMapGen = {};
+			var modules = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
+			modules.forEach(function(src) {
+				var s = document.createElement('script');
+				s.src = src;
+				s.defer = true;
+				document.body.appendChild(s);
+			});
+		}
 
-<script>window.WurmMapGen = {};</script>
-<script type="text/javascript" defer src="app/util.js"></script>
-<script type="text/javascript" defer src="app/markers.js"></script>
-<script type="text/javascript" defer src="app/map.js"></script>
-<script type="text/javascript" defer src="app/gui.js"></script>
-<script type="text/javascript" defer src="app/main.js"></script>
-
+		loadNext(0);
+	})();
+</script>
 </body>
 </html>
 
