@@ -34,24 +34,53 @@ jobs:
       - name: Create local directories
         run: mkdir -p sqlite_db
 
-      # Téléchargement robuste via l'action SFTP officielle
-      - name: Download Map via SFTP Action
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      # Téléchargement robuste en Javascript natif (SFTP pur avec mot de passe)
+      - name: Download Map via Node SFTP
+        uses: actions/github-script@v7
         with:
-          username: ${{ secrets.LEGION_USER }}
-          password: ${{ secrets.LEGION_PASS }}
-          server: ${{ secrets.LEGION_HOST }}
-          port: ${{ secrets.LEGION_PORT }}
-          local_path: './sqlite_db/top_layer.map'
-          remote_path: 'dist/Doriath-4k-20/sqlite/top_layer.map'
-          sftp_only: true
-          download: true # Force l'action à télécharger au lieu d'envoyer
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Installation rapide de la bibliothèque SFTP officielle de Node
+            const execSync = require('child_process').execSync;
+            execSync('npm install ssh2-sftp-client');
+            const Client = require('ssh2-sftp-client');
+            const sftp = new Client();
+            
+            const config = {
+              host: '${{ secrets.LEGION_HOST }}',
+              port: parseInt('${{ secrets.LEGION_PORT }}' || '22'),
+              username: '${{ secrets.LEGION_USER }}',
+              password: '${{ secrets.LEGION_PASS }}'
+            };
+            
+            async function main() {
+              try {
+                console.log('Connexion sécurisée à Legion Hosting...');
+                await sftp.connect(config);
+                console.log('Connexion réussie. Téléchargement du fichier de carte...');
+                
+                const remotePath = 'dist/Doriath-4k-20/sqlite/top_layer.map';
+                const localPath = './sqlite_db/top_layer.map';
+                
+                await sftp.fastGet(remotePath, localPath);
+                console.log('Téléchargement terminé avec succès !');
+              } catch (err) {
+                console.error('Erreur durant le transfert SFTP:', err.message);
+                process.exit(1);
+              } finally {
+                await sftp.end();
+              }
+            }
+            
+            return main();
 
       # Vérification stricte du fichier avant de lancer WurmMapGen
       - name: Verify file position
         run: |
           if [ -s "./sqlite_db/top_layer.map" ]; then
-            echo "Succès absolu : Le fichier top_layer.map est téléchargé."
+            echo "Succès absolu : Le fichier top_layer.map est téléchargé et prêt."
           else
             echo "Erreur : Le fichier n'a pas pu être récupéré ou est vide."
             exit 1
@@ -71,7 +100,6 @@ jobs:
       # Déploiement final en ligne
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
-
 
 
 
