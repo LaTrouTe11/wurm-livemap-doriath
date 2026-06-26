@@ -2,8 +2,8 @@ name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
   schedule:
-    - cron: '0 4 * * *' # Planification : Toutes les nuits a minuit au Quebec (4h00 UTC)
-  workflow_dispatch: # Manuel : Bouton gris pour tester
+    - cron: '0 4 * * *'
+  workflow_dispatch:
 
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
@@ -50,6 +50,16 @@ jobs:
       run: |
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
+    - name: 3.8 Telechargement securise des moteurs locaux sur le serveur virtuel
+      run: |
+        mkdir -p ./dist
+        curl -sL "https://cloudflare.com" -o ./dist/leaflet.js
+        curl -sL "https://cloudflare.com" -o ./dist/leaflet.css
+        curl -sL "https://cloudflare.com" -o ./dist/vue.js
+        curl -sL "https://cloudflare.com" -o ./dist/cookies.js
+        curl -sL "https://cloudflare.com" -o ./dist/fetch.js
+        curl -sL "https://cloudflare.com" -o ./dist/promise.min.js
+
     - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
@@ -66,7 +76,6 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
         
-        # CORRECTION UNIVERSELLE : Utilisation de | pour eviter le bug de la barre oblique /
         DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
         sed -i "s|id=\"repo-sync-label\">Based on code by|id=\"repo-sync-label\"><span style=\"display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;\">Synchro : $DATE_QC</span>Based on code by|g" index.html
 
@@ -77,9 +86,11 @@ jobs:
         git pull origin main --rebase || true
         git add data/*.json || true
         git add *.json || true
+        git add dist/*.js || true
+        git add dist/*.css || true
         git add images/ || true
         git add tiles/ || true
-        git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]" || exit 0
+        git commit -m "Synchro reussie [skip ci]" || exit 0
         git push origin main --force
 
     - name: 7. Televersement natif vers GitHub Pages
