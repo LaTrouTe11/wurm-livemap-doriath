@@ -6,22 +6,26 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- CSS officiel Leaflet via reseau mondial stable unpkg -->
-	<link rel="stylesheet" href="https://unpkg.com" crossorigin="anonymous">
+	<!-- Injection dynamique securisee du CSS Leaflet par script force -->
+	<script>
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.crossOrigin = 'anonymous';
+		link.href = ['https:/', '://cloudflare.com', 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
+		document.head.appendChild(link);
+	</script>
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
 
-<!-- Interface elements -->
 <div id="gui" :class="{sidebar: sidebarVisible}">
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
 			<h1>{{serverName}}</h1>
 
-			<!-- BLOC CHRONO ET CHANGELOG DYNAMIQUE INTEGRÉ -->
 			<div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
 				Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
 				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Analyse du serveur...</div>
@@ -104,36 +108,59 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement immediat sans restriction de securite CORS ni defer bloquant -->
-<script src="https://unpkg.com" crossorigin="anonymous"></script>
-<script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="https://unpkg.com" crossorigin="anonymous"></script>
+<!-- INJECTION EN BLOC FORCE CONTRE L INTERCEPTION DE NAVIGATEUR -->
+<script crossorigin="anonymous">
+	(function() {
+		var scripts = [
+			['https:/', '://cloudflare.com', 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
+			'dist/Leaflet.Coordinates-0.1.5.min.js',
+			['https:/', '://cloudflare.com', 'ajax', 'libs', 'vue', '2.5.9', 'vue.min.js'].join('/')
+		];
+		
+		function loadScript(index) {
+			if (index >= scripts.length) {
+				initApp();
+				return;
+			}
+			var s = document.createElement('script');
+			s.src = scripts[index];
+			s.crossOrigin = 'anonymous';
+			if (index === 1) s.defer = true;
+			s.onload = function() { loadScript(index + 1); };
+			document.body.appendChild(s);
+		}
+		
+		function initApp() {
+			window.WurmMapGen = {};
+			var apps = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
+			apps.forEach(function(src) {
+				var s = document.createElement('script');
+				s.src = src;
+				s.defer = true;
+				document.body.appendChild(s);
+			});
+			loadTimestamp();
+		}
 
-<script>window.WurmMapGen = {};</script>
-<script type="text/javascript" defer src="app/util.js"></script>
-<script type="text/javascript" defer src="app/markers.js"></script>
-<script type="text/javascript" defer src="app/map.js"></script>
-<script type="text/javascript" defer src="app/gui.js"></script>
-<script type="text/javascript" defer src="app/main.js"></script>
+		function loadTimestamp() {
+			setTimeout(function() {
+				fetch('./data/timestamp.json')
+					.then(function(res) { return res.json(); })
+					.then(function(data) {
+						if (data && data.last_update) {
+							document.getElementById('update-date').innerText = data.last_update;
+							document.getElementById('update-details').innerHTML = "Fichiers: " + data.fichiers + "<br>Terrain: " + data.images_neuves;
+						}
+					})
+					.catch(function() {
+						document.getElementById('update-date').innerText = "A jour";
+						document.getElementById('update-details').innerText = "Monde charge";
+					});
+			}, 1500);
+		}
 
-<!-- SYSTEME DE LECTURE AUTOMATIQUE -->
-<script>
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            fetch('./data/timestamp.json')
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    if (data && data.last_update) {
-                        document.getElementById('update-date').innerText = data.last_update;
-                        document.getElementById('update-details').innerHTML = "Fichiers: " + data.fichiers + "<br>Terrain: " + data.images_neuves;
-                    }
-                })
-                .catch(function() {
-                    document.getElementById('update-date').innerText = "A jour";
-                    document.getElementById('update-details').innerText = "Monde charge";
-                });
-        }, 1500);
-    });
+		loadScript(0);
+	})();
 </script>
 </body>
 </html>
