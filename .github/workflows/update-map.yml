@@ -78,13 +78,12 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # Identification precise des modifications
         JSON_MODIFS=$(git status --porcelain data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
         IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
         
         if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
         
-        # Ecriture propre pour l index d origine
+        # Ecriture propre pour l index
         echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
         
         git pull origin main --rebase || true
