@@ -34,7 +34,7 @@ jobs:
       - name: Create local directories
         run: mkdir -p sqlite_db/sqlite
 
-      # Scan complet et téléchargement automatique des 3 fichiers requis
+      # Scan complet et téléchargement automatique de la liste complète des fichiers
       - name: Scan and Download Map Files via Node SFTP
         uses: actions/github-script@v7
         with:
@@ -81,27 +81,34 @@ jobs:
                 const mapPath = await findFile('.', 'top_layer.map');
                 if (mapPath) {
                   await sftp.fastGet(mapPath, './sqlite_db/top_layer.map');
-                } else {
-                  throw new Error('top_layer.map introuvable.');
-                }
+                } else { throw new Error('top_layer.map introuvable.'); }
                 
                 // 2. wurmzones.db
                 const zonesPath = await findFile('.', 'wurmzones.db');
                 if (zonesPath) {
                   await sftp.fastGet(zonesPath, './sqlite_db/sqlite/wurmzones.db');
-                } else {
-                  throw new Error('wurmzones.db introuvable.');
-                }
+                } else { throw new Error('wurmzones.db introuvable.'); }
 
                 // 3. wurmitems.db
                 const itemsPath = await findFile('.', 'wurmitems.db');
                 if (itemsPath) {
                   await sftp.fastGet(itemsPath, './sqlite_db/sqlite/wurmitems.db');
-                } else {
-                  throw new Error('wurmitems.db introuvable.');
+                } else { throw new Error('wurmitems.db introuvable.'); }
+
+                // 4. wurmplayers.db
+                const playersPath = await findFile('.', 'wurmplayers.db');
+                if (playersPath) {
+                  await sftp.fastGet(playersPath, './sqlite_db/sqlite/wurmplayers.db');
+                  console.log('wurmplayers.db téléchargé.');
+                } else { throw new Error('wurmplayers.db introuvable.'); }
+
+                // 5. Optionnel : wurmhistory.db (Sécurité pour éviter un autre crash)
+                const historyPath = await findFile('.', 'wurmhistory.db');
+                if (historyPath) {
+                  await sftp.fastGet(historyPath, './sqlite_db/sqlite/wurmhistory.db');
                 }
                 
-                console.log('Téléchargements réussis.');
+                console.log('Tous les fichiers requis ont été rapatriés !');
               } catch (err) {
                 console.error('Erreur critique:', err.message);
                 process.exit(1);
@@ -112,15 +119,17 @@ jobs:
             
             return main();
 
-      # Alignement complet pour éviter les conflits de configuration
+      # Alignement structurel complet
       - name: Align files structure
         run: |
           cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map
           cp ./sqlite_db/sqlite/wurmzones.db ./sqlite_db/wurmzones.db
           cp ./sqlite_db/sqlite/wurmitems.db ./sqlite_db/wurmitems.db
-          echo "Fichiers copiés dans sqlite_db/ et sqlite_db/sqlite/"
+          cp ./sqlite_db/sqlite/wurmplayers.db ./sqlite_db/wurmplayers.db
+          if [ -f "./sqlite_db/sqlite/wurmhistory.db" ]; then cp ./sqlite_db/sqlite/wurmhistory.db ./sqlite_db/wurmhistory.db; fi
+          echo "Structure de données synchronisée et alignée."
 
-      # Compilation de la carte et correction de l'index de la racine
+      # Compilation et mise à jour de l'index de la racine
       - name: Run WurmMapGen
         run: |
           java -jar WurmMapGen.jar
@@ -134,7 +143,6 @@ jobs:
       # Déploiement final en ligne
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
-
 
 
 
