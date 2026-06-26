@@ -6,20 +6,16 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Injection dynamique masquee des styles pour contourner le bug du traducteur -->
-	<script>
-		(function() {
-			var host = 'cdnjs.' + 'cloudflare.com';
-			var l = document.createElement('link');
-			l.rel = 'stylesheet';
-			l.crossOrigin = 'anonymous';
-			l.href = ['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
-			document.head.appendChild(l);
-		})();
-	</script>
+	<!-- STYLES UNIVERSELS ET COMPLETS INJECTÉS EN LOCAL CONTRE LE BLOCAGE DE LA COLONNE -->
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
+	<style>
+		/* Fix de securite pour forcer l affichage de la colonne de gauche */
+		#sidebar { background-color: #222 !important; color: #eee !important; display: block !important; opacity: 1 !important; visibility: visible !important; }
+		.block { border-bottom: 1px solid #333; padding: 10px !important; }
+		h1 { font-size: 16px !important; color: #fff !important; margin: 0 0 5px 0 !important; }
+	</style>
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
 
@@ -106,7 +102,7 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Injection des scripts moteurs -->
+<!-- Masquage des scripts contre le traducteur automatique -->
 <script crossorigin="anonymous">
 	(function() {
 		var host = 'cdnjs.' + 'cloudflare.com';
