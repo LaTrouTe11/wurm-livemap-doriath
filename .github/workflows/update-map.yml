@@ -1,15 +1,11 @@
-name: generate-and-deploy
+name: "Mise a jour Carte Doriath"
 
 on:
   push:
     branches:
       - main
-  schedule:
-    # Déclenchement automatique toutes les nuits à 04:00
-    - cron: '0 4 * * *'
-  workflow_dispatch: # Permet de lancer le script manuellement depuis l'interface GitHub
+  workflow_dispatch:
 
-# Configuration globale des variables d'environnement pour Node 24
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
@@ -19,43 +15,29 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 jobs:
-  generate-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps: deployment.outputs.page_url }}
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. Récupération du code source (Version 5 pour Node 24)
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v5
 
-      # 2. Configuration de Java pour faire tourner WurmMapGen (Version 5)
-      - name: Setup Java Environment
+      - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. Exécution du générateur de carte Wurm
       - name: Run WurmMapGen
-        run: |
-          echo "Génération de la carte en cours..."
-          # Ajoutez ici votre commande habituelle si nécessaire, ex: java -jar WurmMapGen.jar
+        run: echo "Execution..."
 
-      # 4. Téléversement des fichiers générés vers GitHub Pages (Version 5)
-      - name: Upload Artifact
+      - name: Upload
         uses: actions/upload-artifact@v5
         with:
           name: github-pages
-          path: '.' # Téléverse tout le dossier racine incluant l'index corrigé
+          path: '.'
 
-      # 5. Déploiement final sur le Web (Version 5 - Règle l'HttpError de ce matin)
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - name: Deploy
         uses: actions/deploy-pages@v5
+
 
