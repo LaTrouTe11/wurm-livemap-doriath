@@ -115,23 +115,16 @@ jobs:
       # Compilation de la carte (Génère uniquement les tuiles d'images)
       - name: Run WurmMapGen
         run: |
-          java -jar WurmMapGen.jar || true # Évite de bloquer si l'index vide l'énerve
+          java -jar WurmMapGen.jar || true
 
-      # CORRECTIF MAJEUR : Écrase l'index vide par votre vrai template propre et injecte les variables
+      # CORRECTIF SÉCURISÉ SANS COMMANDE SED BRISÉE
       - name: Build Clean Index from Template
         run: |
-          echo "Correction de l'index racine à partir du modèle propre..."
+          echo "Duplication du modèle propre sans modification..."
           cp template/index.html ./index.html
-          
-          # Remplace dynamiquement la balise {{serverName}} par le nom de votre serveur
-          sed -i 's/{{serverName}}/\[QC\/FR\/CAN\] QBC Doriath | PVE | MODS 4 K 2025/g' ./index.html
-          
-          # Remplace la balise realtime si nécessaire
-          sed -i 's/{{enableRealtimeMarkers}}/false/g' ./index.html
-          
-          echo "Vérification de la taille finale : $(wc -c < index.html) octets."
+          echo "Vérification de la taille : $(wc -c < index.html) octets."
 
-      # Enregistre l'index fonctionnel dans votre historique GitHub visible
+      # Enregistre l'index fonctionnel dans votre historique GitHub réel
       - name: Pousser les fichiers corriges sur GitHub
         run: |
           git config --local user.name "Doriath-Map-Bot"
@@ -144,7 +137,7 @@ jobs:
           if ! git diff-index --quiet HEAD --; then
             git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]"
             git push origin main
-            echo "L'index racine a été corrigé et enregistré sur GitHub !"
+            echo "L'index racine a été enregistré !"
           else
             echo "Aucun changement sur l'index."
           fi
@@ -159,6 +152,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
 
 
