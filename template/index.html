@@ -6,8 +6,8 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- CSS officiel Leaflet stable sans bug -->
-	<link rel="stylesheet" href="https://esm.sh">
+	<!-- CSS officiel Leaflet via reseau mondial stable unpkg -->
+	<link rel="stylesheet" href="https://unpkg.com" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
@@ -21,7 +21,7 @@
 		<div class="block padding">
 			<h1>{{serverName}}</h1>
 
-			<!-- BLOC CHRONO ET CHANGELOG DYNAMIQUE INTEGRÉ SANS CASSER LE MOTEUR -->
+			<!-- BLOC CHRONO ET CHANGELOG DYNAMIQUE INTEGRÉ -->
 			<div style="margin-top: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 11px;">
 				Synchro : <span id="update-date" style="color: #00ffb7; font-weight: bold;">En ligne</span>
 				<div id="update-details" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #555; color: #aaa; font-size: 10px; line-height: 1.4;">Analyse du serveur...</div>
@@ -104,10 +104,10 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Liens CDN officiels ultra-securises et stables geres par l infrastructure native -->
-<script src="https://esm.sh"></script>
+<!-- Chargement immediat sans restriction de securite CORS ni defer bloquant -->
+<script src="https://unpkg.com" crossorigin="anonymous"></script>
 <script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-<script src="https://esm.sh"></script>
+<script src="https://unpkg.com" crossorigin="anonymous"></script>
 
 <script>window.WurmMapGen = {};</script>
 <script type="text/javascript" defer src="app/util.js"></script>
@@ -137,3 +137,4 @@
 </script>
 </body>
 </html>
+
