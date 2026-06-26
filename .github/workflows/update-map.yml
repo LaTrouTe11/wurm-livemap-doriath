@@ -54,7 +54,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet et Injection de la Date
+    - name: 5. Configuration Automatique pour Leaflet
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -65,11 +65,8 @@ jobs:
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
-        
-        DATE_QC=$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')
-        sed -i "s|id=\"repo-sync-label\">Based on code by|id=\"repo-sync-label\"><span style=\"display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;\">Synchro : $DATE_QC</span>Based on code by|g" index.html
 
-    - name: 6. Sauvegarde et Envoi automatique force (Correction du Commit Vide)
+    - name: 6. Sauvegarde et Envoi automatique force
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
@@ -78,7 +75,6 @@ jobs:
         git add *.json || true
         git add images/ || true
         git add tiles/ || true
-        # Le parametre --allow-empty empeche le robot de planter si rien n'a bouge sur le serveur
         git commit --allow-empty -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]"
         git push origin main --force
 
