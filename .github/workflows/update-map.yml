@@ -34,17 +34,17 @@ jobs:
       - name: Create local directories
         run: mkdir -p sqlite_db
 
-      # Téléchargement natif par SFTP en utilisant vos EXACTS secrets de Legion Hosting
+      # Téléchargement par SFTP avec le chemin corrigé pour Legion Hosting
       - name: Download Map via SFTP
         run: |
           sudo apt-get update && sudo apt-get install -y sshpass
           export SSHPASS="${{ secrets.LEGION_PASS }}"
           sshpass -e sftp -o StrictHostKeyChecking=no -P ${{ secrets.LEGION_PORT }} ${{ secrets.LEGION_USER }}@${{ secrets.LEGION_HOST }} <<EOF
-          get /home/container/dist/Doriath-4k-20/sqlite/top_layer.map ./sqlite_db/top_layer.map
+          get dist/Doriath-4k-20/sqlite/top_layer.map ./sqlite_db/top_layer.map
           quit
           EOF
 
-      # Vérification de sécurité pour s'assurer que le fichier est bien arrivé
+      # Vérification de sécurité
       - name: Verify file position
         run: |
           if [ -f "./sqlite_db/top_layer.map" ]; then
@@ -68,6 +68,7 @@ jobs:
       # Déploiement final en ligne
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
 
 
 
