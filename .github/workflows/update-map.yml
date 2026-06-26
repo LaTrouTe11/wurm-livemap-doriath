@@ -1,10 +1,9 @@
-
 name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
   schedule:
-    - cron: '0 4 * * *'
-  workflow_dispatch:
+    - cron: '0 4 * * *' # Planification : Toutes les nuits a minuit au Quebec (4h00 UTC)
+  workflow_dispatch: # Manuel : Bouton gris pour tester
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -74,10 +73,20 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
 
-    - name: 5. Sauvegarde des changements
+    - name: 5. Generation du rapport complet (Changelog) et Sauvegarde
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
+        
+        # Identification precise des modifications
+        JSON_MODIFS=$(git status --porcelain data/*.json | awk '{print $2}' | xargs -I {} basename {} | paste -sd ", " -)
+        IMG_COUNT=$(git status --porcelain images/ tiles/ 2>/dev/null | grep -E '\.(jpg|png)$' | wc -l)
+        
+        if [ -z "$JSON_MODIFS" ]; then JSON_MODIFS="Aucun changement"; fi
+        
+        # Ecriture propre pour l index d origine
+        echo "{\"last_update\": \"$(TZ="America/Toronto" date +'%d/%m/%Y a %H:%M')\", \"fichiers\": \"$JSON_MODIFS\", \"images_neuves\": \"$IMG_COUNT tuiles\"}" > data/timestamp.json
+        
         git pull origin main --rebase || true
         git add data/*.json || true
         git add *.json || true
@@ -95,5 +104,4 @@ jobs:
 
     - name: 7. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
-
 
