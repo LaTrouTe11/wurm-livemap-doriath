@@ -30,20 +30,29 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Création du dossier local requis par WurmMapGen pour éviter le crash
+      # Création du dossier local requis par WurmMapGen
       - name: Create local directories
         run: mkdir -p sqlite_db
 
-      # Téléchargement sécurisé depuis Legion Hosting
+      # Téléchargement natif par SFTP en utilisant vos EXACTS secrets de Legion Hosting
       - name: Download Map via SFTP
-        uses: garygrossgarten/github-action-sftp@release
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASSWORD }}
-          port: 22
-          remote: "/home/container/dist/Doriath-4k-20/sqlite/top_layer.map"
-          local: "./sqlite_db/top_layer.map"
+        run: |
+          sudo apt-get update && sudo apt-get install -y sshpass
+          export SSHPASS="${{ secrets.LEGION_PASS }}"
+          sshpass -e sftp -o StrictHostKeyChecking=no -P ${{ secrets.LEGION_PORT }} ${{ secrets.LEGION_USER }}@${{ secrets.LEGION_HOST }} <<EOF
+          get /home/container/dist/Doriath-4k-20/sqlite/top_layer.map ./sqlite_db/top_layer.map
+          quit
+          EOF
+
+      # Vérification de sécurité pour s'assurer que le fichier est bien arrivé
+      - name: Verify file position
+        run: |
+          if [ -f "./sqlite_db/top_layer.map" ]; then
+            echo "Succès : Le fichier top_layer.map a été récupéré de Legion Hosting."
+          else
+            echo "Erreur : Le fichier n'a pas pu être téléchargé."
+            exit 1
+          fi
 
       # Compilation de la carte et mise à jour automatique de l'index racine
       - name: Run WurmMapGen
@@ -59,6 +68,7 @@ jobs:
       # Déploiement final en ligne
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
 
 
 
