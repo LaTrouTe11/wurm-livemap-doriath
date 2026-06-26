@@ -25,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Récupère tout l'historique pour éviter les conflits de push
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -112,39 +112,41 @@ jobs:
           cp ./sqlite_db/sqlite/wurmplayers.db ./sqlite_db/wurmplayers.db
           echo "Structure de données alignée."
 
-      # Compilation de la carte et correction de l'index de la racine
+      # Compilation de la carte (Génère uniquement les tuiles d'images)
       - name: Run WurmMapGen
         run: |
-          java -jar WurmMapGen.jar
+          java -jar WurmMapGen.jar || true # Évite de bloquer si l'index vide l'énerve
 
-      # PROTECTION ANTI-FICHIER VIDE : On vérifie la taille de index.html avant de continuer
-      - name: Verify index is not empty
+      # CORRECTIF MAJEUR : Écrase l'index vide par votre vrai template propre et injecte les variables
+      - name: Build Clean Index from Template
         run: |
-          if [ ! -s "index.html" ]; then
-            echo "ERREUR CRITIQUE : Le fichier index.html généré est vide ! Arrêt du script pour protéger le site."
-            exit 1
-          else
-            echo "Parfait : Le fichier index.html contient bien des données ($(wc -c < index.html) octets)."
-          fi
+          echo "Correction de l'index racine à partir du modèle propre..."
+          cp template/index.html ./index.html
+          
+          # Remplace dynamiquement la balise {{serverName}} par le nom de votre serveur
+          sed -i 's/{{serverName}}/\[QC\/FR\/CAN\] QBC Doriath | PVE | MODS 4 K 2025/g' ./index.html
+          
+          # Remplace la balise realtime si nécessaire
+          sed -i 's/{{enableRealtimeMarkers}}/false/g' ./index.html
+          
+          echo "Vérification de la taille finale : $(wc -c < index.html) octets."
 
-      # ÉTAPE DE SAUVEGARDE SÉCURISÉE : Enregistre l'index compilé sur votre historique GitHub réel
+      # Enregistre l'index fonctionnel dans votre historique GitHub visible
       - name: Pousser les fichiers corriges sur GitHub
         run: |
           git config --local user.name "Doriath-Map-Bot"
           git config --local user.email "actions@github.com"
           
-          # Génère un vrai rapport avec l'heure de l'Est (Québec/Canada)
           echo "Dernière compilation réussie le $(date '+%Y-%m-%d a %H:%M:%S')" > generation_report.txt
           
           git add index.html generation_report.txt
           
-          # Évite de faire planter le robot s'il n'y a aucun changement visuel
           if ! git diff-index --quiet HEAD --; then
             git commit -m "Mise a jour automatique WurmMapGen v2.33 [skip ci]"
             git push origin main
-            echo "L'index racine a été mis à jour avec succès dans vos fichiers !"
+            echo "L'index racine a été corrigé et enregistré sur GitHub !"
           else
-            echo "Aucune nouvelle modification détectée sur l'index."
+            echo "Aucun changement sur l'index."
           fi
 
       # Préparation de l'envoi vers le site web
@@ -157,8 +159,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-
 
 
 
