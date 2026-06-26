@@ -103,19 +103,20 @@
 		</div>
 	</div>
 
+	<!-- Map container -->
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Chargement dynamique securise au format standard classique (UMD) sans conflit de module -->
+<!-- Liens corriges et valides sur CDNJS -->
 <script crossorigin="anonymous">
 	(function() {
 		var host = 'cdnjs.' + 'cloudflare.com';
 		var scripts = [
 			['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
 			'dist/Leaflet.Coordinates-0.1.5.min.js',
-			['https:/', host, 'ajax', 'libs', 'cookies.js', '1.2.3', 'cookies.min.js'].join('/'),
-			['https:/', host, 'ajax', 'libs', 'fetch', '2.0.3', 'fetch.min.js'].join('/'),
-			['https:/', host, 'ajax', 'libs', 'es6-promise', '4.1.1', 'es6-promise.auto.min.js'].join('/'),
+			['https:/', host, 'ajax', 'libs', 'Cookies.js', '1.2.4', 'cookies.min.js'].join('/'),
+			['https:/', host, 'ajax', 'libs', 'fetch', '2.0.4', 'fetch.min.js'].join('/'),
+			['https:/', host, 'ajax', 'libs', 'es6-promise', '4.2.8', 'es6-promise.auto.min.js'].join('/'),
 			['https:/', host, 'ajax', 'libs', 'vue', '2.5.9', 'vue.min.js'].join('/')
 		];
 		
