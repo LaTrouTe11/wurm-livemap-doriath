@@ -246,3 +246,4 @@ WurmMapGen.map = {
 		marker.openPopup();
 	}
 };
+
