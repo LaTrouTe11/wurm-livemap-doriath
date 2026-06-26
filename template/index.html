@@ -3,32 +3,16 @@
 <head>
 	<title>{{serverName}} - WU MapGen</title>
 	<meta charset="utf-8"/>
-	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 
-	<!-- Injection dynamique masquee des styles pour contourner le bug du traducteur -->
-	<script>
-		(function() {
-			var host = 'cdnjs.' + 'cloudflare.com';
-			var l = document.createElement('link');
-			l.rel = 'stylesheet';
-			l.crossOrigin = 'anonymous';
-			l.href = ['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/');
-			document.head.appendChild(l);
-		})();
-	</script>
+	<!-- Liens d'origine stables recommandés par WurmMapGen -->
+	<link rel="stylesheet" href="https://unpkg.com" integrity="sha384-H47v6nQpMc3fLwVv9R5N33bZfM5P7i1A8E2v7F8v/G4=" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
-	<style>
-		#sidebar { background-color: #222 !important; color: #eee !important; display: block !important; opacity: 1 !important; visibility: visible !important; }
-		.block { border-bottom: 1px solid #333; padding: 10px !important; }
-		h1 { font-size: 16px !important; color: #fff !important; margin: 0 0 5px 0 !important; }
-	</style>
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
 
-<!-- Interface elements -->
 <div id="gui" :class="{sidebar: sidebarVisible}">
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
@@ -111,43 +95,20 @@
 	<div id="map" class="absolute transition z-page"></div>
 </div>
 
-<!-- Scripts moteurs avec integration de la dependance Cookies manquante -->
-<script crossorigin="anonymous">
-	(function() {
-		var host = 'cdnjs.' + 'cloudflare.com';
-		var scripts = [
-			['https:/', host, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
-			'dist/Leaflet.Coordinates-0.1.5.min.js',
-			['https:/', host, 'ajax', 'libs', 'cookies.js', '1.2.3', 'cookies.min.js'].join('/'),
-			['https:/', host, 'ajax', 'libs', 'vue', '2.5.9', 'vue.min.js'].join('/')
-		];
-		
-		function next(i) {
-			if (i >= scripts.length) {
-				start();
-				return;
-			}
-			var s = document.createElement('script');
-			s.src = scripts[i];
-			s.crossOrigin = 'anonymous';
-			s.onload = function() { next(i + 1); };
-			document.body.appendChild(s);
-		}
-		
-		function start() {
-			window.WurmMapGen = {};
-			var core = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
-			core.forEach(function(src) {
-				var s = document.createElement('script');
-				s.src = src;
-				s.defer = true;
-				document.body.appendChild(s);
-			});
-		}
+<!-- Chargement des scripts d'usine officiels -->
+<script src="https://unpkg.com" defer integrity="sha384-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
+<script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
+<script src="https://unpkg.com" integrity="sha384-Sz/TO/SdmTLSbgJdFXq+xsTAMk7YO3Ydk/LaJbERL9zgiFOpl39JoxkpLNBl0kFo" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer integrity="sha384-KaKx4aJnrltBb2dne61B/MRPA4uRfQvv6YW99RgjHax8TRjFxcC4BC19EEX0te/6" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer integrity="sha384-LSmcy/rdMAgofokne7lmSBxJnXdRcj4SKZwPD+CE8At+QhWXRPvESLzhy/N2zHX+" crossorigin="anonymous"></script>
+<script src="https://unpkg.com" defer integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
 
-		next(0);
-	})();
-</script>
+<script>window.WurmMapGen = {};</script>
+<script type="text/javascript" defer src="app/util.js"></script>
+<script type="text/javascript" defer src="app/markers.js"></script>
+<script type="text/javascript" defer src="app/map.js"></script>
+<script type="text/javascript" defer src="app/gui.js"></script>
+<script type="text/javascript" defer src="app/main.js"></script>
 </body>
 </html>
 
