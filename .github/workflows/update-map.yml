@@ -30,17 +30,35 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Création du dossier local requis par WurmMapGen pour éviter le crash
+      - name: Create local directories
+        run: mkdir -p sqlite_db
+
+      # Téléchargement sécurisé depuis Legion Hosting
+      - name: Download Map via SFTP
+        uses: garygrossgarten/github-action-sftp@release
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: 22
+          remote: "/home/container/dist/Doriath-4k-20/sqlite/top_layer.map"
+          local: "./sqlite_db/top_layer.map"
+
+      # Compilation de la carte et mise à jour automatique de l'index racine
       - name: Run WurmMapGen
         run: |
-          # Commande critique pour executer le logiciel Java présent à votre racine
           java -jar WurmMapGen.jar WurmMapGen.properties
 
+      # Préparation du site corrigé
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
+      # Déploiement final en ligne
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
 
 
