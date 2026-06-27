@@ -48,10 +48,15 @@ jobs:
           mapMaxZoom=5
           EOF
 
-          # Lancement du robot avec sécurité anti-plantage
-          java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
+          # Lancement avec arguments système pour forcer la config
+          java -Djava.awt.headless=true -Xmx6g \
+          -DrmiHost="localhost" -DrmiPort="8080" \
+          -jar WurmMapGen.jar || true
           
-          # Nettoyage automatique des fichiers PHP générés
+          # NETTOYAGE RADICAL
+          # Convertit les .php en .json
+          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
+          # Supprime tous les .php restants
           rm -f data/*.php
           rm -f config.php
           
@@ -63,8 +68,11 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin main
           git reset --hard origin/main
+          # On ajoute uniquement les fichiers souhaités
           git add index.html data/ images/ || true
+          # On retire le suivi de tout fichier php qui aurait pu passer entre les mailles
+          git rm -f data/*.php || true
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : carte JSON"
+            git commit -m "MAJ auto : carte et donnees JSON"
             git push origin main
           fi
