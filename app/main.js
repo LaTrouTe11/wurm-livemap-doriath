@@ -9,7 +9,8 @@ var promises = [
 ];
 
 if (document.body.getAttribute('data-realtime') === 'true') {
-	promises.push(fetchData('players', 'players.php'));
+    // CORRECTION : On pointe vers .json, PAS .php
+    promises.push(fetchData('players', 'players.json'));
 }
 
 // Start loading
