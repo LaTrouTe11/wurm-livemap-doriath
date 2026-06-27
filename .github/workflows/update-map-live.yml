@@ -1,4 +1,3 @@
-
 name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
@@ -66,8 +65,20 @@ jobs:
         rm -f ./config.json || true
         mkdir -p ./data
         echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
-        if [ -f "./data/deeds.json" ]; then cp ./data/deeds.json ./data/villages.json 2>/dev/null || true; fi
-        if [ -f "./data/towers.json" ]; then cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true; fi
+        
+        # DOUBLE VERIFICATION DES FICHIERS DE DONNEES DES VILLAGES CONTRE L ERREUR DE CHARGEMENT
+        if [ -f "./data/deeds.json" ]; then
+          cp -f ./data/deeds.json ./data/villages.json 2>/dev/null || true
+        fi
+        if [ -f "./data/villages.json" ]; then
+          cp -f ./data/villages.json ./data/deeds.json 2>/dev/null || true
+        fi
+        if [ -f "./data/towers.json" ]; then
+          cp -f ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
+        fi
+        if [ -f "./data/guardtowers.json" ]; then
+          cp -f ./data/guardtowers.json ./data/towers.json 2>/dev/null || true
+        fi
         
         # BLINDAGE ABSOLU : On ecrase l index casse de Java par notre modele template parfait
         cp -f template/index.html index.html
@@ -83,7 +94,7 @@ jobs:
           sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" app/map.js
         fi
 
-        # Remplacement dynamique du nom du serveur et de la date dans le fichier final
+		# Remplacement dynamique du nom du serveur et de la date dans le fichier final
         sed -i 's|{{serverName}}|Doriath 4K|g' index.html
         sed -i 's|{{enableRealtimeMarkers}}|true|g' index.html
         sed -i 's|{{#showDeeds}}||g' index.html
@@ -106,7 +117,7 @@ jobs:
         git add css/*.css || true
         git add images/ || true
         git add tiles/ || true
-        git commit --allow-empty -m "Restauration d usine indestructible sans page blanche"
+        git commit --allow-empty -m "Mise a jour d usine stable sans bug"
         git push origin main --force
 
     - name: 7. Televersement natif vers GitHub Pages
@@ -117,4 +128,5 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
+
 
