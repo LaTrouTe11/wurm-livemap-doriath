@@ -1,13 +1,13 @@
 /* Simple reset */
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Roboto', sans-serif; font-weight:400; font-size:14px; color:#444; }
+body { font-family:'Roboto', sans-serif; font-weight:400; font-size:14px; color:#fff; background:#111; }
 
 /* Prevent text selection when toggling options */
 #sidebar, #sidebar-toggle { -webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; -o-user-select:none; user-select:none;
 	-webkit-tap-highlight-color:transparent; -moz-tap-highlight-color:transparent; tap-highlight-color:transparent; }
 
 /* Link styles */
-a { color:#444; }
+a { color:#ffcc00; }
 a:hover, a:focus { color:#2196F3; }
 
 /* Helper classes */
@@ -21,9 +21,9 @@ a:hover, a:focus { color:#2196F3; }
 .z-overlay { z-index:2; }
 
 /* Text */
-h1 { font-size:14px; font-weight:700; }
+h1 { font-size:14px; font-weight:700; color:#ffcc00; }
 #playercount { font-size:12px; color:#888; }
-label { display:block; padding:10px 0; cursor:pointer; }
+label { display:block; padding:10px 0; cursor:pointer; color:#fff; }
 
 .attribution { font-size:11px; color:#888; }
 .attribution p { padding:2px 0; }
@@ -36,28 +36,28 @@ label { display:block; padding:10px 0; cursor:pointer; }
 	background:rgba(0,0,0,0.6); color:white; border-radius:3px; }
 
 /* Basic GUI elements */
-#sidebar { height:100vh; width:240px; left:-240px; background:white; overflow-y:auto; }
+#sidebar { height:100vh; width:240px; left:-240px; background:#222; overflow-y:auto; border-right:1px solid #444; }
 #sidebar-toggle { left:0; top:10px; width:40px; height:44px; line-height:43px;
-	background:white;  border-radius:0 3px 3px 0; box-shadow:0 0 5px rgba(0,0,0,0.1);
+	background:#222; color:#fff; border-radius:0 3px 3px 0; box-shadow:0 0 5px rgba(0,0,0,0.5);
 	font-size:20px; text-align:center; cursor:pointer; }
 
-#map { width:100vw; height:100vh; }
+#map { width:100vw; height:100vh; background:#111; }
 
 /* GUI elements when collapsible sidebar is open */
-#gui.sidebar #sidebar { left:0; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+#gui.sidebar #sidebar { left:0; box-shadow:0 0 5px rgba(0,0,0,0.5); }
 #gui.sidebar #sidebar-toggle { left:240px; }
 #gui.sidebar #search { left:290px; }
 #gui.sidebar #map { width:calc(100vw - 240px); left:240px; }
 
 /* Sidebar content */
-#sidebar .block { display:none; border-bottom:1px solid #ddd; padding:10px 15px; }
+#sidebar .block { display:none; border-bottom:1px solid #444; padding:10px 15px; }
 #sidebar .block.padding { padding:20px 15px; }
 #sidebar.loaded .block { display:block; }
 
 #sidebar label:hover, #sidebar label:focus { color:#2196F3; }
 #sidebar input { -moz-appearance:none; -webkit-appearance:none; appearance:none;
-	display:block; width:16px; height:16px; margin-right:5px; border-radius:8px; border:2px solid #ddd;
-	text-align:center; line-height:5px; }
+	display:block; width:16px; height:16px; margin-right:5px; border-radius:8px; border:2px solid #555;
+	text-align:center; line-height:5px; background:#333; }
 #sidebar input:checked { border-color:#2196F3; background:#2196F3; }
 #sidebar input::after { content:''; display:inline-block; width:4px; height:4px; background:white; border-radius:50%; }
 
@@ -70,15 +70,15 @@ label { display:block; padding:10px 0; cursor:pointer; }
 /* Search box */
 #search { top:10px; left:50px; }
 #search input { display:block; width:300px; height:44px; line-height:44px; padding: 0 12px;
- 	background:white; border:none; border-radius:3px; box-shadow:0 0 5px rgba(0,0,0,0.1);
+ 	background:#222; color:#fff; border:none; border-radius:3px; box-shadow:0 0 5px rgba(0,0,0,0.5);
 	font-family:'Roboto',sans-serif; font-weight:400; font-size:13px; }
 #search.open input { border-radius:3px 3px 0 0; }
 
 #search-results { display:none; }
-#search.open #search-results { display:block; background:white; border-radius:0 0 3px 3px; }
+#search.open #search-results { display:block; background:#222; border-radius:0 0 3px 3px; }
 
 #search-results div { display:block; padding:8px 12px; padding-left:42px; cursor:pointer;
-	text-decoration:none; color:#444; border-top:1px solid #eee; background:6px 10px no-repeat; }
+	text-decoration:none; color:#fff; border-top:1px solid #333; background:6px 10px no-repeat; }
 
 #search-results div.village { background-image:url('../markers/v2-search-village.png'); }
 #search-results div.guardtower { background-image:url('../markers/v2-search-guardtower.png'); }
@@ -86,13 +86,10 @@ label { display:block; padding:10px 0; cursor:pointer; }
 #search-results div.structure { background-image:url('../markers/v2-search-structure.png'); }
 #search-results div.portal { background-image:url('../markers/v2-search-portal.png'); }
 
-#search-results div:hover { background-color:#eee; border-radius:3px; }
-#search-results div p strong { font-weight:700; }
+#search-results div:hover { background-color:#333; border-radius:3px; }
+#search-results div p strong { font-weight:700; color:#ffcc00; }
 #search-results div p.small { font-size:12px; color:#888; }
 
-/* Disable anti-aliasing on map tiles to improve rendering and scroll speed
- * This needs some different hacks and prefixes to work in every browser
- */
 img {
 	image-rendering: optimizeSpeed;
 	image-rendering: -moz-crisp-edges;
@@ -101,4 +98,43 @@ img {
 	image-rendering: pixelated;
 	image-rendering: optimize-contrast;
 	-ms-interpolation-mode: nearest-neighbor;
+}
+
+/* ==========================================================================
+   BLINDAGE CRUCIAL NOIR ET OR DE LA BULLE LEAFLET
+   ========================================================================== */
+.leaflet-popup-content-wrapper {
+	background: #111111 !important;
+	border: 2px solid #ffcc00 !important;
+	box-shadow: 0px 4px 12px rgba(0,0,0,0.9) !important;
+	border-radius: 6px !important;
+}
+.leaflet-popup-tip {
+	background: #111111 !important;
+	border: 1px solid #ffcc00 !important;
+}
+.leaflet-popup-content {
+	color: #ffffff !important;
+	font-family: 'Roboto', sans-serif !important;
+	font-size: 13px !important;
+	line-height: 1.6 !important;
+}
+.leaflet-popup-content b, .leaflet-popup-content strong {
+	color: #FFD700 !important;
+	text-shadow: 1px 1px 2px #000 !important;
+}
+.leaflet-popup-content li {
+	color: #ffffff !important;
+	list-style-type: square !important;
+}
+.txt-m { color: #00FF7F !important; font-weight: bold; }
+.txt-c { color: #00FFFF !important; font-weight: bold; }
+.txt-p { color: #ffcc00 !important; font-family: monospace; font-weight: bold; }
+
+/* FORCE LE RENDU DES COULEURS DES FRONTIÈRES DES ROYAUMES */
+.leaflet-interactive {
+	stroke: #ffcc00 !important;
+	fill: #ffcc00 !important;
+	fill-opacity: 0.15 !important;
+	stroke-width: 2px !important;
 }
