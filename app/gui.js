@@ -10,8 +10,9 @@ WurmMapGen.gui = {
 	init: function() {
 		WurmMapGen.gui.app = new Vue({
 			el: '#gui',
-			// ISOLATION DE SÉCURITÉ : Indique à Vue.js de lire les balises {% %} du nouveau template
-			delimiters: ['{%', '%}'],
+			// CORRECTION : Utilisation des délimiteurs standards {{ }}
+			// Cela correspond à la syntaxe utilisée dans votre template index.html
+			delimiters: ['{{', '}}'],
 			data: {
 				loaded: false,
 				sidebarVisible: Cookies.get('sidebar_visible') !== 'false',
@@ -28,7 +29,7 @@ WurmMapGen.gui = {
 
 					var results = [];
 
-					// Search villages
+					// Recherche dans les villages
 					if (WurmMapGen.villages) {
 						for (var i = 0; i < WurmMapGen.villages.length; i++) {
 							var village = WurmMapGen.villages[i];
@@ -36,7 +37,7 @@ WurmMapGen.gui = {
 								results.push({
 									type: 'village',
 									name: village.name,
-									text: 'Mayor: ' + village.mayor,
+									text: 'Maire: ' + village.mayor,
 									x: village.x,
 									y: village.y
 								});
@@ -44,15 +45,15 @@ WurmMapGen.gui = {
 						}
 					}
 
-					// Search guard towers
+					// Recherche dans les tours de garde
 					if (WurmMapGen.guardtowers) {
 						for (var i = 0; i < WurmMapGen.guardtowers.length; i++) {
 							var tower = WurmMapGen.guardtowers[i];
 							if (tower.creator.toLowerCase().indexOf(q) !== -1) {
 								results.push({
 									type: 'guardtower',
-									name: 'Guard Tower',
-									text: 'Created by ' + tower.creator,
+									name: 'Tour de garde',
+									text: 'Créée par ' + tower.creator,
 									x: tower.x,
 									y: tower.y
 								});
@@ -96,7 +97,7 @@ WurmMapGen.gui = {
 	},
 
 	/**
-	 * Updates the map layers based on the selected options
+	 * Met à jour les couches de la carte
 	 */
 	updateLayers: function() {
 		var app = WurmMapGen.gui.app;
@@ -116,7 +117,7 @@ WurmMapGen.gui = {
 			else { map.removeLayer(layers.villageBorders); }
 		}
 
-		// Guard towers
+		// Tours de garde
 		if (layers.guardtowerMarkers) {
 			if (app.showTowers) { map.addLayer(layers.guardtowerMarkers); }
 			else { map.removeLayer(layers.guardtowerMarkers); }
