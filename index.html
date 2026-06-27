@@ -24,10 +24,10 @@
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
-			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; text-align: center; margin-bottom: 8px;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
+			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; text-align: center; margin-bottom: 8px; line-height: 1.3;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
 			<div style="text-align: center; margin-bottom: 14px;">
 				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="text-decoration: none;">
-					<div style="background: #1a1a1a; border: 2px solid #00ccff; padding: 8px 16px; border-radius: 6px; font-family: sans-serif; font-size: 12px; font-weight: bold; color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.3);">
+					<div style="background: #1a1a1a; border: 2px solid #00ccff; padding: 8px 16px; border-radius: 6px; font-family: sans-serif; font-size: 12px; font-weight: bold; color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.3); text-shadow: 1px 1px 2px #000;">
 						🟢 SERVEUR : ONLINE
 					</div>
 				</a>
@@ -85,7 +85,7 @@
 			activateBulleEngine();
 		}
 
-		// RECONSTRUCTEUR GLOBAL INTERNE SUR L'ÉVÉNEMENT POPUP
+		// EXTRACTEUR SÉCURISÉ PAR BALISES DOM DIRECTES (PAS DE RETOUR BLANC POSSIBLE)
 		function activateBulleEngine() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
@@ -93,38 +93,55 @@
 					
 					mapInstance.on('popupopen', function(e) {
 						var popup = e.popup;
-						var el = popup.getElement();
-						if (!el) return;
-						
-						// On vérifie si c'est bien une bulle de colonie (contient la liste des infos d'origine)
 						var contentHTML = popup.getContent();
-						if (contentHTML && (contentHTML.indexOf('Mayor:') !== -1 || contentHTML.indexOf('Maire :') !== -1)) {
-							
-							// Extraction textuelle propre des données générées par Java
+						
+						// Bloqueur anti-doublon pour figer le calcul de position
+						if (contentHTML && contentHTML.indexOf('txt-p') !== -1) { return; }
+						
+						if (contentHTML && (contentHTML.indexOf('Mayor:') !== -1 || contentHTML.indexOf('Maire :') !== -1 || contentHTML.indexOf('Citizens:') !== -1)) {
 							var tempDiv = document.createElement('div');
 							tempDiv.innerHTML = contentHTML;
 							
-							var rawText = tempDiv.innerText || tempDiv.textContent;
-							var lines = rawText.split('\n');
+							// 1. Extraction du Titre et du Slogan
+							var titleEl = tempDiv.querySelector('b');
+							var villageName = titleEl ? titleEl.innerText.trim() : "Colonie";
 							
-							var villageName = tempDiv.querySelector('b') ? tempDiv.querySelector('b').innerText.trim() : "Colonie";
+							var mottoEl = tempDiv.querySelector('i');
+							var mottoText = mottoEl ? mottoEl.innerText.trim() : "";
+							
+							// 2. Extraction du Maire et des Citoyens en lisant directement les balises HTML d'origine
 							var mayorName = "Inconnu";
 							var citizensCount = "1";
 							
-							for (var i = 0; i < lines.length; i++) {
-								var cleanLine = lines[i].trim();
-								if (cleanLine.indexOf('Mayor:') !== -1) mayorName = cleanLine.replace('Mayor:', '').trim();
-								if (cleanLine.indexOf('Citizens:') !== -1) citizensCount = cleanLine.replace('Citizens:', '').trim();
+							var listItems = tempDiv.getElementsByTagName('li');
+							if (listItems && listItems.length > 0) {
+								for (var i = 0; i < listItems.length; i++) {
+									var txt = listItems[i].innerText || listItems[i].textContent;
+									if (txt.indexOf('Mayor:') !== -1) mayorName = txt.replace('Mayor:', '').trim();
+									if (txt.indexOf('Maire :') !== -1) mayorName = txt.replace('Maire :', '').trim();
+									if (txt.indexOf('Citizens:') !== -1) citizensCount = txt.replace('Citizens:', '').trim();
+									if (txt.indexOf('Citoyens :') !== -1) citizensCount = txt.replace('Citoyens :', '').trim();
+								}
+							} else {
+								// Secours textuel brut si le serveur n'a pas fait de liste li
+								var rawText = tempDiv.innerText || tempDiv.textContent;
+								var lines = rawText.split(/[\n\r]+/);
+								for (var j = 0; j < lines.length; j++) {
+									var line = lines[j].trim();
+									if (line.indexOf('Mayor:') !== -1) mayorName = line.replace('Mayor:', '').trim();
+									if (line.indexOf('Citizens:') !== -1) citizensCount = line.replace('Citizens:', '').trim();
+								}
 							}
 							
-							// Calcul en direct des coordonnées X/Y réelles au clic géospatiel
+							// 3. Calcul géospatiel de la position X/Y réelle au clic
 							var latlng = popup.getLatLng();
-							var px = Math.floor(latlng.lng * 4096 / 32768) || Math.floor(latlng.lng);
-							var py = Math.floor(-latlng.lat * 4096 / 32768) || Math.floor(-latlng.lat);
+							var px = Math.floor(latlng.lng);
+							var py = Math.floor(-latlng.lat);
 							
-							// Formatage forcé de notre structure finale en couleur
+							// Reconstruction finale unifiée et blindée
 							var newContent = [
-								'<div align="center"><b style="color: #FFD700; font-size: 15px; text-shadow: 1px 1px 2px #000;">' + villageName + '</b></div>',
+								'<div align="center"><b style="color: #FFD700; font-size: 15px; text-shadow: 1px 1px 2px #000;">' + villageName + '</b><br>',
+								(mottoText ? '<i style="color: #bbb; font-size: 11px;">' + mottoText + '</i>' : '') + '</div>',
 								'<hr style="border:0; border-top:1px solid #ffcc00; margin:6px 0; opacity:0.3;">',
 								'<div style="font-size: 12px; line-height: 1.5; color: #fff;">',
 								'<b>Maire :</b> <span class="txt-m">' + mayorName + '</span><br>',
@@ -134,7 +151,6 @@
 								'</div>'
 							].join('');
 							
-							// On écrase l'affichage d'usine définitivement à l'écran
 							popup.setContent(newContent);
 							popup.update();
 						}
@@ -142,7 +158,7 @@
 				} else {
 					activateBulleEngine();
 				}
-			}, 1500);
+			}, 1200);
 		}
 
 		loadNext(0);
@@ -150,8 +166,6 @@
 </script>
 </body>
 </html>
-
-
 
 
 
