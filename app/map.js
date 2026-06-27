@@ -44,7 +44,7 @@ WurmMapGen.map = {
 			maxBoundsViscosity: 1.0,
 			inertia: false,
 			noWrap: true,
-			tms: false
+			tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 		}).addTo(map);
 
 		// Add coordinates display
@@ -93,8 +93,8 @@ WurmMapGen.map = {
 			marker.bindPopup([
 				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
 				'<i>' + escapeHtml(village.motto) + '</i></div>',
-				'<b>Mayor:</b> ' + escapeHtml(village.mayor),
-				'<b>Citizens:</b> ' + escapeHtml(village.citizens)
+				'👑 <b>Mayor (Maire) :</b> <span class="txt-m">' + escapeHtml(village.mayor) + '</span>',
+				'👥 <b>Citizens (Citoyens) :</b> <span class="txt-c">' + escapeHtml(village.citizens) + '</span><br>📅 <b>Founded (Créé) :</b> <span>2026</span><br>📍 <b>Coordinates (Position) :</b> <span class="txt-x">X' + Math.floor(village.x) + '</span>, <span class="txt-y">Y' + Math.floor(village.y) + '</span>'
 				].join('<br>'));
 
 			// Make sure text labels always show on top of other markers
