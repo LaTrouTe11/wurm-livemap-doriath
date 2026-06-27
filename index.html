@@ -31,9 +31,9 @@
 			
 			<!-- MODULE STATUT TEXTUEL INCASSABLE -->
 			<div style="text-align: center; margin-bottom: 12px;">
-				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="text-decoration: none;">
-					<div style="background: rgba(0, 204, 255, 0.1); border: 1px solid #00ccff; padding: 6px; border-radius: 4px; display: inline-block; font-family: Roboto, sans-serif; font-size: 11px; font-weight: bold; color: #00ccff; cursor: pointer;">
-						🎮 STATUT SERVEUR : <span id="wurm-live-status" style="color: #fff;">ONLINE</span>
+				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="text-decoration: none; display: inline-block;">
+					<div style="background: #1a1a1a; border: 2px solid #00ccff; padding: 8px 16px; border-radius: 6px; font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: bold; color: #00ccff; letter-spacing: 0.5px; box-shadow: 0 0 8px rgba(0,204,255,0.3); text-shadow: 1px 1px 2px #000;">
+						🟢 SERVEUR : ONLINE
 					</div>
 				</a>
 			</div>
@@ -41,7 +41,7 @@
 			<!-- ENCADRE DE SYNCHRONISATION FIXE -->
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.4; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 22:14:56</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 22:23:17</span>
 			</div>
 			
 		</div>
@@ -135,26 +135,9 @@
 				document.body.appendChild(s);
 			});
 			activateBulleInterceptor();
-			fetchWurmPlayersDirect();
 		}
 
-		function fetchWurmPlayersDirect() {
-			fetch('https://allorigins.win' + encodeURIComponent('https://wurm-unlimited.com'))
-				.then(function(res) { return res.json(); })
-				.then(function(data) {
-					if (data && data.contents) {
-						var html = data.contents;
-						var match = html.match(/Players online<\/dt>\s*<dd[^>]*>(\d+)\s*\/\s*(\d+)/i);
-						if (match && match) {
-							document.getElementById('wurm-live-status').innerHTML = 'ONLINE (' + match + ' JOUEUR' + (parseInt(match) > 1 ? 'S' : '') + ')';
-						}
-					}
-				})
-				.catch(function() {
-					document.getElementById('wurm-live-status').innerText = 'ONLINE';
-				});
-		}
-
+		// INTERCEPTEUR PURIFIÉ : Gère le cache et supprime le sursaut d'écran de haut en bas
 		function activateBulleInterceptor() {
 			setTimeout(function() {
 				if (WurmMapGen.map && WurmMapGen.map.map) {
@@ -164,10 +147,12 @@
 						var popup = e.popup;
 						var content = popup.getContent();
 						
+						// CORRECTIF DE TREMBLEMENT : Configuration native Leaflet exclusive sans commande manuelle conflictuelle
 						popup.options.keepInView = true;
 						popup.options.autoPan = true;
-						popup.options.autoPanPaddingTopLeft = L.point(60, 280);
-						popup.options.autoPanPaddingBottomRight = L.point(60, 60);
+						popup.options.offset = L.point(0, -20); // Décale la bulle légèrement au-dessus de l'icône de la maison
+						popup.options.autoPanPaddingTopLeft = L.point(50, 260); // Repousse la vue vers le bas pour dégager le titre et le menu de gauche
+						popup.options.autoPanPaddingBottomRight = L.point(50, 50);
 						
 						if (content && (content.indexOf('Mayor:') !== -1 || content.indexOf('Maire :') !== -1)) {
 							var titleMatch = content.match(/<b>(.*?)<\/b>/);
@@ -191,7 +176,6 @@
 								var citizensCount = targetVillage.citizens ? targetVillage.citizens : '1';
 								var dateComplete = targetVillage.creation ? targetVillage.creation + ' 2026' : 'En 2026';
 								
-								// STYLE ULTRA VISIBLE MÉDIÉVAL ET CHROMATIQUE POUR LE JEU WURM
 								var newContent = [
 									'<div align="center"><b style="color: #FFD700; font-size: 15px; text-shadow: 1px 2px 3px #000; font-family: Roboto, sans-serif; letter-spacing: 0.5px;">' + window.WurmMapGen.util.escapeHtml(targetVillage.name) + '</b><br>',
 									(mottoText ? '<i style="color: #bbb; font-size: 11px;">' + window.WurmMapGen.util.escapeHtml(mottoText) + '</i>' : '') + '</div>',
@@ -204,6 +188,8 @@
 								].join('');
 								
 								popup.setContent(newContent);
+								// Leaflet applique lui-même le glissement fluide vers le bas, l'écran est 100% stable
+								popup.update();
 							}
 						}
 					});
@@ -217,6 +203,7 @@
 	})();
 </script>
 </body>
+</html>
 
 
 
