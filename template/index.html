@@ -5,7 +5,6 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css">
-    <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
@@ -14,7 +13,7 @@
     <div id="sidebar">
         <h1>{{serverName}}</h1>
         <div class="block">
-            <p>Dernière mise à jour :<br><strong>{{date_compil}}</strong></p>
+            <p>Dernière mise à jour :<br><strong><span id="sync-date">MAJ_DATE_ICI</span></strong></p>
         </div>
     </div>
     
@@ -43,6 +42,5 @@
 </script>
 </body>
 </html>
-
 
 
