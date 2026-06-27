@@ -15,20 +15,23 @@ jobs:
       - name: 2. Installation
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement
+      - name: 3. Telechargement des donnees
         run: |
           mkdir -p ./sqlite
-          lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
-          open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
-          cd /dist/Doriath-4k-20/sqlite/; \
-          mget wurmzones.db wurmitems.db wurmplayers.db; \
-          cd ../; \
-          get top_layer.map; \
-          bye"
+          lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
+          set sftp:auto-confirm yes
+          set ssl:verify-certificate no
+          cd /dist/Doriath-4k-20/sqlite/
+          mget wurmzones.db wurmitems.db wurmplayers.db
+          cd ../
+          get top_layer.map
+          bye
+          EOF
           mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
 
       - name: 4. Execution et Conversion
         run: |
+          # Creation forcée du fichier properties complet pour le robot
           cat <<EOF > WurmMapGen.properties
           serverName=[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025
           wurmMapLocation=.
@@ -38,18 +41,33 @@ jobs:
           itemsDb=wurmitems.db
           playersDb=wurmplayers.db
           enableRealtimeMarkers=false
+          rmiHost=localhost
+          rmiPort=8080
+          markerType=2
           mapTileSize=256
           actualMapSize=4096
           mapMaxZoom=5
+          mapGenerateShading=true
+          mapShadingModifier=1.0
+          mapShadePaths=true
+          mapGenerateWater=true
+          mapGenerateBridges=true
+          showPlayers=false
+          showDeeds=true
+          showGuardTowers=true
+          showStructures=true
+          showPortals=true
           EOF
 
+          # Lancement avec 6Go de RAM
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar
           
+          # Nettoyage et conversion .php -> .json
           rm -f config.php
           for f in data/*.php; do [ -e "\$f" ] && mv "\$f" "\${f%.php}.json"; done
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
-      - name: 5. Synchro Git
+      - name: 5. Synchronisation Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
