@@ -1,6 +1,36 @@
-- name: 4. Execution et Conversion
+name: Synchro Carte Wurm Legion Hosting
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout
+        uses: actions/checkout@v4
+
+      - name: 2. Installation
+        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
+
+      - name: 3. Telechargement des donnees
         run: |
-          # 1. Création propre du fichier de configuration
+          mkdir -p ./sqlite
+          lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
+          set sftp:auto-confirm yes
+          set ssl:verify-certificate no
+          cd /dist/Doriath-4k-20/sqlite/
+          mget wurmzones.db wurmitems.db wurmplayers.db
+          cd ../
+          get top_layer.map
+          bye
+          EOF
+          mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
+
+      - name: 4. Execution et Conversion
+        run: |
           cat <<EOF > WurmMapGen.properties
           serverName=[QC/FR/CAN] QBC Doriath
           wurmMapLocation=.
@@ -18,19 +48,23 @@
           mapMaxZoom=5
           EOF
 
-          # 2. Lancement avec paramètres système forcés (évite le NullPointerException)
-          # On ajoute un "|| true" à la fin pour que même s'il y a une erreur mineure 
-          # sur la génération PHP, GitHub continue et publie les images.
-          java -Djava.awt.headless=true -Xmx6g \
-          -DrmiHost="localhost" -DrmiPort="8080" \
-          -jar WurmMapGen.jar || true
+          # Lancement du robot avec sécurité anti-plantage
+          java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
-          # 3. Conversion et nettoyage forcé
-          # On déplace les .php vers .json
-          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
-          # On supprime tout ce qui est .php pour garder le dépôt propre
+          # Nettoyage automatique des fichiers PHP générés
           rm -f data/*.php
           rm -f config.php
           
-          # 4. Mise à jour de la date
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
+
+      - name: 5. Synchronisation Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git reset --hard origin/main
+          git add index.html data/ images/ || true
+          if ! git diff --cached --quiet; then
+            git commit -m "MAJ auto : carte JSON"
+            git push origin main
+          fi
