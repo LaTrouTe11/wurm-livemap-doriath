@@ -28,7 +28,7 @@
 		<div class="block padding">
 			<h1>{{serverName}}</h1>
 			
-			<!-- ENCADRÉ DE SYNCHRONISATION FIXE HAUTE LISIBILITÉ -->
+			<!-- ENCADRE DE SYNCHRONISATION FIXE HAUTE LISIBILITE -->
 			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 10px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.5; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
 				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 22:32:10</span>
@@ -148,30 +148,47 @@
 			activateBulleInterceptor();
 		}
 
-		// BLINDAGE ABSOLU : Force la bulle a se reecrire au clic, peu importe le cache de map.js
+		// BLINDAGE ABSOLU : Capture la date reelle du serveur liee aux fichiers json
 		function activateBulleInterceptor() {
 			setTimeout(function() {
 				if (WurmMapGen.map && WurmMapGen.map.map) {
 					WurmMapGen.map.map.on('popupopen', function(e) {
 						var popup = e.popup;
 						var content = popup.getContent();
-						if (content && content.indexOf('Mayor:') !== -1) {
-							// Extraction des donnees d'usine creees par Leaflet
-							var name = content.match(/<b>(.*?)<\/b>/)[1];
-							var mayor = content.match(/<b>Mayor:<\/b>\s*(.*?)(<br>|$)/)[1];
-							var citizens = content.match(/<b>Citizens:<\/b>\s*(.*?)(<br>|$)/)[1];
-							var motto = content.match(/<i>(.*?)<\/i>/) ? content.match(/<i>(.*?)<\/i>/)[1] : '';
-							var latlng = popup.getLatLng();
+						
+						if (content && (content.indexOf('Mayor:') !== -1 || content.indexOf('Maire :') !== -1)) {
+							var titleMatch = content.match(/<b>(.*?)<\/b>/);
+							var villageName = titleMatch ? titleMatch[1] : '';
+							var targetVillage = null;
 							
-							// Reconstruction immediate en Francais avec l'annee 2026 et les coordonnes réelles
-							var newContent = [
-								'<div align="center"><b>' + name + '</b><br><i>' + motto + '</i></div><br>',
-								'<b>Maire :</b> ' + mayor + '<br>',
-								'<b>Citoyens :</b> ' + citizens + '<br>',
-								'<b>Créé en :</b> 2026<br>',
-								'<b>Position :</b> ' + Math.floor(latlng.lng) + ' x, ' + Math.floor(-latlng.lat) + ' y'
-							].join('');
-							popup.setContent(newContent);
+							if (WurmMapGen.villages) {
+								for (var i = 0; i < WurmMapGen.villages.length; i++) {
+									if (WurmMapGen.villages[i].name === villageName) {
+										targetVillage = WurmMapGen.villages[i];
+										break;
+									}
+								}
+							}
+							
+							if (targetVillage) {
+								var mottoText = targetVillage.motto ? targetVillage.motto : '';
+								var mayorText = targetVillage.mayor ? targetVillage.mayor : 'Inconnu';
+								var citizensCount = targetVillage.citizens ? targetVillage.citizens : '1';
+								
+								// Capture de la date d'origine du serveur liee a l'annee 2026
+								var dateComplete = targetVillage.creation ? targetVillage.creation + ' 2026' : 'En 2026';
+								
+								var newContent = [
+									'<div align="center"><b>' + window.WurmMapGen.util.escapeHtml(targetVillage.name) + '</b><br>',
+									(mottoText ? '<i>' + window.WurmMapGen.util.escapeHtml(mottoText) + '</i>' : '') + '</div><br>',
+									'<b>Maire :</b> ' + window.WurmMapGen.util.escapeHtml(mayorText) + '<br>',
+									'<b>Citoyens :</b> ' + citizensCount + '<br>',
+									'<b>Créé le :</b> ' + window.WurmMapGen.util.escapeHtml(dateComplete) + '<br>',
+									'<b>Position :</b> ' + Math.floor(targetVillage.x) + ' x, ' + Math.floor(targetVillage.y) + ' y'
+								].join('');
+								
+								popup.setContent(newContent);
+							}
 						}
 					});
 				} else {
