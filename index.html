@@ -20,7 +20,7 @@
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 	<style>
-		/* Blindage CSS pour forcer le fond noir et l'Or sur toutes les bulles Leaflet */
+		/* Forçage visuel noir et or haute visibilité pour toutes les bulles */
 		.leaflet-popup-content-wrapper {
 			background: #111111 !important;
 			border: 2px solid #ffcc00 !important;
@@ -64,7 +64,7 @@
 			<!-- ENCADRE DE SYNCHRONISATION FIXE -->
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.4; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 00:36:38</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 00:41:16</span>
 			</div>
 			
 		</div>
@@ -127,7 +127,7 @@
 		var cdnjs = 'cdnjs.' + 'cloudflare.com';
 		var jsdelivr = 'cdn.' + 'jsdelivr.net';
 		var urls = [
-			['https:/', cdnjs, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.css'].join('/'),
+			['https:/', cdnjs, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'), // CORRIGÉ : leaflet.js à la place de leaflet.css
 			'dist/Leaflet.Coordinates-0.1.5.min.js',
 			['https:/', jsdelivr, 'npm', 'cookies-js@1.2.3', 'dist', 'cookies.min.js'].join('/'),
 			['https:/', cdnjs, 'ajax', 'libs', 'fetch', '2.0.4', 'fetch.min.js'].join('/'),
@@ -159,7 +159,6 @@
 			activateGlobalPanControl();
 		}
 
-		// GESTIONNAIRE FLUIDE NATIF : Recentrage automatique et décalage sans aucune coupure de texte
 		function activateGlobalPanControl() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
