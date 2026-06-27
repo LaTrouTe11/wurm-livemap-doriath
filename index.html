@@ -6,12 +6,9 @@
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 	<script>
 		(function() {
-			var styleLink = document.createElement('link');
-			styleLink.rel = 'stylesheet';
-			styleLink.crossOrigin = 'anonymous';
-			var host = ['unpkg', 'com'].join('.');
-			styleLink.href = 'https://' + host + '/leaflet@1.2.0/dist/leaflet.css';
-			document.head.appendChild(styleLink);
+			var l = document.createElement('link'); l.rel = 'stylesheet'; l.crossOrigin = 'anonymous';
+			l.href = ['https:/', 'unpkg.com', 'leaflet@1.2.0', 'dist', 'leaflet.css'].join('/');
+			document.head.appendChild(l);
 		})();
 	</script>
 	<link rel="stylesheet" href="https://googleapis.com">
@@ -72,11 +69,9 @@
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div style="padding: 15px; border-bottom: 1px solid #444; text-align: center; background: #222;">
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; margin-bottom: 10px; font-family: 'Roboto', sans-serif;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
-			
-			<!-- Utilisation d une image de secours locale si wurm-unlimited.com est plante -->
-			<div style="display: block; width: 100%;">
-				<img src="images/half-banner-1.png" border="0" alt="Server Status" onerror="this.src='https://wurm-unlimited.com';" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
-			</div>
+			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display: block; width: 100%; text-decoration: none;">
+				<img src="https://wurm-unlimited.combanners/half-banner-1.png" border="0" alt="Server Status" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+			</a>
 		</div>
 
 		<div class="block" style="display: block !important;">
@@ -103,7 +98,7 @@
 		<div class="block attribution">
 			<p><a href="https://github.com" target="_blank">WurmMapGen</a> powered by <a href="http://leafletjs.com" target="_blank">Leaflet</a></p>
 			<div style="background: rgba(0, 0, 0, 0.4); border: 1px solid #ffcc00; padding: 6px; border-radius: 4px; font-size: 10px; color: #ffcc00; font-weight: bold; text-align: center; margin-top: 10px; line-height: 1.3;">
-				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 12:20:15</span>
+				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 12:23:09</span>
 			</div>
 		</div>
 	</div>
@@ -112,8 +107,8 @@
 		<input type="text" placeholder="Search..." v-model="searchQuery" @keyup.esc="searchQuery = ''">
 		<div id="search-results">
 			<div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
-				<p><strong v-html="result.name"></strong></p>
-				<p class="small" v-html="result.text"></p>
+				<p><strong v-text="result.name"></strong></p>
+				<p class="small" v-text="result.text"></p>
 			</div>
 		</div>
 	</div>
@@ -142,14 +137,37 @@
 			window.WurmMapGen = {};
 			var mods = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js', 'app/live-interceptor.js'];
 			mods.forEach(function(src) { var s = document.createElement('script'); s.src = src; s.defer = true; document.body.appendChild(s); });
+			forceRuntimeOverride();
+		}
+
+		// BLINDAGE INTERNE DOUBLE SÉCURITÉ : Modifie la carte au vol juste avant l'affichage
+		function forceRuntimeOverride() {
+			setTimeout(function() {
+				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.create) {
+					var originalCreate = WurmMapGen.map.create;
+					WurmMapGen.map.create = function() {
+						originalCreate.apply(this, arguments);
+						var mapInstance = WurmMapGen.map.map;
+						if (mapInstance) {
+							// On cherche le calque des tuiles d'usine pour lui couper son erreur
+							mapInstance.eachLayer(function(layer) {
+								if (layer && layer._url) {
+									// Recalibre de force sur images/ ou tiles/ selon vos dossiers générés
+									layer._url = layer._url.replace('tiles/', 'images/').replace('images/', 'images/');
+									layer.options.errorTileUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+									layer.redraw();
+								}
+							});
+						}
+					};
+				} else { forceRuntimeOverride(); }
+			}, 50);
 		}
 		loadNext(0);
 	})();
 </script>
 </body>
 </html>
-
-
 
 
 
