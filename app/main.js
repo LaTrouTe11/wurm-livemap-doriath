@@ -18,18 +18,19 @@ function fetchData(key, path) {
             return response.json(); 
         })
         .then(function(responseData) {
-            // CORRECTION : Si la structure est déjà un tableau, on l'utilise tel quel
-            // Sinon on cherche la propriété correspondant à la clé
-            if (key === 'config') {
+            // CORRECTION : Si la structure contient la clé 'config', on l'extrait
+            if (key === 'config' && responseData.config) {
+                WurmMapGen[key] = responseData.config;
+            } else if (Array.isArray(responseData)) {
                 WurmMapGen[key] = responseData;
             } else {
-                WurmMapGen[key] = (Array.isArray(responseData)) ? responseData : responseData[key];
+                WurmMapGen[key] = responseData[key];
             }
             return Promise.resolve();
         });
 }
 
-// ... (votre code windowIsFocused et setRealtimeTimer reste identique) ...
+// Timer for realtime player updates
 var windowIsFocused = true;
 window.onblur = function(){ windowIsFocused = false; }
 window.onfocus = function(){ windowIsFocused = true; }
@@ -66,7 +67,11 @@ Promise.all(promises)
     console.error('Erreur critique lors du chargement des données :', err);
 })
 .then(function() {
-    if (!WurmMapGen.config) return;
+    // PROTECTION : Arrêt si la config est absente
+    if (!WurmMapGen.config) {
+        console.error("Impossible de charger la configuration.");
+        return;
+    }
     
     WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
 
