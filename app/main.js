@@ -2,104 +2,82 @@
 
 (function() {
 
-	WurmMapGen.config = null;
-	WurmMapGen.villages = null;
-	WurmMapGen.guardtowers = null;
-	WurmMapGen.structures = null;
-	WurmMapGen.portals = null;
-	WurmMapGen.players = null;
+// Prepare arrays for loaded data
+WurmMapGen.config = null;
 
-	var modulesLoaded = 0;
+WurmMapGen.villages = null;
+WurmMapGen.guardtowers = null;
+WurmMapGen.structures = null;
+WurmMapGen.portals = null;
 
-	function loadData(file, callback) {
-		fetch('data/' + file + '.json?v=' + Date.now())
-			.then(function(response) {
-				if (!response.ok) {
-					callback(null);
-					return;
-				}
-				return response.json();
-			})
-			.then(function(data) {
-				callback(data);
-			})
-			.catch(function() {
-				callback(null);
-			});
+// Helper function to fetch a dataset from a JSON file
+function fetchData(key, path) {
+	return fetch('data/' + path)
+		.then(function(response) { return response.json() })
+		.then(function(responseData) {
+			WurmMapGen[key] = responseData[key];
+			return Promise.resolve();
+		});
+}
+
+// Keep track of whether or not the window is focused and active
+var windowIsFocused = true;
+window.onblur = function(){ windowIsFocused = false; }
+window.onfocus = function(){ windowIsFocused = true; }
+
+// Helper function to set timeout for refreshing realtime data
+function setRealtimeTimer() {
+	var time = 30000;
+
+	// If the window is not focused, use 60s refresh timeout instead of 30s
+	if (!windowIsFocused) {
+		time = 60000;
 	}
 
-	function checkProgress() {
-		modulesLoaded++;
-		if (modulesLoaded === 6) {
-			WurmMapGen.gui.init();
-			WurmMapGen.map.create();
-			WurmMapGen.gui.loaded();
-			activateBulleInterceptor(); // Lance le blindage des bulles
-		}
+	WurmMapGen.realtimeTimer = setTimeout(function() {
+		fetchData('players', 'players.php').then(function() {
+			WurmMapGen.map.updatePlayerMarkers();
+			WurmMapGen.gui.playerCount = WurmMapGen.players.length;
+			setRealtimeTimer();
+		});
+	}, time);
+}
+
+// Prepare promises to load data
+var promises = [
+	fetchData('config', 'config.json'),
+	fetchData('villages', 'villages.json'),
+	fetchData('guardtowers', 'guardtowers.json'),
+	fetchData('structures', 'structures.json'),
+	fetchData('portals', 'portals.json')
+];
+
+if (document.body.getAttribute('data-realtime') === 'true') {
+	promises.push(fetchData('players', 'players.php'));
+}
+
+// Start loading
+Promise.all(promises)
+.catch(function(err) {
+	console.error('Could not load data');
+	console.error(err);
+	document.write('Something went wrong, map data could not be loaded'); // TODO add better error handling
+})
+.then(function() {
+	// Add computed config values
+	WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
+
+	// Create the map
+	WurmMapGen.map.create();
+
+	// Initialise the GUI
+	WurmMapGen.gui.init();
+
+	// Set interval to refresh realtime data
+	if (document.body.getAttribute('data-realtime') === 'true') {
+		setRealtimeTimer();
 	}
+});
 
-	// BLINDAGE INTÉGRAL : Réécrit la bulle au clic par-dessus le code de map.js
-	function activateBulleInterceptor() {
-		if (WurmMapGen.map && WurmMapGen.map.map) {
-			var mapInstance = WurmMapGen.map.map;
-			
-			mapInstance.on('popupopen', function(e) {
-				var popup = e.popup;
-				var content = popup.getContent();
-				
-				// Applique de force les options de positionnement et de décalage anti-tremblement
-				popup.options.keepInView = true;
-				popup.options.autoPan = true;
-				popup.options.offset = L.point(0, -25);
-				popup.options.autoPanPaddingTopLeft = L.point(50, 320);
-				popup.options.autoPanPaddingBottomRight = L.point(50, 50);
-				
-				if (content && (content.indexOf('Mayor:') !== -1 || content.indexOf('Maire :') !== -1)) {
-					var titleMatch = content.match(/<b>(.*?)<\/b>/);
-					var rawTitle = titleMatch ? titleMatch[1] : '';
-					var decodedTitle = rawTitle.replace(/&#39;/g, "'").trim();
-					var targetVillage = null;
-					
-					if (WurmMapGen.villages) {
-						for (var i = 0; i < WurmMapGen.villages.length; i++) {
-							var currentName = WurmMapGen.villages[i].name.replace(/&#39;/g, "'").trim();
-							if (currentName === decodedTitle) {
-								targetVillage = WurmMapGen.villages[i];
-								break;
-							}
-						}
-					}
-					
-					if (targetVillage) {
-						var mottoText = targetVillage.motto ? targetVillage.motto : '';
-						var mayorText = targetVillage.mayor ? targetVillage.mayor : 'Inconnu';
-						var citizensCount = targetVillage.citizens ? targetVillage.citizens : '1';
-						var dateComplete = targetVillage.creation ? targetVillage.creation + ' 2026' : 'En 2026';
-						
-						var newContent = [
-							'<div align="center"><b style="color: #FFD700; font-size: 15px; text-shadow: 1px 2px 3px #000; font-family: Roboto, sans-serif; letter-spacing: 0.5px;">' + WurmMapGen.util.escapeHtml(targetVillage.name) + '</b><br>',
-							(mottoText ? '<i style="color: #bbb; font-size: 11px;">' + WurmMapGen.util.escapeHtml(mottoText) + '</i>' : '') + '</div>',
-							'<div style="margin-top: 8px; font-size: 11px; line-height: 1.4; color: #fff;">',
-							'<b>Maire :</b> <span style="color: #00FF7F; font-weight: bold;">' + WurmMapGen.util.escapeHtml(mayorText) + '</span><br>',
-							'<b>Citoyens :</b> <span style="color: #00FFFF; font-weight: bold;">' + citizensCount + '</span><br>',
-							'<b>Créé le :</b> ' + WurmMapGen.util.escapeHtml(dateComplete) + '<br>',
-							'<b>Position :</b> <span style="font-family: monospace;">' + Math.floor(targetVillage.x) + ' x, ' + Math.floor(targetVillage.y) + ' y</span>',
-							'</div>'
-						].join('');
-						
-						popup.setContent(newContent);
-						popup.update();
-					}
-				}
-			});
-		}
-	}
-
-	loadData('config', function(data) { WurmMapGen.config = data ? data.config : {}; checkProgress(); });
-	loadData('villages', function(data) { WurmMapGen.villages = data ? data.villages : []; checkProgress(); });
-	loadData('guardtowers', function(data) { WurmMapGen.guardtowers = data ? data.guardtowers : []; checkProgress(); });
-	loadData('structures', function(data) { WurmMapGen.structures = data ? data.structures : []; checkProgress(); });
-	loadData('portals', function(data) { WurmMapGen.portals = data ? data.portals : []; checkProgress(); });
-	loadData('players', function(data) { WurmMapGen.players = data ? data.players : []; checkProgress(); });
-
+// End IIFE
 })();
