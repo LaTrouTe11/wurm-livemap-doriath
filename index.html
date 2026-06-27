@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025 - WU MapGen</title>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+	<script>
+		(function() {
+			var styleLink = document.createElement('link');
+			styleLink.rel = 'stylesheet';
+			styleLink.crossOrigin = 'anonymous';
+			var host = ['unpkg', 'com'].join('.');
+			styleLink.href = 'https://' + host + '/leaflet@1.2.0/dist/leaflet.css';
+			document.head.appendChild(styleLink);
+		})();
+	</script>
+	<link rel="stylesheet" href="https://googleapis.com">
+	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
+	<link rel="stylesheet" href="css/style.css">
+	<style>
+		.leaflet-popup-content-wrapper {
+			background: rgba(45, 45, 45, 0.88) !important;
+			border: 2px solid #ffcc00 !important;
+			box-shadow: 0px 4px 15px rgba(0,0,0,0.5) !important;
+			border-radius: 8px !important;
+			width: 250px !important;
+			max-width: 250px !important;
+			padding: 0 !important;
+			backdrop-filter: blur(6px);
+		}
+		.leaflet-popup-tip {
+			background: rgba(45, 45, 45, 0.88) !important;
+			border: 1px solid #ffcc00 !important;
+		}
+		.leaflet-popup-content {
+			color: #ffffff !important;
+			font-family: 'Roboto', sans-serif !important;
+			font-size: 12px !important;
+			line-height: 1.6 !important;
+			margin: 12px !important;
+			width: auto !important;
+		}
+		.leaflet-popup-content b, .leaflet-popup-content strong {
+			color: #FFD700 !important;
+			text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;
+		}
+		.txt-m { color: #00FF7F !important; font-weight: bold; }
+		.txt-c { color: #ffffff !important; font-weight: bold; }
+		.txt-x { color: #00ffff !important; font-family: monospace; font-weight: bold; }
+		.txt-y { color: #00FF7F !important; font-family: monospace; font-weight: bold; }
+		.btn-comm {
+			display: block !important;
+			text-align: center !important;
+			text-decoration: none !important;
+			font-family: 'Roboto', sans-serif !important;
+			font-size: 11px !important;
+			font-weight: bold !important;
+			padding: 8px !important;
+			margin: 8px 0 !important;
+			border-radius: 4px !important;
+			text-shadow: 1px 1px 1px #000 !important;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
+		}
+		.btn-web { background: #ffcc00 !important; color: #111111 !important; border: 1px solid #cca300 !important; }
+		.btn-disc { background: #5865F2 !important; color: #ffffff !important; border: 1px solid #4752c4 !important; }
+	</style>
+</head>
+<body data-realtime="false">
+
+<div id="gui" :class="{sidebar: sidebarVisible}">
+	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
+	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
+		<div style="padding: 15px; border-bottom: 1px solid #444; text-align: center; background: #222;">
+			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; margin-bottom: 10px; font-family: 'Roboto', sans-serif;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
+			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display: block; width: 100%; text-decoration: none;">
+				<img src="https://wurm-unlimited.combanners/half-banner-1.png" border="0" alt="Server Status" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+			</a>
+		</div>
+
+		<div class="block" style="display: block !important;">
+			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 4px;">🌐 Links (Liens) / Community :</strong>
+			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
+			<a href="https://discord.gg" target="_blank" rel="noreferrer noopener" class="btn-comm btn-disc">💬 JOIN DISCORD (REJOINDRE)</a>
+		</div>
+
+		<div class="block">
+			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 5px;">📍 Deeds (Colonies) :</strong>
+			<label for="opt-solo" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo" checked onclick="window.runDeedsFilter()"><span style="font-size: 12px;"> Solo players (Joueurs solos) - 1 cit.</span></label>
+			<label for="opt-small" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-small" checked onclick="window.runDeedsFilter()"><span style="font-size: 12px;"> Small settlements (Petits villages) - 2-5</span></label>
+			<label for="opt-large" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-large" checked onclick="window.runDeedsFilter()"><span style="font-size: 12px;"> Large settlements (Grands villages) - 6+</span></label>
+			<hr style="border:0; border-top:1px solid #444; margin:8px 0;">
+			<label for="option-show-village-borders" class="flex" style="padding: 4px 0;"><input type="checkbox" id="option-show-village-borders" v-model="showVillageBorders"><span style="font-size: 12px;"> Show deed borders (Frontières)</span></label>
+		</div>
+
+		<div class="block">
+			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 5px;">🏹 Towers (Tours) :</strong>
+			<label for="option-show-towers" class="flex" style="padding: 4px 0;"><input type="checkbox" id="option-show-towers" v-model="showTowers"><span style="font-size: 12px;"> Show guard towers (Tours de garde)</span></label>
+			<label for="option-show-tower-borders" class="flex" :class="{inactive:!showTowers}" style="padding: 4px 0;"><input type="checkbox" id="option-show-tower-borders" v-model="showTowerBorders"><span style="font-size: 12px;"> Show tower borders (Rayons d'action)</span></label>
+		</div>
+
+		<div class="block attribution">
+			<p><a href="https://github.com" target="_blank">WurmMapGen</a> powered by <a href="http://leafletjs.com" target="_blank">Leaflet</a></p>
+			<div style="background: rgba(0, 0, 0, 0.4); border: 1px solid #ffcc00; padding: 6px; border-radius: 4px; font-size: 10px; color: #ffcc00; font-weight: bold; text-align: center; margin-top: 10px; line-height: 1.3;">
+				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 11:58:37</span>
+			</div>
+		</div>
+	</div>
+	
+	<!-- BLINDAGE CRUCIAL DE RECHERCHE SANS AUCUNE ACCOLADE DANS LE HTML CONTRE LES COUPURES JAVA -->
+	<div id="search" class="absolute transition z-gui" :class="{open: searchQuery.length > 0 && searchResults.length > 0}">
+		<input type="text" placeholder="Search..." v-model="searchQuery" @keyup.esc="searchQuery = ''">
+		<div id="search-results">
+			<div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
+				<p><strong v-text="result.name"></strong></p>
+				<p class="small" v-text="result.text"></p>
+			</div>
+		</div>
+	</div>
+
+	<div id="map" class="absolute transition z-page"></div>
+</div>
+
+<script crossorigin="anonymous">
+	(function() {
+		var h1 = ['unpkg', 'com'].join('.');
+		var h2 = ['cdn', 'jsdelivr', 'net'].join('.');
+		var h3 = ['cdnjs', 'cloudflare', 'com'].join('.');
+		var urls = [
+			'https://' + h1 + '/leaflet@1.2.0/dist/leaflet.js',
+			'dist/Leaflet.Coordinates-0.1.5.min.js',
+			'https://' + h2 + '/npm/cookies-js@1.2.3/dist/cookies.min.js',
+			'https://' + h3 + '/ajax/libs/fetch/2.0.4/fetch.min.js',
+			'https://' + h3 + '/ajax/libs/es6-promise/4.2.8/es6-promise.auto.min.js',
+			'https://' + h3 + '/ajax/libs/vue/2.5.9/vue.min.js'
+		];
+		function loadNext(idx) {
+			if (idx >= urls.length) { startApp(); return; }
+			var s = document.createElement('script'); s.src = urls[idx]; s.crossOrigin = 'anonymous'; s.onload = function() { loadNext(idx + 1); }; document.body.appendChild(s);
+		}
+		function startApp() {
+			window.WurmMapGen = {};
+			var mods = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js', 'app/live-interceptor.js'];
+			mods.forEach(function(src) { var s = document.createElement('script'); s.src = src; s.defer = true; document.body.appendChild(s); });
+		}
+		loadNext(0);
+	})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
