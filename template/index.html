@@ -1,37 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{serverName}} - WU MapGen</title>
+    <title>{{serverName}}</title>
     <meta charset="utf-8"/>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
-
 <div id="gui">
     <div id="sidebar">
         <h1>{{serverName}}</h1>
-        <div class="block">
-            <p>Dernière mise à jour :<br><strong><span id="sync-date">MAJ_DATE_ICI</span></strong></p>
-        </div>
+        <p>Dernière mise à jour :<br><strong><span id="sync-date">MAJ_DATE_ICI</span></strong></p>
     </div>
-    
     <div id="search">
         <input type="text" placeholder="Rechercher..." v-model="searchQuery">
         <div id="search-results">
-            <%={{ }}=%> 
+            {{=<% %>=}}
             <div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
                 <p><strong>{{ result.name }}</strong></p>
                 <p class="small">{{ result.text }}</p>
             </div>
-            <%={{ }}=%> 
+            <%={{ }}=%>
         </div>
     </div>
-
     <div id="map"></div>
 </div>
-
 <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.9/vue.min.js"></script>
 <script>
