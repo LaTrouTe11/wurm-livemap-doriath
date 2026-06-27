@@ -29,7 +29,7 @@ jobs:
 
       - name: 4. Execution et Conversion
         run: |
-          # Creation du fichier properties pour Linux
+          # Creation d'un fichier .properties minimaliste
           cat <<EOF > WurmMapGen.properties
           wurmMapLocation=.
           saveLocation=.
@@ -38,15 +38,18 @@ jobs:
           itemsDb=wurmitems.db
           playersDb=wurmplayers.db
           enableRealtimeMarkers=false
-          markerType=2
+          serverName=[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025
           mapTileSize=256
+          actualMapSize=4096
+          mapMaxZoom=5
           EOF
 
-          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
+          # Lancement du robot (sans arguments complexes pour éviter les erreurs)
+          java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar
           
           # Nettoyage et conversion .php -> .json
           rm -f config.php
-          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
+          for f in data/*.php; do [ -e "\$f" ] && mv "\$f" "\${f%.php}.json"; done
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
       - name: 5. Synchronisation Git
