@@ -29,14 +29,14 @@
 			<!-- TITRE DU SERVEUR -->
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; letter-spacing: 0.5px; text-align: center; margin-bottom: 8px; line-height: 1.3;">{{serverName}}</h1>
 			
-			<!-- COMPTEUR DE JOUEURS EN DIRECT EMBEDDED FLUIDE -->
+			<!-- COMPTEUR DE JOUEURS EN DIRECT ADAPTÉ (ID: 13208) -->
 			<div style="text-align: center; margin-bottom: 10px; min-height: 60px;">
 				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener">
 					<img src="https://wurm-unlimited.combanners/widget.png" alt="Joueurs en ligne" style="width: 150px; height: 60px; border-radius: 4px; border: 1px solid #333; display: inline-block; background: #222;" border="0">
 				</a>
 			</div>
 
-			<!-- ENCADRE DE SYNCHRONISATION FIXE HAUTE LISIBILITE -->
+			<!-- ENCADRE DE SYNCHRONISATION FIXE -->
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.4; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
 				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 22:32:10</span>
@@ -165,20 +165,22 @@
 						var popup = e.popup;
 						var content = popup.getContent();
 						
-						// SUPPRESSION DU CONFLIT : Options natives et fluides de Leaflet sans tremblement
 						popup.options.keepInView = true;
 						popup.options.autoPan = true;
-						popup.options.autoPanPaddingTopLeft = L.point(50, 260); // Marge large pour degager completement le menu
+						popup.options.autoPanPaddingTopLeft = L.point(50, 260);
 						popup.options.autoPanPaddingBottomRight = L.point(50, 50);
 						
 						if (content && (content.indexOf('Mayor:') !== -1 || content.indexOf('Maire :') !== -1)) {
+							// Nettoyage et extraction securisee pour gerer les apostrophes (&#39;)
 							var titleMatch = content.match(/<b>(.*?)<\/b>/);
-							var villageName = titleMatch ? titleMatch : '';
+							var rawTitle = titleMatch ? titleMatch[1] : '';
+							var decodedTitle = rawTitle.replace(/&#39;/g, "'").trim();
 							var targetVillage = null;
 							
 							if (WurmMapGen.villages) {
 								for (var i = 0; i < WurmMapGen.villages.length; i++) {
-									if (WurmMapGen.villages[i].name === villageName) {
+									var currentName = WurmMapGen.villages[i].name.replace(/&#39;/g, "'").trim();
+									if (currentName === decodedTitle) {
 										targetVillage = WurmMapGen.villages[i];
 										break;
 									}
@@ -191,6 +193,7 @@
 								var citizensCount = targetVillage.citizens ? targetVillage.citizens : '1';
 								var dateComplete = targetVillage.creation ? targetVillage.creation + ' 2026' : 'En 2026';
 								
+								// LA COULEUR OR MEDIEVAL (#ffcc00) RESTAURÉE EN DUR ET SÉCURISÉE
 								var newContent = [
 									'<div align="center"><b style="color: #ffcc00; font-size: 14px; text-shadow: 1px 1px 2px #000;">' + window.WurmMapGen.util.escapeHtml(targetVillage.name) + '</b><br>',
 									(mottoText ? '<i>' + window.WurmMapGen.util.escapeHtml(mottoText) + '</i>' : '') + '</div><br>',
@@ -201,7 +204,6 @@
 								].join('');
 								
 								popup.setContent(newContent);
-								// On demande a Leaflet de mettre a jour la taille proprement UNE SEULE FOIS
 								popup.update();
 							}
 						}
@@ -217,7 +219,6 @@
 </script>
 </body>
 </html>
-
 
 
 
