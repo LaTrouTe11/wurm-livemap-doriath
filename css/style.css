@@ -46,7 +46,7 @@ label { display:block; padding:10px 0; cursor:pointer; }
 /* GUI elements when collapsible sidebar is open */
 #gui.sidebar #sidebar { left:0; box-shadow:0 0 5px rgba(0,0,0,0.1); }
 #gui.sidebar #sidebar-toggle { left:240px; }
-#gui.sidebar #search { left:255px; } /* Ajustement pour la recherche */
+#gui.sidebar #search { left:290px; }
 #gui.sidebar #map { width:calc(100vw - 240px); left:240px; }
 
 /* Sidebar content */
@@ -68,25 +68,14 @@ label { display:block; padding:10px 0; cursor:pointer; }
 #sidebar label.inactive { opacity:0.6; }
 
 /* Search box */
-#search { position: absolute; top:10px; left:50px; z-index: 1000; }
+#search { top:10px; left:50px; }
 #search input { display:block; width:300px; height:44px; line-height:44px; padding: 0 12px;
  	background:white; border:none; border-radius:3px; box-shadow:0 0 5px rgba(0,0,0,0.1);
 	font-family:'Roboto',sans-serif; font-weight:400; font-size:13px; }
+#search.open input { border-radius:3px 3px 0 0; }
 
-#search-results { 
-    display: none; 
-    background:white; 
-    border-radius:0 0 3px 3px; 
-    width: 300px; 
-    max-height: 400px; 
-    overflow-y: auto;
-    box-shadow: 0 5px 5px rgba(0,0,0,0.1);
-}
-
-#search input:focus + #search-results,
-#search-results:not(:empty) {
-    display: block !important;
-}
+#search-results { display:none; }
+#search.open #search-results { display:block; background:white; border-radius:0 0 3px 3px; }
 
 #search-results div { display:block; padding:8px 12px; padding-left:42px; cursor:pointer;
 	text-decoration:none; color:#444; border-top:1px solid #eee; background:6px 10px no-repeat; }
@@ -101,7 +90,9 @@ label { display:block; padding:10px 0; cursor:pointer; }
 #search-results div p strong { font-weight:700; }
 #search-results div p.small { font-size:12px; color:#888; }
 
-/* Disable anti-aliasing */
+/* Disable anti-aliasing on map tiles to improve rendering and scroll speed
+ * This needs some different hacks and prefixes to work in every browser
+ */
 img {
 	image-rendering: optimizeSpeed;
 	image-rendering: -moz-crisp-edges;

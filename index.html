@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>QBC LiveMap - Doriath</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+        #map { flex-grow: 1; }
+        .banner-container { padding: 10px; background: #222; text-align: center; }
+    </style>
+</head>
+<body data-realtime="true">
+
+    <div class="banner-container">
+        <a href="https://wurm-unlimited.com/server/13208/">
+            <img src="https://wurm-unlimited.com/server/13208/banners/half-banner-1.png" 
+                 border="0" 
+                 loading="lazy" 
+                 onerror="this.style.display='none';">
+        </a>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+        // Liste des scripts à charger dans l'ordre
+        // Si vos fichiers sont à la racine, enlevez le 'app/' devant les noms
+        ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'].forEach(function(src) { 
+            var s = document.createElement('script'); 
+            s.src = src; 
+            s.defer = true; 
+            document.body.appendChild(s); 
+        });
+    </script>
+</body>
+</html>
