@@ -51,17 +51,19 @@ jobs:
           # Lancement du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
+          # Nettoyage total des vieux fichiers .php avant conversion
+          rm -f data/*.php
+          
           # Conversion des fichiers .php en .json
           mkdir -p data
           for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
-          rm -f data/*.php
 
       - name: 4b. Nettoyage et synchronisation du site
         run: |
           # 1. On supprime tout à la racine sauf les dossiers vitaux
           find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name '.github' ! -name 'template' ! -name 'data' ! -name 'WurmMapGen*' ! -name 'update-map-live.yml' -exec rm -rf {} +
           
-          # 2. On copie tout le contenu du template vers la racine (chemin corrigé)
+          # 2. On copie tout le contenu du template vers la racine
           cp -r template/* .
 
       - name: 5. Synchronisation Git
@@ -69,10 +71,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # On ajoute tout à la racine
           git add . 
           
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : synchronisation site et donnees"
+            git commit -m "MAJ auto : synchronisation site et donnees (Nettoyage PHP)"
             git push origin main
           fi
