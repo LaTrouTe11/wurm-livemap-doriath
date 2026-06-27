@@ -1,11 +1,12 @@
 'use strict';
 
 (function() {
-	function setupLeafletHook() {
+	function checkLeafletHook() {
 		if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map && WurmMapGen.gui && WurmMapGen.gui.app) {
 			var mapInstance = WurmMapGen.map.map;
 			var app = WurmMapGen.gui.app;
 
+			// Met à jour le compteur bilingue en temps réel
 			setInterval(function() {
 				var countEl = document.getElementById('playercount');
 				var targetEl = document.getElementById('custom-playercount');
@@ -15,6 +16,7 @@
 				}
 			}, 2000);
 
+			// Moteur de filtrage dynamique multicritères
 			WurmMapGen.gui.filterDeedsLayer = function() {
 				if (!window.WurmMapGen.map.layers.villageMarkers) return;
 				
@@ -38,6 +40,7 @@
 				});
 			};
 			
+			// Intercepteur et reformateur géospatiel de bulles au clic
 			mapInstance.on('popupopen', function(e) {
 				var popup = e.popup;
 				var html = popup.getContent();
@@ -85,10 +88,10 @@
 				}
 			});
 		} else {
-			setTimeout(setupLeafletHook, 50);
+			setTimeout(checkLeafletHook, 50);
 		}
 	}
 
-	setupLeafletHook();
+	checkLeafletHook();
 })();
 
