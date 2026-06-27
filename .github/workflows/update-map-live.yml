@@ -1,61 +1,51 @@
 name: Synchro Carte Wurm Legion Hosting
 
 on:
-  schedule:
-    - cron: '0 4 * * *'
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
 jobs:
-  generate-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout depot
-        uses: actions/checkout@v4
+      - name: 1. Checkout du depot
+        uses: actions/checkout@v3
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with: { distribution: 'temurin', java-version: '17' }
+      - name: 2. Installation dependances
+        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: Telechargement bases donnees
+      - name: 3. Telechargement des donnees
         run: |
-          mkdir -p ./sqlite
-          lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
-          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite/wurmzones.db; \
-          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite/wurmitems.db; \
-          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite/wurmplayers.db; \
-          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite/top_layer.map; \
-          bye"
-          # COPIE FORCEE A LA RACINE (Solution miracle pour FileNotFoundError)
-          cp -f ./sqlite/* ./
+          lftp -c "open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ${{ secrets.FTP_HOST }}; get -O . w_map.db"
 
-      - name: Execution WurmMapGen
-        run: java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
-
-      - name: Finalisation assets
+      - name: 4. Execution WurmMapGen
         run: |
-          mkdir -p ./data
-          cp -f template/index.html index.html
-          sed -i "s|2026-06-27 a 04:00:00|$(date +'%Y-%m-%d a %H:%M:%S')|g" index.html
+          java -jar WurmMapGen.jar -map w_map.db -out .
+          # Mise a jour de la date dans le template
+          sed -i "s|{{date_compil}}|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
-      - name: Envoi au depot
+      - name: 5. Generation du rapport
+        run: |
+          echo "Rapport de generation - Doriath 4K" > generation_report.txt
+          echo "Date : $(date +'%Y-%m-%d %H:%M:%S')" >> generation_report.txt
+          echo "-----------------------------------" >> generation_report.txt
+          echo "Etat de la generation : Succès" >> generation_report.txt
+          echo "Fichiers generes :" >> generation_report.txt
+          ls -lh *.map >> generation_report.txt
+
+      - name: 6. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ images/ index.html || true
+          
+          # Ajout des fichiers modifies
+          git add index.html generation_report.txt data/ images/ || true
+          
+          # Commit et push seulement s'il y a des changements
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto carte"
+            git commit -m "Mise a jour auto: carte et rapport de generation"
             git push origin main
+          else
+            echo "Aucun changement detecte."
           fi
-
-      - name: Upload et Deploiement
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
