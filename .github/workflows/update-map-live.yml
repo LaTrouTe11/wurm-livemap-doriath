@@ -5,9 +5,6 @@ on:
     - cron: '0 4 * * *'
   workflow_dispatch:
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 permissions:
   contents: write
   pages: write
@@ -34,49 +31,45 @@ jobs:
       - name: 4. Telechargement bases donnees
         run: |
           mkdir -p ./sqlite_db/sqlite
-          # Utilisation de -c avec options pour ignorer la vérification de clé SSH
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db; \
           get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/sqlite/wurmitems.db; \
           get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/sqlite/wurmplayers.db; \
-          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map; \
+          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/sqlite/top_layer.map; \
           bye"
 
       - name: 5. Execution WurmMapGen
         run: java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-      - name: 6. Finalisation assets et index
+      - name: 6. Finalisation assets
         run: |
           mkdir -p ./data
           cp -f template/index.html index.html
           
+          # Fix JS error
           if [ -f "app/map.js" ]; then
-            sed -i 's|'\''<b>Mayor:</b> '\'' + escapeHtml(village.mayor),|'\''👑 <b>Mayor (Maire) :</b> <span class=\"txt-m\">'\'' + escapeHtml(village.mayor) + '\''</span>'\'',|g' app/map.js
+            sed -i "s|indexOf\[playerId\]|indexOf(playerId)|g" app/map.js
             sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" app/map.js
           fi
 
+          # Injection variables
           sed -i 's|{{serverName}}|QBC Doriath 4K|g' index.html
           sed -i 's|{{enableRealtimeMarkers}}|true|g' index.html
           sed -i 's|{{#showDeeds}}||g; s|{{/showDeeds}}||g' index.html
           sed -i 's|{{#showGuardTowers}}||g; s|{{/showGuardTowers}}||g' index.html
-          
-          echo "$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')" > date_compil.txt
-          sed -i "s|2026-06-27 a 04:00:00|$(cat date_compil.txt)|g" index.html
+          sed -i "s|2026-06-27 a 04:00:00|$(date +'%Y-%m-%d a %H:%M:%S')|g" index.html
 
-      - name: 7. Envoi des modifications
+      - name: 7. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/*.json index.html app/*.js
+          git add data/ images/ index.html app/
           if ! git diff --cached --quiet; then
-            git commit -m "Mise a jour auto: $(cat date_compil.txt)"
+            git commit -m "Mise a jour carte: $(date +'%Y-%m-%d')"
             git push origin main
           fi
 
-      - name: 8. Upload Artifact
+      - name: 8. Upload et Deploiement
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-
-      - name: 9. Deploy Pages
-        uses: actions/deploy-pages@v4
