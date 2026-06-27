@@ -18,7 +18,7 @@ function fetchData(key, path) {
             return response.json(); 
         })
         .then(function(responseData) {
-            // CORRECTION : Si la structure contient la clé 'config', on l'extrait
+            // CORRECTION : Extraction automatique de la clé 'config' si elle existe
             if (key === 'config' && responseData.config) {
                 WurmMapGen[key] = responseData.config;
             } else if (Array.isArray(responseData)) {
@@ -39,6 +39,7 @@ function setRealtimeTimer() {
     var time = 30000;
     if (!windowIsFocused) { time = 60000; }
     WurmMapGen.realtimeTimer = setTimeout(function() {
+        // CORRECTION : Appel vers players.json
         fetchData('players', 'players.json').then(function() {
             if (WurmMapGen.map && WurmMapGen.map.updatePlayerMarkers) {
                 WurmMapGen.map.updatePlayerMarkers();
@@ -58,16 +59,17 @@ var promises = [
 ];
 
 if (document.body.getAttribute('data-realtime') === 'true') {
+    // CORRECTION : Appel vers players.json
     promises.push(fetchData('players', 'players.json'));
 }
 
 // Start loading
 Promise.all(promises)
 .catch(function(err) {
-    console.error('Erreur critique lors du chargement des données :', err);
+    console.error('Erreur lors du chargement des données :', err);
+    // On n'écrit plus avec document.write pour ne pas casser la mise en page
 })
 .then(function() {
-    // PROTECTION : Arrêt si la config est absente
     if (!WurmMapGen.config) {
         console.error("Impossible de charger la configuration.");
         return;
