@@ -9,15 +9,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout du depot
+      - name: 1. Checkout
         uses: actions/checkout@v4
 
-      - name: 2. Installation dependances
+      - name: 2. Installation
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement (Mode securise)
+      - name: 3. Telechargement (Monde Doriath-4k-20)
         run: |
-          # Telechargement des bases et de la map a la racine
+          mkdir -p ./sqlite
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
           open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
           cd /dist/Doriath-4k-20/sqlite/; \
@@ -25,32 +25,21 @@ jobs:
           cd ../; \
           get top_layer.map; \
           bye"
-          
-          # Rangement pour Java
-          mkdir -p ./sqlite
           mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
 
-      - name: 4. Execution WurmMapGen et Injection Date
+      - name: 4. Execution et Injection Date
         run: |
-          # Execution sans erreur
           java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
-          
-          # Injection de la date dans le span identifie par "sync-date"
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
       - name: 5. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
           git fetch origin main
           git reset --hard origin/main
-          
           git add index.html data/ images/ || true
-          
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto carte : $(date +'%Y-%m-%d')"
+            git commit -m "MAJ auto carte Doriath-4k-20"
             git push origin main
-          else
-            echo "Aucun changement."
           fi
