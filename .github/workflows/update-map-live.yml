@@ -48,15 +48,15 @@ jobs:
           mapMaxZoom=5
           EOF
 
-          # Lancement du générateur
+          # Lancement du générateur (on autorise une erreur sans arrêter le script)
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
-          # Nettoyage total des vieux fichiers .php avant conversion
-          rm -f data/*.php
-          
-          # Conversion des fichiers .php en .json
+          # Nettoyage et conversion sécurisés
           mkdir -p data
-          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
+          # Supprime les vieux .php pour éviter les doublons
+          rm -f data/*.php
+          # Convertit les .php en .json si ils existent
+          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done || true
 
       - name: 4b. Nettoyage et synchronisation du site
         run: |
@@ -74,6 +74,6 @@ jobs:
           git add . 
           
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : synchronisation site et donnees (Nettoyage PHP)"
+            git commit -m "MAJ auto : synchronisation complète"
             git push origin main
           fi
