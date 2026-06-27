@@ -1,17 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>{{serverName}}</title>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{serverName}}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
+
 <div id="gui">
     <div id="sidebar">
         <h1>{{serverName}}</h1>
         <p>Dernière mise à jour :<br><strong><span id="sync-date">MAJ_DATE_ICI</span></strong></p>
+        
+        <div class="block">
+            <label><input type="checkbox" v-model="showVillages"> Afficher Villages</label>
+            <label><input type="checkbox" v-model="showVillageBorders"> Afficher Bordures</label>
+        </div>
     </div>
+
     <div id="search">
         <input type="text" placeholder="Rechercher..." v-model="searchQuery">
         <div id="search-results">
@@ -23,18 +31,25 @@
             <%={{ }}=%>
         </div>
     </div>
+
     <div id="map"></div>
 </div>
+
 <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.9/vue.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie.min.js"></script>
+
 <script>
     (function() {
         window.WurmMapGen = {};
+        // Chargement ordonné des scripts
         ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'].forEach(function(src) { 
-            var s = document.createElement('script'); s.src = src; s.defer = true; document.body.appendChild(s); 
+            var s = document.createElement('script'); 
+            s.src = src; 
+            s.defer = true; 
+            document.body.appendChild(s); 
         });
     })();
 </script>
 </body>
 </html>
-
