@@ -49,7 +49,6 @@
 		.txt-x { color: #00ffff !important; font-family: monospace; font-weight: bold; }
 		.txt-y { color: #00FF7F !important; font-family: monospace; font-weight: bold; }
 		
-		/* HABILLAGE DES BOUTONS COMMUNAUTAIRES */
 		.btn-comm {
 			display: block !important;
 			text-align: center !important;
@@ -75,28 +74,24 @@
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		
-		<!-- ZONE HAUTE : PLACE MAXIMALE POUR LA BANNIÈRE UNIQUE -->
-		<div style="padding: 12px; border-bottom: 1px solid #444; text-align: center; background: #222;">
+		<div style="padding: 15px; border-bottom: 1px solid #444; text-align: center; background: #222;">
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; margin-bottom: 10px; font-family: 'Roboto', sans-serif;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
 			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display: block; width: 100%; text-decoration: none;">
 				<img src="images/half-banner-1.png" border="0" alt="Server Status" onerror="this.src='https://wurm-unlimited.combanners/half-banner-1.png';" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
 			</a>
 		</div>
 
-		<!-- ZONE DES LIENS ET COMMUNAUTÉ DIRECTEMENT SOUS LA BANNIÈRE -->
 		<div class="block" style="display: block !important;">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 4px;">🌐 Links (Liens) / Community :</strong>
 			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
 			<a href="https://discord.gg" target="_blank" rel="noreferrer noopener" class="btn-comm btn-disc">💬 JOIN DISCORD (REJOINDRE)</a>
 		</div>
 
+		<!-- RESTAURATION DE LA SYNTAXE COMMENCE PAR DEEDS DU SERVEUR JAVA -->
 		<div class="block">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 5px;">📍 Deeds (Colonies) :</strong>
-			<label for="opt-solo" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo" checked onclick="window.runDeedsFilter()"><span style="font-size: 12px;"> Solo players (Joueurs solos) - 1 cit.</span></label>
-			<label for="opt-small" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-small" checked onclick="window.runDeedsFilter()"><span style="font-size: 12px;"> Small settlements (Petits villages) - 2-5</span></label>
-			<label for="opt-large" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-large" checked onclick="window.runDeedsFilter()"><span style="font-size: 12px;"> Large settlements (Grands villages) - 6+</span></label>
-			<hr style="border:0; border-top:1px solid #444; margin:8px 0;">
-			<label for="option-show-village-borders" class="flex" style="padding: 4px 0;"><input type="checkbox" id="option-show-village-borders" v-model="showVillageBorders"><span style="font-size: 12px;"> Show deed borders (Frontières)</span></label>
+			<label for="option-show-villages" class="flex" style="padding: 4px 0;"><input type="checkbox" id="option-show-villages" v-model="showVillages"><span style="font-size: 12px;"> Show deeds (Afficher les colonies)</span></label>
+			<label for="option-show-village-borders" class="flex" :class="{inactive:!showVillages}" style="padding: 4px 0;"><input type="checkbox" id="option-show-village-borders" v-model="showVillageBorders"><span style="font-size: 12px;"> Show deed borders (Frontières)</span></label>
 		</div>
 
 		<div class="block">
@@ -105,11 +100,10 @@
 			<label for="option-show-tower-borders" class="flex" :class="{inactive:!showTowers}" style="padding: 4px 0;"><input type="checkbox" id="option-show-tower-borders" v-model="showTowerBorders"><span style="font-size: 12px;"> Show tower borders (Rayons d'action)</span></label>
 		</div>
 
-		<!-- ZONE BASSE : DROITS D AUTEUR ET MISE A JOUR DE LA CARTE REGROUPÉS -->
 		<div class="block attribution">
 			<p><a href="https://github.com" target="_blank">WurmMapGen</a> powered by <a href="http://leafletjs.com" target="_blank">Leaflet</a></p>
 			<div style="background: rgba(0, 0, 0, 0.4); border: 1px solid #ffcc00; padding: 6px; border-radius: 4px; font-size: 10px; color: #ffcc00; font-weight: bold; text-align: center; margin-top: 10px; line-height: 1.3;">
-				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 12:32:20</span>
+				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 12:36:41</span>
 			</div>
 		</div>
 	</div>
@@ -148,27 +142,6 @@
 			window.WurmMapGen = {};
 			var mods = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js', 'app/live-interceptor.js'];
 			mods.forEach(function(src) { var s = document.createElement('script'); s.src = src; s.defer = true; document.body.appendChild(s); });
-			forceRuntimeOverride();
-		}
-
-		function forceRuntimeOverride() {
-			setTimeout(function() {
-				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.create) {
-					var originalCreate = WurmMapGen.map.create;
-					WurmMapGen.map.create = function() {
-						originalCreate.apply(this, arguments);
-						var mapInstance = WurmMapGen.map.map;
-						if (mapInstance) {
-							mapInstance.eachLayer(function(layer) {
-								if (layer && layer._url && layer._url.indexOf('{x}-{y}') !== -1) {
-									layer.options.errorTileUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-									layer.redraw();
-								}
-							});
-						}
-					};
-				} else { forceRuntimeOverride(); }
-			}, 50);
 		}
 		loadNext(0);
 	})();
