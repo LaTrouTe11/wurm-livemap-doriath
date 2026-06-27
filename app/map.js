@@ -90,24 +90,12 @@ WurmMapGen.map = {
 				{icon: WurmMapGen.markers.getMarker('village', village)}
 			);
 
-			    marker.bindPopup(
-				'<div align="center"><b style="color: #FFD700; font-size: 15px; text-shadow: 1px 2px 3px #000; font-family: Roboto, sans-serif; letter-spacing: 0.5px;">' + escapeHtml(village.name) + '</b><br>' +
-				(village.motto ? '<i style="color: #bbb; font-size: 11px;">' + escapeHtml(village.motto) + '</i>' : '') + '</div>' +
-				'<div style="margin-top: 8px; font-size: 11px; line-height: 1.4; color: #fff;">' +
-				'<b>Maire :</b> <span style="color: #00FF7F; font-weight: bold;">' + (village.mayor ? escapeHtml(village.mayor) : 'Inconnu') + '</span><br>' +
-				'<b>Citoyens :</b> <span style="color: #00FFFF; font-weight: bold;">' + (village.citizens ? escapeHtml(village.citizens) : '1') + '</span><br>' +
-				'<b>Créé le :</b> ' + (village.creation ? escapeHtml(village.creation) + ' 2026' : 'En 2026') + '<br>' +
-				'<b>Position :</b> <span style="font-family: monospace;">' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y</span>' +
-				'</div>',
-				{
-					keepInView: true,
-					autoPan: true,
-					offset: L.point(0, -25),
-					autoPanPaddingTopLeft: L.point(50, 320),
-					autoPanPaddingBottomRight: L.point(50, 50)
-				}
-			);
-
+			marker.bindPopup([
+				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
+				'<i>' + escapeHtml(village.motto) + '</i></div>',
+				'<b>Mayor:</b> ' + escapeHtml(village.mayor),
+				'<b>Citizens:</b> ' + escapeHtml(village.citizens)
+				].join('<br>'));
 
 			// Make sure text labels always show on top of other markers
 			if (WurmMapGen.config.markerType === 3) {
