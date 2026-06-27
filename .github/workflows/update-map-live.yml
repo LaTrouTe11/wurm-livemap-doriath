@@ -77,7 +77,7 @@ jobs:
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
         sed -i "s|2026-06-26 a 22:32:10|$DATE_COMPIL|g" index.html
 
-    - name: 6. Sauvegarde et Envoi automatique force
+    - name: 6. Sauvegarde et Envoi automatique force (Restauration de l allumage du site)
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
@@ -88,7 +88,7 @@ jobs:
         git add app/*.js || true
         git add images/ || true
         git add tiles/ || true
-        git commit --allow-empty -m "Derniere compilation reussie le $(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S') [skip ci]"
+        git commit --allow-empty -m "Mise a jour de la carte en direct"
         git push origin main --force
 
     - name: 7. Televersement natif vers GitHub Pages
