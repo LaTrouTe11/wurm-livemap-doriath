@@ -15,12 +15,9 @@ jobs:
       - name: 2. Installation dependances
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement complet (Structure ciblee)
+      - name: 3. Telechargement complet des donnees
         run: |
-          # Creation du dossier sqlite comme exige par le logiciel
           mkdir -p ./sqlite
-          
-          # Telechargement des bases dans ./sqlite/ et de la map a la racine
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
           open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite/wurmzones.db; \
@@ -38,16 +35,25 @@ jobs:
         run: |
           echo "Rapport de generation - QBC Doriath 4K" > generation_report.txt
           echo "Date : $(date +'%Y-%m-%d %H:%M:%S')" >> generation_report.txt
+          echo "-----------------------------------" >> generation_report.txt
+          echo "Etat : Succès" >> generation_report.txt
           echo "Fichiers detectes :" >> generation_report.txt
           ls -lh ./sqlite/*.db top_layer.map >> generation_report.txt
 
-      - name: 6. Envoi au depot
+      - name: 6. Envoi au depot (Robuste)
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Synchronisation avec le distant pour eviter les erreurs de verrouillage
+          git fetch origin main
+          git reset --hard origin/main
+          
           git add index.html generation_report.txt data/ images/ || true
           
           if ! git diff --cached --quiet; then
             git commit -m "MAJ auto carte et rapport"
             git push origin main
+          else
+            echo "Aucun changement detecte."
           fi
