@@ -35,6 +35,13 @@ jobs:
           get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/sqlite/top_layer.map; \
           bye"
 
+      - name: 4.5 Scan des fichiers (Debug)
+        run: |
+          echo "Scan du dossier sqlite :"
+          ls -R ./sqlite/
+          if [ ! -f "./sqlite/wurmzones.db" ]; then echo "ERREUR: wurmzones.db introuvable"; fi
+          if [ ! -f "./sqlite/top_layer.map" ]; then echo "ERREUR: top_layer.map introuvable"; fi
+
       - name: 5. Execution WurmMapGen
         run: java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
