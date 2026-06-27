@@ -34,7 +34,7 @@ WurmMapGen.map = {
 		map.fitBounds(mapBounds);
         map.setZoom(Math.ceil((config.mapMinZoom + config.mapMaxZoom) / 2) - 1);
 
-		var wurmMapLayer = L.tileLayer('images/{x}-{y}.png', {
+		var wurmMapLayer = L.tileLayer('tiles/{x}-{y}.png', {
 			tileSize: config.mapTileSize,
 			maxNativeZoom: config.nativeZoom,
 			minNativeZoom: config.nativeZoom,
@@ -70,39 +70,54 @@ WurmMapGen.map = {
 		var portalMarkers = WurmMapGen.map.layers.portalMarkers = L.layerGroup();
 		var playerMarkers = WurmMapGen.map.layers.playerMarkers = L.layerGroup();
 
+		var colors = ['#00ccff', '#ff3333', '#cc33ff', '#33ff33', '#00ffff', '#ff9900'];
+
 		// Add villages
 		for (var i = 0; i < WurmMapGen.villages.length; i++) {
 			var village = WurmMapGen.villages[i];
+			var borderColor = colors[i % colors.length];
 
-			// Create polygon based on village border data
 			var border = L.polygon([
 				xy(village.borders[0], village.borders[1]),
 				xy(village.borders[2], village.borders[1]),
 				xy(village.borders[2], village.borders[3]),
 				xy(village.borders[0], village.borders[3])
 			], {
-				color: (village.permanent ? 'orange' : 'white'),
-				fillOpacity: 0,
-				weight: 1
+				color: borderColor,
+				fillColor: borderColor,
+				fillOpacity: 0.08,
+				weight: 2
 			});
 
 			var marker = L.marker(xy(village.x, village.y),
 				{icon: WurmMapGen.markers.getMarker('village', village)}
 			);
 
-			marker.bindPopup([
-				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
-				'<i>' + escapeHtml(village.motto) + '</i></div>',
-				'<b>Mayor:</b> ' + escapeHtml(village.mayor),
-				'<b>Citizens:</b> ' + escapeHtml(village.citizens)
-				].join('<br>'));
+			// SAUVEGARDE INTEGRALE : Design Or, Émeraude et options natives de recentrage anti-tremblement
+			marker.bindPopup(
+				'<div align="center"><b style="color: #FFD700; font-size: 15px; text-shadow: 1px 2px 3px #000; font-family: Roboto, sans-serif; letter-spacing: 0.5px;">' + escapeHtml(village.name) + '</b><br>' +
+				(village.motto ? '<i style="color: #bbb; font-size: 11px;">' + escapeHtml(village.motto) + '</i>' : '') + '</div>' +
+				'<div style="margin-top: 8px; font-size: 11px; line-height: 1.4; color: #fff;">' +
+				'<b>Maire :</b> <span style="color: #00FF7F; font-weight: bold;">' + (village.mayor ? escapeHtml(village.mayor) : 'Inconnu') + '</span><br>' +
+				'<b>Citoyens :</b> <span style="color: #00FFFF; font-weight: bold;">' + (village.citizens ? escapeHtml(village.citizens) : '1') + '</span><br>' +
+				'<b>Créé le :</b> ' + (village.creation ? escapeHtml(village.creation) + ' 2026' : 'En 2026') + '<br>' +
+				'<b>Position :</b> <span style="font-family: monospace;">' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y</span>' +
+				'</div>',
+				{
+					keepInView: true,
+					autoPan: true,
+					animate: true,
+					duration: 0.3,
+					offset: L.point(0, -25),
+					autoPanPaddingTopLeft: L.point(50, 320),
+					autoPanPaddingBottomRight: L.point(50, 50)
+				}
+			);
 
-			// Make sure text labels always show on top of other markers
 			if (WurmMapGen.config.markerType === 3) {
 				marker.setZIndexOffset(1000);
 			}
 
-			// Open the marker popup when the border is clicked
 			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
 
 			villageBorders.addLayer(border);
@@ -113,7 +128,6 @@ WurmMapGen.map = {
 		for (var i = 0; i < WurmMapGen.guardtowers.length; i++) {
 			var tower = WurmMapGen.guardtowers[i];
 
-			// Create polygon based on guard tower border data
 			var border = L.polygon([
 				xy(tower.borders[0], tower.borders[1]),
 				xy(tower.borders[2], tower.borders[1]),
@@ -136,7 +150,6 @@ WurmMapGen.map = {
 				'<b>DMG:</b> ' + escapeHtml(tower.dmg)
 				].join('<br>'));
 
-			// Open the marker popup when the border is clicked
 			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
 
 			guardtowerBorders.addLayer(border);
@@ -147,7 +160,6 @@ WurmMapGen.map = {
 		for (var i = 0; i < WurmMapGen.structures.length; i++) {
 			var structure = WurmMapGen.structures[i];
 
-			// Create polygon based on guard tower border data
 			var border = L.polygon([
 				xy(structure.borders[0], structure.borders[1]),
 				xy(structure.borders[2], structure.borders[1]),
@@ -183,10 +195,8 @@ WurmMapGen.map = {
 			portalMarkers.addLayer(marker);
 		}
 
-		// Add players
 		WurmMapGen.map.updatePlayerMarkers();
 
-		// Add layers to map
 		villageBorders.addTo(map);
 		villageMarkers.addTo(map);
 		guardtowerBorders.addTo(map);
@@ -196,66 +206,39 @@ WurmMapGen.map = {
 		playerMarkers.addTo(map);
 	},
 
-	/**
-	 * Updates the player markers on the map with newly loaded data. Should be called after reloading the data in
-	 * WurmMapGen.players from the RMI interface.
-	 */
 	updatePlayerMarkers: function() {
 		if (!WurmMapGen.players) { return; }
-
-		// Timestamp to keep track of which players were updated
 		var timestamp = Date.now();
-
 		for(var i = 0; i < WurmMapGen.players.length; i++) {
 			var player = WurmMapGen.players[i];
 			var marker = WurmMapGen.map.playerMarkers[player.id];
-
 			if (marker === undefined) {
 				WurmMapGen.map.playerMarkers[player.id] = marker = {};
-
-				// Create new marker if one does not exist yet
 				marker.marker = L.marker(WurmMapGen.util.xy(player.x, player.y), {icon: WurmMapGen.markers.getMarker('player')});
 				marker.marker.bindPopup('<div align="center"><b>' + WurmMapGen.util.escapeHtml(player.name) + '</b></div>');
-
-				// Add player ID to marker IDs array for efficient iteration
 				WurmMapGen.map.playerMarkerIds.push(player.id);
-
-				// Add marker to player markers
 				WurmMapGen.map.layers.playerMarkers.addLayer(marker.marker);
 			} else {
-				// Update existing marker position
 				marker.marker.setLatLng(WurmMapGen.util.xy(player.x, player.y));
 			}
-
-			// Set updated timestamp
 			marker.updated = timestamp;
 		}
-
-		// Remove markers from map when the player isn't around anymore
 		var idsToRemove = [];
 		for (var i = 0; i < WurmMapGen.map.playerMarkerIds.length; i++) {
 			var playerId = WurmMapGen.map.playerMarkerIds[i];
 			var marker = WurmMapGen.map.playerMarkers[playerId];
-
 			if (marker.updated !== timestamp) {
 				WurmMapGen.map.layers.playerMarkers.removeLayer(marker.marker);
 				idsToRemove.push(playerId);
 			}
 		}
-
-		// Remove marker data entries
 		for (var i = 0; i < idsToRemove.length; i++) {
 			var playerId = idsToRemove[i];
-
 			delete WurmMapGen.map.playerMarkers[playerId];
-			WurmMapGen.map.playerMarkerIds.splice(WurmMapGen.map.playerMarkerIds.indexOf[playerId], 1);
+			WurmMapGen.map.playerMarkerIds.splice(WurmMapGen.map.playerMarkerIds.indexOf(playerId), 1);
 		}
 	},
 
-	/**
-	 * Opens the popup for a map marker
-	 * @param  {L.marker}  marker  The marker
-	 */
 	openMarker: function(marker) {
 		marker.openPopup();
 	}
