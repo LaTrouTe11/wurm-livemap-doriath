@@ -59,7 +59,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet et Ajustement du Titre
+    - name: 5. Configuration Automatique et Modification Forcee de app/map.js
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -71,12 +71,18 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
         
+        # 1. Regroupement de la mention 4k sur le titre de l'index
         sed -i 's|4k|<span style="white-space: nowrap;">4k</span>|g' index.html
         
+        # 2. Injection de la date de compilation Quebecoise
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
         sed -i "s|2026-06-26 a 22:32:10|$DATE_COMPIL|g" index.html
 
-    - name: 6. Sauvegarde et Envoi automatique force (Version Corrective)
+        # 3. INJECTION AUTOMATIQUE DIRECTE DANS LE FICHIER GENERÉ APP/MAP.JS (COULEURS ET OPTIONS)
+        # Remplace le bloc bindPopup standard par votre version Or, Emeraude et recentrage fluide
+        sed -i 's|marker.bindPopup(\[\s*'\''<div align="center"><b>'\'' + escapeHtml(village.name) + '\''<\/b>'\''\s*,\s*'\''<i>'\'' + escapeHtml(village.motto) + '\''<\/i><\/div>'\''\s*,\s*'\''<b>Mayor:<\/b> '\'' + escapeHtml(village.mayor)\s*,\s*'\''<b>Citizens:<\/b> '\'' + escapeHtml(village.citizens)\s*\].join('\''<br>'\''));|marker.bindPopup('\''<div align=\"center\"><b style=\"color: #FFD700; font-size: 15px; text-shadow: 1px 2px 3px #000; font-family: Roboto, sans-serif; letter-spacing: 0.5px;\">'\'' + escapeHtml(village.name) + '\''<\/b><br>'\'' + (village.motto ? '\''<i style=\"color: #bbb; font-size: 11px;\">'\'' + escapeHtml(village.motto) + '\''<\/i>'\'' : '\'''\'') + '\''<\/div><div style=\"margin-top: 8px; font-size: 11px; line-height: 1.4; color: #fff;\"><b>Maire :<\/b> <span style=\"color: #00FF7F; font-weight: bold;\">'\'' + (village.mayor ? escapeHtml(village.mayor) : '\''Inconnu'\'') + '\''<\/span><br><b>Citoyens :<\/b> <span style=\"color: #00FFFF; font-weight: bold;\">'\'' + (village.citizens ? escapeHtml(village.citizens) : '\''1'\'') + '\''<\/span><br><b>Créé le :<\/b> '\'' + (village.creation ? escapeHtml(village.creation) + '\'' 2026'\'' : '\''En 2026'\'') + '\''<br><b>Position :<\/b> <span style=\"font-family: monospace;\">'\'' + Math.floor(village.x) + '\'' x, '\'' + Math.floor(village.y) + '\'' y<\/span><\/div>'\'', {keepInView: true, autoPan: true, offset: L.point(0, -25), autoPanPaddingTopLeft: L.point(50, 320), autoPanPaddingBottomRight: L.point(50, 50)});|g' app/map.js
+
+    - name: 6. Sauvegarde et Envoi automatique force
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
@@ -84,10 +90,10 @@ jobs:
         git add data/*.json || true
         git add *.json || true
         git add index.html || true
-        git add app/map.js || true
+        git add app/*.js || true
         git add images/ || true
         git add tiles/ || true
-        git commit --allow-empty -m "Mise a jour de la carte en direct"
+        git commit --allow-empty -m "Mise a jour de la carte en direct avec injection de style"
         git push origin main --force
 
     - name: 7. Televersement natif vers GitHub Pages
@@ -98,6 +104,5 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
-
 
 
