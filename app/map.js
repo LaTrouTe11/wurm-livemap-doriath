@@ -34,7 +34,8 @@ WurmMapGen.map = {
 		map.fitBounds(mapBounds);
         map.setZoom(Math.ceil((config.mapMinZoom + config.mapMaxZoom) / 2) - 1);
 
-		var wurmMapLayer = L.tileLayer('images/{x}-{y}.png', {
+		// BLINDAGE CONTRE LES ERREURS 404 : Injecte une mini-image vide transparente si la tuile n'existe pas
+		var wurmMapLayer = L.tileLayer('tiles/{x}-{y}.png', {
 			tileSize: config.mapTileSize,
 			maxNativeZoom: config.nativeZoom,
 			minNativeZoom: config.nativeZoom,
@@ -44,7 +45,8 @@ WurmMapGen.map = {
 			maxBoundsViscosity: 1.0,
 			inertia: false,
 			noWrap: true,
-			tms: false
+			tms: false,
+			errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 		}).addTo(map);
 
 		// Add coordinates display
@@ -243,12 +245,12 @@ WurmMapGen.map = {
 			}
 		}
 
-		// Remove marker data entries
+		// CORRECTION SYNTAXE DU BUG CRITIQUE D'USINE : Remplacement de .indexOf[playerId] par .indexOf(playerId)
 		for (var i = 0; i < idsToRemove.length; i++) {
 			var playerId = idsToRemove[i];
 
 			delete WurmMapGen.map.playerMarkers[playerId];
-			WurmMapGen.map.playerMarkerIds.splice(WurmMapGen.map.playerMarkerIds.indexOf[playerId], 1);
+			WurmMapGen.map.playerMarkerIds.splice(WurmMapGen.map.playerMarkerIds.indexOf(playerId), 1);
 		}
 	},
 
@@ -260,3 +262,4 @@ WurmMapGen.map = {
 		marker.openPopup();
 	}
 };
+
