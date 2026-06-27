@@ -1,3 +1,4 @@
+
 name: Synchro Carte Wurm Legion Hosting (WurmMapGen v2.33)
 
 on:
@@ -60,7 +61,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Injection de Stabilisation d'usine sans aucun bug JS
+    - name: 5. Force Overwrite Protection (Securisation Index d Usine)
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -68,25 +69,30 @@ jobs:
         if [ -f "./data/deeds.json" ]; then cp ./data/deeds.json ./data/villages.json 2>/dev/null || true; fi
         if [ -f "./data/towers.json" ]; then cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true; fi
         
-        # RESTAURATION DES SCRIPTS PURS SANS INTERCEPTEUR POUR TUER LA PAGE BLANCHE
+        # BLINDAGE ABSOLU : On ecrase l index casse de Java par notre modele template parfait
+        cp -f template/index.html index.html
+        
+        # RESTAURATION FORCEE DES SCRIPTS ORIGINAUX SANS ERREUR JS
         git checkout HEAD app/util.js app/markers.js app/map.js app/gui.js app/main.js 2>/dev/null || true
         rm -f app/live-interceptor.js || true
         
-        # INJECTION DE L'HABILLAGE STRUCTUREL EXTERNE ET DES TRADUCTIONS DANS L'INDEX GENERE
-        sed -i 's|<h1>{{serverName}}</h1>|<div style="padding:12px;text-align:center;background:#222;margin:-20px -15px 10px -15px;border-bottom:1px solid #444;"><h1 style="color:#ffcc00;font-size:18px;margin-bottom:8px;">{{serverName}}</h1><a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener"><img src="https://wurm-unlimited.combanners/half-banner-1.png" border="0" style="border-radius:4px;border:1px solid #ffcc00;width:100%;max-width:100%;height:auto;object-fit:contain;display:block;margin:0 auto;"></a></div><div style="padding:10px 15px;border-bottom:1px solid #444;"><strong style="color:#ffcc00;font-size:12px;display:block;margin-bottom:4px;">🌐 Links (Liens) :</strong><a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display:block;text-align:center;text-decoration:none;font-family:sans-serif;font-size:11px;font-weight:bold;padding:6px;margin:5px 0;border-radius:4px;background:#ffcc00;color:#111;border:1px solid #cca300;">🔗 SERVER WEB PAGE</a><a href="https://discord.gg" target="_blank" rel="noreferrer noopener" style="display:block;text-align:center;text-decoration:none;font-family:sans-serif;font-size:11px;font-weight:bold;padding:6px;margin:5px 0;border-radius:4px;background:#5865F2;color:#fff;border:1px solid #4752c4;">💬 JOIN DISCORD</a></div>|g' index.html
-        sed -i 's|<p id="playercount">0 players online</p>||g' index.html
-        sed -i 's|<span>Show deeds</span>|<span>Show deeds (Afficher les colonies)</span>|g' index.html
-        sed -i 's|<span>Show deed borders</span>|<span>Show deed borders (Frontières)</span>|g' index.html
-        sed -i 's|Show guard towers|Show guard towers (Tours de garde)|g' index.html
-        sed -i 's|<span>Show guard tower borders</span>|<span>Show tower borders (Rayons d\x27action)</span>|g' index.html
+        # INJECTION SÉCURISÉE DE LA CORRECTION DATE 2026 DANS LE CODE SOURCE DE LA MAP
+        if [ -f "app/map.js" ]; then
+          sed -i "s|'<b>Mayor:</b> ' + escapeHtml(village.mayor),|'👑 <b>Mayor (Maire) :</b> <span class=\"txt-m\">' + escapeHtml(village.mayor) + '</span>',|g" app/map.js
+          sed -i "s|'<b>Citizens:</b> ' + escapeHtml(village.citizens)|'👥 <b>Citizens (Citoyens) :</b> <span class=\"txt-c\">' + escapeHtml(village.citizens) + '</span><br>📅 <b>Founded (Créé) :</b> <span>2026</span><br>📍 <b>Coordinates (Position) :</b> <span class=\"txt-x\">X' + Math.floor(village.x) + '</span>, <span class=\"txt-y\">Y' + Math.floor(village.y) + '</span>'|g" app/map.js
+          sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" app/map.js
+        fi
+
+        # Remplacement dynamique du nom du serveur et de la date dans le fichier final
+        sed -i 's|{{serverName}}|Doriath 4K|g' index.html
+        sed -i 's|{{enableRealtimeMarkers}}|true|g' index.html
+        sed -i 's|{{#showDeeds}}||g' index.html
+        sed -i 's|{{/showDeeds}}||g' index.html
+        sed -i 's|{{#showGuardTowers}}||g' index.html
+        sed -i 's|{{/showGuardTowers}}||g' index.html
         
-        # FIX DE LA BULLE POPUP EN ANTHRACITE ET DU SILENCIEUX TRANSPARENT ANTI-404
-        sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" index.html
-        
-        # INJECTION DE LA DATE BILINGUE DE DERNIERE REUSSITE ET DU VISUEL ADOUCI
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
-        sed -i "s|WurmMapGen</a> powered by <a href=\"http://leafletjs.com\" target=\"_blank\">Leaflet</a></p>|WurmMapGen</a> powered by <a href=\"http://leafletjs.com\" target=\"_blank\">Leaflet</a></p><div style=\"background:rgba(0,0,0,0.4);border:1px solid #ffcc00;padding:6px;border-radius:4px;font-size:10px;color:#ffcc00;font-weight:bold;text-align:center;margin-top:10px;line-height:1.3;\">Last update / Dernière mise à jour :<br><span style=\"color:#fff;font-size:11px;font-family:monospace;\">$DATE_COMPIL</span></div>|g" index.html
-        sed -i 's|</head>|<style>.leaflet-popup-content-wrapper{background:rgba(45,45,45,0.88)!important;border:2px solid #ffcc00!important;box-shadow:0px 4px 15px rgba(0,0,0,0.5)!important;border-radius:8px!important;width:250px!important;max-width:250px!important;padding:0!important;backdrop-filter:blur(6px);}.leaflet-popup-tip{background:rgba(45,45,45,0.88)!important;border:1px solid #ffcc00!important;}.leaflet-popup-content{color:#fff!important;font-family:sans-serif!important;font-size:12px!important;line-height:1.6!important;margin:12px!important;width:auto!important;}.leaflet-popup-content b,.leaflet-popup-content strong{color:#FFD700!important;text-shadow:1px 1px 2px rgba(0,0,0,0.8)!important;}</style></head>|g' index.html
+        sed -i "s|2026-06-27 a 04:00:00|$DATE_COMPIL|g" index.html
 
     - name: 6. Sauvegarde et Envoi automatique force
       run: |
@@ -100,7 +106,7 @@ jobs:
         git add css/*.css || true
         git add images/ || true
         git add tiles/ || true
-        git commit --allow-empty -m "Mise a jour d usine stable sans bug"
+        git commit --allow-empty -m "Restauration d usine indestructible sans page blanche"
         git push origin main --force
 
     - name: 7. Televersement natif vers GitHub Pages
@@ -111,5 +117,4 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
-
 
