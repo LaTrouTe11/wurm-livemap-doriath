@@ -48,10 +48,8 @@ jobs:
 
     - name: 3.5 Miroir de securite absolue pour la topographie 4K
       run: |
-        # Force la duplication et la presence de la carte de relief pour empêcher l ecran blanc
         cp ./sqlite_db/top_layer.map ./top_layer.map 2>/dev/null || true
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
-        cp ./sqlite_db/top_layer.map ./sqlite_db/top_layer.map 2>/dev/null || true
 
     - name: 3.9 Purge absolue de l'ancien cache index de racine
       run: |
@@ -78,7 +76,7 @@ jobs:
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
         sed -i "s|2026-06-26 a 22:32:10|$DATE_COMPIL|g" index.html
 
-    - name: 6. Sauvegarde et Envoi automatique force
+    - name: 6. Sauvegarde et Envoi automatique force (Version Corrective)
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
@@ -86,7 +84,7 @@ jobs:
         git add data/*.json || true
         git add *.json || true
         git add index.html || true
-        git add app/*.js || true
+        git add app/map.js || true
         git add images/ || true
         git add tiles/ || true
         git commit --allow-empty -m "Mise a jour de la carte en direct"
@@ -100,8 +98,6 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
-
-
 
 
 
