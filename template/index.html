@@ -26,12 +26,13 @@
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
-			<h1>{{serverName}}</h1>
+			<!-- TITRE DU SERVEUR EN OR MEDIEVAL -->
+			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 22px; letter-spacing: 0.5px; text-align: center;">{{serverName}}</h1>
 			
-			<!-- INTEGRATION DE VOTRE BANNIERE WURM-UNLIMITED EN DIRECT -->
-			<div style="margin-top: 12px; margin-bottom: 12px; text-align: center;">
-				<a href="https://wurm-unlimited.com/server/13208/" target="_blank" rel="noreferrer noopener">
-					<img src="https://wurm-unlimited.com/server/13208/banners/half-banner-1.png" alt="Statut QBC Doriath" style="max-width: 100%; border-radius: 4px; border: 1px solid #333; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+			<!-- BANNIERE EN DIRECT AVEC LE NOMBRE DE JOUEURS EN LIGNE -->
+			<div style="margin-top: 12px; text-align: center;">
+				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener">
+					<img src="https://wurm-unlimited.combanners/half-banner-1.png" alt="Statut du serveur Doriath" style="max-width: 100%; border-radius: 4px; border: 1px solid #333; box-shadow: 0 2px 5px rgba(0,0,0,0.5);" border="0">
 				</a>
 			</div>
 
@@ -182,8 +183,9 @@
 								var citizensCount = targetVillage.citizens ? targetVillage.citizens : '1';
 								var dateComplete = targetVillage.creation ? targetVillage.creation + ' 2026' : 'En 2026';
 								
+								// NOM DU VILLAGE EN OR MEDIEVAL (#ffcc00)
 								var newContent = [
-									'<div align="center"><b>' + window.WurmMapGen.util.escapeHtml(targetVillage.name) + '</b><br>',
+									'<div align="center"><b style="color: #ffcc00; font-size: 14px; text-shadow: 1px 1px 2px #000;">' + window.WurmMapGen.util.escapeHtml(targetVillage.name) + '</b><br>',
 									(mottoText ? '<i>' + window.WurmMapGen.util.escapeHtml(mottoText) + '</i>' : '') + '</div><br>',
 									'<b>Maire :</b> ' + window.WurmMapGen.util.escapeHtml(mayorText) + '<br>',
 									'<b>Citoyens :</b> ' + citizensCount + '<br>',
@@ -206,7 +208,6 @@
 </script>
 </body>
 </html>
-
 
 
 
