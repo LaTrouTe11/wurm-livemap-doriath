@@ -52,14 +52,13 @@ jobs:
 
     - name: 3.9 Purge absolue de l'ancien cache index de racine
       run: |
-        # Force le nettoyage du depot pour obliger Java a recompiler le modele template
         rm -f index.html || true
 
     - name: 4. Execution de WurmMapGen v2.33
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet et Injection du Titre Log
+    - name: 5. Configuration Automatique pour Leaflet et Injection du Titre Log Visible
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -71,9 +70,9 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
         
-        # Generation automatique de votre phrase de compilation avec l'heure du Quebec
+        # Injection de l'encadré stylisé lisible TOUT EN HAUT sous le titre h1
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
-        sed -i "s|id=\"repo-sync-label\">Based on code by|id=\"repo-sync-label\"><span style=\"display:block;color:#00ffb7;font-weight:bold;margin-bottom:8px;\">Derniere compilation reussie le $DATE_COMPIL</span>Based on code by|g" index.html
+        sed -i "s|<h1>{{serverName}}</h1>|<h1>{{serverName}}</h1><div style=\"margin-top: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 10px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.5; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);\">Dernière compilation réussie<br><span style=\"color:#fff; font-size:12px;\">$DATE_COMPIL</span></div>|g" index.html
 
     - name: 6. Sauvegarde et Envoi automatique force
       run: |
