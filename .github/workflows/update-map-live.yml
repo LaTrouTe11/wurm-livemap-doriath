@@ -31,6 +31,7 @@ jobs:
 
       - name: 4. Execution et Conversion
         run: |
+          # Création du fichier de config avec tous les paramètres nécessaires
           cat <<EOF > WurmMapGen.properties
           serverName=[QC/FR/CAN] QBC Doriath
           wurmMapLocation=.
@@ -39,31 +40,35 @@ jobs:
           zonesDb=wurmzones.db
           itemsDb=wurmitems.db
           playersDb=wurmplayers.db
+          
+          # Paramètres de la carte
+          actualMapSize=4096
+          mapTileSize=256
+          mapMaxZoom=5
+          mapMinZoom=0
+          nativeZoom=5
+          markerType=2
+          
+          # Options activées
           enableRealtimeMarkers=false
           rmiHost=localhost
           rmiPort=8080
-          markerType=2
-          mapTileSize=256
-          actualMapSize=4096
-          mapMaxZoom=5
           EOF
 
-          # Lancement du générateur (on autorise une erreur sans arrêter le script)
+          # Lancement du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
           # Nettoyage et conversion sécurisés
           mkdir -p data
-          # Supprime les vieux .php pour éviter les doublons
           rm -f data/*.php
-          # Convertit les .php en .json si ils existent
           for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done || true
 
       - name: 4b. Nettoyage et synchronisation du site
         run: |
-          # 1. On supprime tout à la racine sauf les dossiers vitaux
+          # Suppression des fichiers inutiles à la racine sauf les dossiers vitaux
           find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name '.github' ! -name 'template' ! -name 'data' ! -name 'WurmMapGen*' ! -name 'update-map-live.yml' -exec rm -rf {} +
           
-          # 2. On copie tout le contenu du template vers la racine
+          # Copie du template vers la racine
           cp -r template/* .
 
       - name: 5. Synchronisation Git
@@ -74,6 +79,6 @@ jobs:
           git add . 
           
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : synchronisation complète"
+            git commit -m "MAJ auto : synchronisation complète et config forcée"
             git push origin main
           fi
