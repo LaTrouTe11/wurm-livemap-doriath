@@ -1,36 +1,13 @@
-name: Synchro Carte Wurm Legion Hosting
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 1. Checkout
-        uses: actions/checkout@v4
-
-      - name: 2. Installation
-        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
-
-      - name: 3. Telechargement des donnees
+- name: 4. Execution et Conversion
         run: |
-          mkdir -p ./sqlite
-          lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
-          open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
-          cd /dist/Doriath-4k-20/sqlite/; \
-          mget wurmzones.db wurmitems.db wurmplayers.db; \
-          cd ../; \
-          get top_layer.map; \
-          bye"
-          mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
-
-      - name: 4. Execution et Conversion
-        run: |
-          # Creation d'un fichier .properties minimaliste
+          # 1. Vérification des fichiers
+          echo "Vérification des fichiers..."
+          ls -lh ./sqlite/
+          ls -lh top_layer.map
+          
+          # 2. Création propre du fichier properties
           cat <<EOF > WurmMapGen.properties
+          serverName=[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025
           wurmMapLocation=.
           saveLocation=.
           dbDir=./sqlite/
@@ -38,28 +15,18 @@ jobs:
           itemsDb=wurmitems.db
           playersDb=wurmplayers.db
           enableRealtimeMarkers=false
-          serverName=[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025
+          rmiHost=localhost
+          rmiPort=8080
           mapTileSize=256
           actualMapSize=4096
           mapMaxZoom=5
           EOF
 
-          # Lancement du robot (sans arguments complexes pour éviter les erreurs)
+          # 3. Lancement du robot
+          echo "Lancement du robot..."
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar
           
-          # Nettoyage et conversion .php -> .json
+          # 4. Conversion et nettoyage
           rm -f config.php
           for f in data/*.php; do [ -e "\$f" ] && mv "\$f" "\${f%.php}.json"; done
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
-
-      - name: 5. Synchronisation Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --hard origin/main
-          git add index.html data/ images/ || true
-          if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : carte et donnees JSON"
-            git push origin main
-          fi
