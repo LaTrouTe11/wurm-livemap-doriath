@@ -12,10 +12,10 @@ jobs:
       - name: 1. Checkout
         uses: actions/checkout@v4
 
-      - name: 2. Installation des outils
+      - name: 2. Installation
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement des donnees (Doriath)
+      - name: 3. Telechargement des donnees
         run: |
           mkdir -p ./sqlite
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
@@ -27,44 +27,36 @@ jobs:
           bye"
           mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
 
-      - name: 4. Execution, Nettoyage et Conversion
+      - name: 4. Execution et Conversion
         run: |
-          # On force le robot à utiliser les chemins relatifs corrects pour Linux
-          # On suppose que la carte est à la racine et le dossier de sauvegarde aussi
-          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar \
-          wurmMapLocation=. \
+          # Creation du fichier properties pour Linux
+          cat <<EOF > WurmMapGen.properties
+          wurmMapLocation=.
           saveLocation=.
+          dbDir=./sqlite/
+          zonesDb=wurmzones.db
+          itemsDb=wurmitems.db
+          playersDb=wurmplayers.db
+          enableRealtimeMarkers=false
+          markerType=2
+          mapTileSize=256
+          EOF
+
+          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
           
-          # Nettoyage : Suppression des fichiers PHP inutiles
+          # Nettoyage et conversion .php -> .json
           rm -f config.php
-          
-          # Conversion : Renommage des fichiers .php générés en .json
-          if [ -d "data" ]; then
-            for f in data/*.php; do
-                [ -e "$f" ] || continue
-                mv "$f" "${f%.php}.json"
-            done
-          fi
-          
-          # Injection de la date
+          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
-      - name: 5. Synchronisation Git robuste
+      - name: 5. Synchronisation Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # S'aligne sur le dépôt distant pour éviter les erreurs de rejet (push rejected)
           git fetch origin main
           git reset --hard origin/main
-          
-          # On ajoute les fichiers modifiés
           git add index.html data/ images/ || true
-          
-          # commit seulement s'il y a des changements
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : carte et donnees joueurs (JSON)"
+            git commit -m "MAJ auto : carte et donnees JSON"
             git push origin main
-          else
-            echo "Aucun changement détecté, pas de commit."
           fi
