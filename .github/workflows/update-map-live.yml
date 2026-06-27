@@ -1,72 +1,355 @@
-name: Synchro Carte Wurm Legion Hosting
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 1. Checkout
-        uses: actions/checkout@v4
-
-      - name: 2. Installation
-        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
-
-      - name: 3. Telechargement des donnees
-        run: |
-          mkdir -p ./sqlite
-          lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
-          set sftp:auto-confirm yes
-          set ssl:verify-certificate no
-          cd /dist/Doriath-4k-20/sqlite/
-          mget wurmzones.db wurmitems.db wurmplayers.db
-          cd ../
-          get top_layer.map
-          bye
-          EOF
-          mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
-
-      - name: 4. Execution et Conversion
-        run: |
-          # Creation du fichier properties
-          cat <<EOF > WurmMapGen.properties
-          serverName=[QC/FR/CAN] QBC Doriath |PVE | MODS 8 K 2025
-          wurmMapLocation=.
-          saveLocation=.
-          dbDir=./sqlite/
-          zonesDb=wurmzones.db
-          itemsDb=wurmitems.db
-          playersDb=wurmplayers.db
-          enableRealtimeMarkers=false
-          mapTileSize=256
-          actualMapSize=4096
-          mapMaxZoom=5
-          EOF
-
-          # Lancement du robot
-          java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar
-          
-          # Nettoyage et conversion .php -> .json
-          # 1. Convertit les fichiers .php existants
-          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
-          # 2. Supprime TOUT fichier .php restant
-          rm -f data/*.php
-          rm -f config.php
-          # 3. Met a jour la date
-          sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
-
-      - name: 5. Synchronisation Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --hard origin/main
-          # On ajoute tout le dossier data/ qui contient maintenant des .json
-          git add index.html data/ images/ || true
-          if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : carte et donnees JSON"
-            git push origin main
-          fi
+Current runner version: '2.335.1'
+Runner Image Provisioner
+Operating System
+Runner Image
+GITHUB_TOKEN Permissions
+Secret source: Actions
+Prepare workflow directory
+Prepare all required actions
+Getting action download info
+Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+Complete job name: build
+7s
+Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Run actions/checkout@v4
+Syncing repository: LaTrouTe11/wurm-livemap-doriath
+Getting Git version info
+Temporarily overriding HOME='/home/runner/work/_temp/ad5c4396-3b72-42e5-b507-c8e8018f767d' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+/usr/bin/git config --global --add safe.directory /home/runner/work/wurm-livemap-doriath/wurm-livemap-doriath
+Deleting the contents of '/home/runner/work/wurm-livemap-doriath/wurm-livemap-doriath'
+Initializing the repository
+Disabling automatic garbage collection
+Setting up auth
+Fetching the repository
+  /usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +81589c54d4371a47dccea66cce7236c4390122e4:refs/remotes/origin/main
+  From https://github.com/LaTrouTe11/wurm-livemap-doriath
+   * [new ref]         81589c54d4371a47dccea66cce7236c4390122e4 -> origin/main
+Determining the checkout info
+/usr/bin/git sparse-checkout disable
+/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Checking out the ref
+/usr/bin/git log -1 --format=%H
+81589c54d4371a47dccea66cce7236c4390122e4
+16s
+Run sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
+Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+Hit:6 https://packages.microsoft.com/repos/azure-cli noble InRelease
+Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:8 https://dl.google.com/linux/chrome-stable/deb stable InRelease [1825 B]
+Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [156 kB]
+Get:10 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [187 kB]
+Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1041 kB]
+Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [261 kB]
+Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [180 kB]
+Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 c-n-f Metadata [17.5 kB]
+Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1656 kB]
+Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [326 kB]
+Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [388 kB]
+Get:18 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 c-n-f Metadata [34.8 kB]
+Get:19 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1134 kB]
+Get:20 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [257 kB]
+Get:21 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+Get:22 http://azure.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5768 B]
+Get:23 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [10.5 kB]
+Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [788 kB]
+Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [179 kB]
+Get:26 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Components [44.9 kB]
+Get:27 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 c-n-f Metadata [11.6 kB]
+Get:28 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1171 kB]
+Get:29 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [229 kB]
+Get:30 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Components [76.2 kB]
+Get:31 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 c-n-f Metadata [24.1 kB]
+Get:32 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1071 kB]
+Get:33 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [245 kB]
+Get:34 https://dl.google.com/linux/chrome-stable/deb stable/main amd64 Packages [1210 B]
+Fetched 9881 kB in 1s (9319 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  ca-certificates-java libatk-wrapper-java libatk-wrapper-java-jni libgif7
+  libpcsclite1 libxcb-shape0 libxv1 libxxf86dga1 openjdk-17-jre-headless
+  x11-utils
+Suggested packages:
+  pcscd libnss-mdns fonts-ipafont-gothic fonts-ipafont-mincho
+  fonts-wqy-microhei | fonts-wqy-zenhei fonts-indic mesa-utils
+Recommended packages:
+  luit
+The following NEW packages will be installed:
+  ca-certificates-java lftp libatk-wrapper-java libatk-wrapper-java-jni
+  libgif7 libpcsclite1 libxcb-shape0 libxv1 libxxf86dga1 openjdk-17-jre
+  openjdk-17-jre-headless x11-utils
+0 upgraded, 12 newly installed, 0 to remove and 11 not upgraded.
+Need to get 49.4 MB of archives.
+After this operation, 197 MB of additional disk space will be used.
+Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+Get:2 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 ca-certificates-java all 20240118 [11.6 kB]
+Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 lftp amd64 4.9.2-2ubuntu1.1 [704 kB]
+Get:4 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-shape0 amd64 1.15-1ubuntu2 [6100 B]
+Get:5 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxv1 amd64 2:1.0.11-1.1build1 [10.7 kB]
+Get:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxxf86dga1 amd64 2:1.1.5-1build1 [11.6 kB]
+Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 x11-utils amd64 7.7+6build2 [189 kB]
+Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java all 0.40.0-3build2 [54.3 kB]
+Get:9 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libatk-wrapper-java-jni amd64 0.40.0-3build2 [46.4 kB]
+Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgif7 amd64 5.2.2-1ubuntu1 [35.2 kB]
+Get:11 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libpcsclite1 amd64 2.0.3-1build1 [21.4 kB]
+Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-17-jre-headless amd64 17.0.19+10-1~24.04.2 [48.1 MB]
+Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 openjdk-17-jre amd64 17.0.19+10-1~24.04.2 [234 kB]
+Fetched 49.4 MB in 1s (47.5 MB/s)
+Selecting previously unselected package ca-certificates-java.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 202407 files and directories currently installed.)
+Preparing to unpack .../00-ca-certificates-java_20240118_all.deb ...
+Unpacking ca-certificates-java (20240118) ...
+Selecting previously unselected package lftp.
+Preparing to unpack .../01-lftp_4.9.2-2ubuntu1.1_amd64.deb ...
+Unpacking lftp (4.9.2-2ubuntu1.1) ...
+Selecting previously unselected package libxcb-shape0:amd64.
+Preparing to unpack .../02-libxcb-shape0_1.15-1ubuntu2_amd64.deb ...
+Unpacking libxcb-shape0:amd64 (1.15-1ubuntu2) ...
+Selecting previously unselected package libxv1:amd64.
+Preparing to unpack .../03-libxv1_2%3a1.0.11-1.1build1_amd64.deb ...
+Unpacking libxv1:amd64 (2:1.0.11-1.1build1) ...
+Selecting previously unselected package libxxf86dga1:amd64.
+Preparing to unpack .../04-libxxf86dga1_2%3a1.1.5-1build1_amd64.deb ...
+Unpacking libxxf86dga1:amd64 (2:1.1.5-1build1) ...
+Selecting previously unselected package x11-utils.
+Preparing to unpack .../05-x11-utils_7.7+6build2_amd64.deb ...
+Unpacking x11-utils (7.7+6build2) ...
+Selecting previously unselected package libatk-wrapper-java.
+Preparing to unpack .../06-libatk-wrapper-java_0.40.0-3build2_all.deb ...
+Unpacking libatk-wrapper-java (0.40.0-3build2) ...
+Selecting previously unselected package libatk-wrapper-java-jni:amd64.
+Preparing to unpack .../07-libatk-wrapper-java-jni_0.40.0-3build2_amd64.deb ...
+Unpacking libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
+Selecting previously unselected package libgif7:amd64.
+Preparing to unpack .../08-libgif7_5.2.2-1ubuntu1_amd64.deb ...
+Unpacking libgif7:amd64 (5.2.2-1ubuntu1) ...
+Selecting previously unselected package libpcsclite1:amd64.
+Preparing to unpack .../09-libpcsclite1_2.0.3-1build1_amd64.deb ...
+Unpacking libpcsclite1:amd64 (2.0.3-1build1) ...
+Selecting previously unselected package openjdk-17-jre-headless:amd64.
+Preparing to unpack .../10-openjdk-17-jre-headless_17.0.19+10-1~24.04.2_amd64.deb ...
+Unpacking openjdk-17-jre-headless:amd64 (17.0.19+10-1~24.04.2) ...
+Selecting previously unselected package openjdk-17-jre:amd64.
+Preparing to unpack .../11-openjdk-17-jre_17.0.19+10-1~24.04.2_amd64.deb ...
+Unpacking openjdk-17-jre:amd64 (17.0.19+10-1~24.04.2) ...
+Setting up lftp (4.9.2-2ubuntu1.1) ...
+Setting up libxcb-shape0:amd64 (1.15-1ubuntu2) ...
+Setting up libxxf86dga1:amd64 (2:1.1.5-1build1) ...
+Setting up libxv1:amd64 (2:1.0.11-1.1build1) ...
+Setting up libpcsclite1:amd64 (2.0.3-1build1) ...
+Setting up libgif7:amd64 (5.2.2-1ubuntu1) ...
+Setting up x11-utils (7.7+6build2) ...
+Setting up libatk-wrapper-java (0.40.0-3build2) ...
+Setting up ca-certificates-java (20240118) ...
+Adding debian:Telekom_Security_TLS_RSA_Root_2023.pem
+Adding debian:Telia_Root_CA_v2.pem
+Adding debian:TrustAsia_Global_Root_CA_G3.pem
+Adding debian:TrustAsia_Global_Root_CA_G4.pem
+Adding debian:TrustAsia_TLS_ECC_Root_CA.pem
+Adding debian:TrustAsia_TLS_RSA_Root_CA.pem
+Adding debian:TunTrust_Root_CA.pem
+Adding debian:UCA_Extended_Validation_Root.pem
+Adding debian:UCA_Global_G2_Root.pem
+Adding debian:USERTrust_ECC_Certification_Authority.pem
+Adding debian:USERTrust_RSA_Certification_Authority.pem
+Adding debian:certSIGN_Root_CA_G2.pem
+Adding debian:e-Szigno_Root_CA_2017.pem
+Adding debian:e-Szigno_TLS_Root_CA_2023.pem
+Adding debian:ePKI_Root_Certification_Authority.pem
+Adding debian:emSign_ECC_Root_CA_-_C3.pem
+Adding debian:emSign_ECC_Root_CA_-_G3.pem
+Adding debian:emSign_Root_CA_-_C1.pem
+Adding debian:emSign_Root_CA_-_G1.pem
+Adding debian:vTrus_ECC_Root_CA.pem
+Adding debian:vTrus_Root_CA.pem
+Adding debian:ACCVRAIZ1.pem
+Adding debian:AC_RAIZ_FNMT-RCM.pem
+Adding debian:AC_RAIZ_FNMT-RCM_SERVIDORES_SEGUROS.pem
+Adding debian:ANF_Secure_Server_Root_CA.pem
+Adding debian:Actalis_Authentication_Root_CA.pem
+Adding debian:Amazon_Root_CA_1.pem
+Adding debian:Amazon_Root_CA_2.pem
+Adding debian:Amazon_Root_CA_3.pem
+Adding debian:Amazon_Root_CA_4.pem
+Adding debian:Atos_TrustedRoot_2011.pem
+Adding debian:Atos_TrustedRoot_Root_CA_ECC_TLS_2021.pem
+Adding debian:Atos_TrustedRoot_Root_CA_RSA_TLS_2021.pem
+Adding debian:Autoridad_de_Certificacion_Firmaprofesional_CIF_A62634068.pem
+Adding debian:BJCA_Global_Root_CA1.pem
+Adding debian:BJCA_Global_Root_CA2.pem
+Adding debian:Buypass_Class_2_Root_CA.pem
+Adding debian:Buypass_Class_3_Root_CA.pem
+Adding debian:CA_Disig_Root_R2.pem
+Adding debian:CFCA_EV_ROOT.pem
+Adding debian:COMODO_ECC_Certification_Authority.pem
+Adding debian:COMODO_RSA_Certification_Authority.pem
+Adding debian:Certainly_Root_E1.pem
+Adding debian:Certainly_Root_R1.pem
+Adding debian:Certigna_Root_CA.pem
+Adding debian:Certum_EC-384_CA.pem
+Adding debian:Certum_Trusted_Network_CA.pem
+Adding debian:Certum_Trusted_Network_CA_2.pem
+Adding debian:Certum_Trusted_Root_CA.pem
+Adding debian:D-TRUST_BR_Root_CA_1_2020.pem
+Adding debian:D-TRUST_BR_Root_CA_2_2023.pem
+Adding debian:D-TRUST_EV_Root_CA_1_2020.pem
+Adding debian:D-TRUST_EV_Root_CA_2_2023.pem
+Adding debian:D-TRUST_Root_Class_3_CA_2_2009.pem
+Adding debian:D-TRUST_Root_Class_3_CA_2_EV_2009.pem
+Adding debian:DigiCert_Assured_ID_Root_G2.pem
+Adding debian:DigiCert_Assured_ID_Root_G3.pem
+Adding debian:DigiCert_Global_Root_G2.pem
+Adding debian:DigiCert_Global_Root_G3.pem
+Adding debian:DigiCert_TLS_ECC_P384_Root_G5.pem
+Adding debian:DigiCert_TLS_RSA4096_Root_G5.pem
+Adding debian:DigiCert_Trusted_Root_G4.pem
+Adding debian:Entrust_Root_Certification_Authority.pem
+Adding debian:GDCA_TrustAUTH_R5_ROOT.pem
+Adding debian:GTS_Root_R1.pem
+Adding debian:GTS_Root_R3.pem
+Adding debian:GTS_Root_R4.pem
+Adding debian:GlobalSign_ECC_Root_CA_-_R4.pem
+Adding debian:GlobalSign_ECC_Root_CA_-_R5.pem
+Adding debian:GlobalSign_Root_CA_-_R3.pem
+Adding debian:GlobalSign_Root_CA_-_R6.pem
+Adding debian:GlobalSign_Root_E46.pem
+Adding debian:GlobalSign_Root_R46.pem
+Adding debian:Go_Daddy_Root_Certificate_Authority_-_G2.pem
+Adding debian:HARICA_TLS_ECC_Root_CA_2021.pem
+Adding debian:HARICA_TLS_RSA_Root_CA_2021.pem
+Adding debian:Hellenic_Academic_and_Research_Institutions_ECC_RootCA_2015.pem
+Adding debian:Hellenic_Academic_and_Research_Institutions_RootCA_2015.pem
+Adding debian:HiPKI_Root_CA_-_G1.pem
+Adding debian:Hongkong_Post_Root_CA_3.pem
+Adding debian:ISRG_Root_X1.pem
+Adding debian:ISRG_Root_X2.pem
+Adding debian:IdenTrust_Commercial_Root_CA_1.pem
+Adding debian:IdenTrust_Public_Sector_Root_CA_1.pem
+Adding debian:Izenpe.com.pem
+Adding debian:Microsec_e-Szigno_Root_CA_2009.pem
+Adding debian:Microsoft_ECC_Root_Certificate_Authority_2017.pem
+Adding debian:Microsoft_RSA_Root_Certificate_Authority_2017.pem
+Adding debian:NAVER_Global_Root_Certification_Authority.pem
+Adding debian:NetLock_Arany_=Class_Gold=_Főtanúsítvány.pem
+Adding debian:OISTE_Server_Root_ECC_G1.pem
+Adding debian:OISTE_Server_Root_RSA_G1.pem
+Adding debian:OISTE_WISeKey_Global_Root_GB_CA.pem
+Adding debian:OISTE_WISeKey_Global_Root_GC_CA.pem
+Adding debian:QuoVadis_Root_CA_1_G3.pem
+Adding debian:QuoVadis_Root_CA_2_G3.pem
+Adding debian:QuoVadis_Root_CA_3_G3.pem
+Adding debian:SSL.com_EV_Root_Certification_Authority_ECC.pem
+Adding debian:SSL.com_EV_Root_Certification_Authority_RSA_R2.pem
+Adding debian:SSL.com_Root_Certification_Authority_ECC.pem
+Adding debian:SSL.com_Root_Certification_Authority_RSA.pem
+Adding debian:SSL.com_TLS_ECC_Root_CA_***.pem
+Adding debian:SSL.com_TLS_RSA_Root_CA_***.pem
+Adding debian:SZAFIR_ROOT_CA2.pem
+Adding debian:Sectigo_Public_Server_Authentication_Root_E46.pem
+Adding debian:Sectigo_Public_Server_Authentication_Root_R46.pem
+Adding debian:SecureSign_Root_CA12.pem
+Adding debian:SecureSign_Root_CA14.pem
+Adding debian:SecureSign_Root_CA15.pem
+Adding debian:Security_Communication_ECC_RootCA1.pem
+Adding debian:Security_Communication_RootCA2.pem
+Adding debian:Starfield_Root_Certificate_Authority_-_G2.pem
+Adding debian:Starfield_Services_Root_Certificate_Authority_-_G2.pem
+Adding debian:SwissSign_RSA_TLS_Root_CA_***_-_1.pem
+Adding debian:T-TeleSec_GlobalRoot_Class_2.pem
+Adding debian:T-TeleSec_GlobalRoot_Class_3.pem
+Adding debian:TUBITAK_Kamu_SM_SSL_Kok_Sertifikasi_-_Surum_1.pem
+Adding debian:TWCA_CYBER_Root_CA.pem
+Adding debian:TWCA_Global_Root_CA.pem
+Adding debian:TWCA_Root_Certification_Authority.pem
+Adding debian:Telekom_Security_TLS_ECC_Root_2020.pem
+done.
+Setting up libatk-wrapper-java-jni:amd64 (0.40.0-3build2) ...
+Setting up openjdk-17-jre-headless:amd64 (17.0.19+10-1~24.04.2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.7) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Not building database; man-db/auto-update is not 'true'.
+Processing triggers for hicolor-icon-theme (0.17-2) ...
+Processing triggers for ca-certificates-java (20240118) ...
+done.
+Setting up openjdk-17-jre:amd64 (17.0.19+10-1~24.04.2) ...
+Running kernel seems to be up-to-date.
+No services need to be restarted.
+No containers need to be restarted.
+No user sessions are running outdated binaries.
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+5s
+Run mkdir -p ./sqlite
+  
+24s
+Run # Creation du fichier properties
+WurmMapGen v2.3.3
+      Developed and maintained by woubuc
+      Based on original code by garrett94
+      More info: github.com/woubuc/WurmMapGen
+      Properties file: /home/runner/work/wurm-livemap-doriath/wurm-livemap-doriath/WurmMapGen.properties
+      Template directory: /home/runner/work/wurm-livemap-doriath/wurm-livemap-doriath/template
+Loaded properties file
+Temp files copied
+Jun 27, 2026 9:37:23 PM com.wurmonline.mesh.MeshIO open
+INFO: /tmp/WurmMapGen/1782596243763/top_layer.map size is 67109888
+MeshIO connection opened
+Database connections opened
+Images directory created
+ Generating map tiles: 0%                         Generating map tiles: 0%                         Generating map tiles: 0%                         Generating map tiles: 0%                         Generating map tiles: 0%                         Generating map tiles: 0%                         Generating map tiles: 0%                         Generating map tiles: 0%                         Generating map tiles: 1%                         Generating map tiles: 1%                         Generating map tiles: 1%  
+Template asset files copied
+Rendered index.html
+Created config.json
+Exception in thread "main" java.lang.NullPointerException: Cannot invoke "String.replace(java.lang.CharSequence, java.lang.CharSequence)" because "be.woubuc.wurmunlimited.wurmmapgen.WurmMapGen.properties.rmiHost" is null
+	at be.woubuc.wurmunlimited.wurmmapgen.filegen.PhpConfigFileGen.generateData(PhpConfigFileGen.java:18)
+	at be.woubuc.wurmunlimited.wurmmapgen.filegen.FileGen.generateFile(FileGen.java:20)
+	at be.woubuc.wurmunlimited.wurmmapgen.WurmMapGen.generateDataFiles(WurmMapGen.java:118)
+	at be.woubuc.wurmunlimited.wurmmapgen.WurmMapGen.main(WurmMapGen.java:100)
+Error: Process completed with exit code 1.
+0s
+0s
+Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Post job cleanup.
+/usr/bin/git version
+git version 2.54.0
+Temporarily overriding HOME='/home/runner/work/_temp/ebbdd5bf-9fb2-42c9-bced-56acefb575dd' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+/usr/bin/git config --global --add safe.directory /home/runner/work/wurm-livemap-doriath/wurm-livemap-doriath
+/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+0s
+Cleaning up orphan processes
+Warning: Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
