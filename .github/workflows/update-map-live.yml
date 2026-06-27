@@ -49,7 +49,7 @@ jobs:
 
     - name: 3.5 Miroir de securite absolue pour la topographie 4K
       run: |
-        幕cp ./sqlite_db/top_layer.map ./top_layer.map 2>/dev/null || true
+        cp ./sqlite_db/top_layer.map ./top_layer.map 2>/dev/null || true
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
 
     - name: 3.9 Purge absolue de l'ancien cache index de racine
@@ -72,12 +72,12 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
         
-        # RESTAURATION COMPLETE DES FICHIERS APPS INTERNES HISTORIQUES SANS CASSER LE FILTRAGE
-        git checkout HEAD app/util.js app/markers.js app/map.js app/gui.js app/main.js 2>/dev/null || true
+        # RESTAURATION DES SCRIPTS D'ORIGINE POUR CONSERVER L'INTERCEPTEUR HORS DES PURGES
+        git checkout HEAD app/util.js app/markers.js app/map.js app/gui.js app/main.js app/live-interceptor.js 2>/dev/null || true
         
         sed -i 's|4k|<span style="white-space: nowrap;">4k</span>|g' index.html
         
-        # Injection automatique de la bonne date de dernière synchronisation bilingue
+        # Injection automatique de la bonne date de derniere synchronisation bilingue
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
         sed -i "s|2026-06-27 a 04:00:00|$DATE_COMPIL|g" index.html
 
