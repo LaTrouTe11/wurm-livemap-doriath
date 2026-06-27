@@ -41,6 +41,10 @@
 			color: #FFD700 !important;
 			text-shadow: 1px 1px 2px #000 !important;
 		}
+		/* Styles pour les étiquettes personnalisées en couleur */
+		.bulle-maire { color: #00FF7F !important; font-weight: bold; }
+		.bulle-citoyens { color: #00FFFF; font-weight: bold; }
+		.bulle-coord { color: #ffcc00; font-weight: bold; font-family: monospace; }
 	</style>
 </head>
 <body data-realtime="false">
@@ -64,7 +68,7 @@
 			<!-- ENCADRE DE SYNCHRONISATION FIXE -->
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.4; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 00:41:16</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 00:47:32</span>
 			</div>
 			
 		</div>
@@ -127,7 +131,7 @@
 		var cdnjs = 'cdnjs.' + 'cloudflare.com';
 		var jsdelivr = 'cdn.' + 'jsdelivr.net';
 		var urls = [
-			['https:/', cdnjs, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'), // CORRIGÉ : leaflet.js à la place de leaflet.css
+			['https:/', cdnjs, 'ajax', 'libs', 'leaflet', '1.2.0', 'leaflet.js'].join('/'),
 			'dist/Leaflet.Coordinates-0.1.5.min.js',
 			['https:/', jsdelivr, 'npm', 'cookies-js@1.2.3', 'dist', 'cookies.min.js'].join('/'),
 			['https:/', cdnjs, 'ajax', 'libs', 'fetch', '2.0.4', 'fetch.min.js'].join('/'),
@@ -159,18 +163,59 @@
 			activateGlobalPanControl();
 		}
 
+		// TRADUCTEUR COMPACT ET ULTRA-STABLE SANS COUPURE
 		function activateGlobalPanControl() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
 					var mapInstance = WurmMapGen.map.map;
+					
 					mapInstance.on('popupopen', function(e) {
 						var popup = e.popup;
+						var content = popup.getContent();
+						
 						popup.options.keepInView = true;
 						popup.options.autoPan = true;
 						popup.options.offset = L.point(0, -15);
 						popup.options.autoPanPaddingTopLeft = L.point(50, 280);
 						popup.options.autoPanPaddingBottomRight = L.point(50, 50);
-						mapInstance.panTo(popup.getLatLng(), {animate: true, duration: 0.25});
+						
+						if (content && (content.indexOf('Mayor:') !== -1 || content.indexOf('Citizens:') !== -1)) {
+							var txt = content.replace(/<\/?[^>]+(>|$)/g, "\n");
+							var lines = txt.split('\n');
+							
+							var villageName = "Colonie";
+							var mayorName = "Inconnu";
+							var citizensCount = "1";
+							var creationDate = "En 2026";
+							
+							// Extraction simplifiée du titre gras
+							var titleMatch = content.match(/<b>(.*?)<\/b>/);
+							if (titleMatch) villageName = titleMatch[1];
+							
+							for (var i = 0; i < lines.length; i++) {
+								var l = lines[i].trim();
+								if (l.toLowerCase().indexOf('mayor:') !== -1) mayorName = l.split(':')[1].trim();
+								if (l.toLowerCase().indexOf('citizens:') !== -1) citizensCount = l.split(':')[1].trim();
+								if (l.toLowerCase().indexOf('founded:') !== -1) creationDate = l.split(':')[1].trim();
+							}
+							
+							// Capture géospatiale directe par le clic de la souris
+							var latlng = popup.getLatLng();
+							var posX = Math.floor(latlng.lng);
+							var posY = Math.floor(-latlng.lat);
+							
+							var newContent = [
+								'<div align="center"><b>' + villageName + '</b></div>',
+								'<hr style="border:0; border-top:1px solid #ffcc00; margin:6px 0; opacity:0.3;">',
+								'Maire : <span class="bulle-maire">' + mayorName + '</span><br>',
+								'Citoyens : <span class="bulle-citoyens">' + citizensCount + '</span><br>',
+								'Créé le : ' + creationDate + '<br>',
+								'Position : <span class="bulle-coord">' + posX + ' x, ' + posY + ' y</span>'
+							].join('');
+							
+							popup.setContent(newContent);
+							popup.update();
+						}
 					});
 				} else {
 					activateGlobalPanControl();
