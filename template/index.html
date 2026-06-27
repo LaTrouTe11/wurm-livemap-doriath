@@ -16,30 +16,47 @@
 	<link rel="stylesheet" href="css/style.css">
 	<style>
 		.leaflet-popup-content-wrapper {
-			background: rgba(26, 26, 26, 0.95) !important;
+			background: rgba(45, 45, 45, 0.88) !important;
 			border: 2px solid #ffcc00 !important;
-			box-shadow: 0px 4px 15px rgba(0,0,0,0.7) !important;
-			border-radius: 8px !important; width: 250px !important; max-width: 250px !important; padding: 0 !important; backdrop-filter: blur(4px);
+			box-shadow: 0px 4px 15px rgba(0,0,0,0.5) !important;
+			border-radius: 8px !important; 
+			width: 250px !important; 
+			max-width: 250px !important; 
+			padding: 0 !important; 
+			backdrop-filter: blur(6px);
 		}
-		.leaflet-popup-tip { background: rgba(26, 26, 26, 0.95) !important; border: 1px solid #ffcc00 !important; }
-		.leaflet-popup-content { color: #ffffff !important; font-family: 'Roboto', sans-serif !important; font-size: 12px !important; line-height: 1.6 !important; margin: 12px !important; width: auto !important; }
-		.leaflet-popup-content b, .leaflet-popup-content strong { color: #FFD700 !important; text-shadow: 1px 1px 2px #000 !important; }
+		.leaflet-popup-tip { 
+			background: rgba(45, 45, 45, 0.88) !important; 
+			border: 1px solid #ffcc00 !important; 
+		}
+		.leaflet-popup-content { 
+			color: #ffffff !important; 
+			font-family: 'Roboto', sans-serif !important; 
+			font-size: 12px !important; 
+			line-height: 1.6 !important; 
+			margin: 12px !important; 
+			width: auto !important; 
+		}
+		.leaflet-popup-content b, .leaflet-popup-content strong { 
+			color: #FFD700 !important; 
+			text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important; 
+		}
 		.txt-m { color: #00FF7F !important; font-weight: bold; }
 		.txt-c { color: #ffffff !important; font-weight: bold; }
 		.txt-x { color: #00ffff !important; font-family: monospace; font-weight: bold; }
 		.txt-y { color: #00FF7F !important; font-family: monospace; font-weight: bold; }
-		.btn-comm {
-			display: block !important;
-			text-align: center !important;
-			text-decoration: none !important;
-			font-family: 'Roboto', sans-serif !important;
-			font-size: 11px !important;
-			font-weight: bold !important;
-			padding: 8px !important;
-			margin: 8px 0 !important;
-			border-radius: 4px !important;
-			text-shadow: 1px 1px 1px #000 !important;
-			box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
+		.btn-comm { 
+			display: block !important; 
+			text-align: center !important; 
+			text-decoration: none !important; 
+			font-family: 'Roboto', sans-serif !important; 
+			font-size: 11px !important; 
+			font-weight: bold !important; 
+			padding: 8px !important; 
+			margin: 8px 0 !important; 
+			border-radius: 4px !important; 
+			text-shadow: 1px 1px 1px #000 !important; 
+			box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important; 
 		}
 		.btn-web { background: #ffcc00 !important; color: #111111 !important; border: 1px solid #cca300 !important; }
 		.btn-disc { background: #5865F2 !important; color: #ffffff !important; border: 1px solid #4752c4 !important; }
@@ -50,24 +67,20 @@
 <div id="gui" :class="{sidebar: sidebarVisible}">
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
-		<div class="block padding">
+		<div class="block padding" style="padding-bottom: 12px !important;">
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; text-align: center; margin-bottom: 8px;">{{serverName}}</h1>
 			
-			<!-- INTEGRATION DE VOTRE BANNIERE LISTFORGE EN HAUT DU MENU -->
-			<div style="text-align: center; margin-bottom: 8px;">
-				<a href="https://wurm-unlimited.com/server/13208/" target="_blank" rel="noreferrer noopener" style="display: inline-block;">
-					<img src="https://wurm-unlimited.com/server/13208/banners/half-banner-3.png" border="0" alt="Server Banner" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 6px rgba(255,204,0,0.3); max-width: 100%;">
+			<!-- BANNIÈRE IMMERSIVE BRUNE DE VOTRE SERVEUR -->
+			<div style="text-align: center; margin-bottom: 4px;">
+				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display: inline-block;">
+					<img src="https://wurm-unlimited.combanners/half-banner-1.png" border="0" alt="Server Banner" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 6px rgba(255,204,0,0.3); max-width: 100%;">
 				</a>
-			</div>
-			
-			<div style="text-align: center; margin-bottom: 12px; font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: bold; color: #00ffb7 !important; display: block !important;">
-				👥 <span id="custom-playercount" style="color: #00ffb7 !important;">0 players (joueurs) online</span>
 			</div>
 		</div>
 
 		<div class="block" style="display: block !important;">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 4px;">🌐 Links (Liens) / Community :</strong>
-			<a href="https://wurm-unlimited.com/server/13208/" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
+			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
 			<a href="https://discord.gg" target="_blank" rel="noreferrer noopener" class="btn-comm btn-disc">💬 JOIN DISCORD (REJOINDRE)</a>
 		</div>
 
