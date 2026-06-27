@@ -61,18 +61,17 @@ jobs:
           # 1. On supprime tout à la racine sauf les dossiers vitaux
           find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name '.github' ! -name 'template' ! -name 'data' ! -name 'WurmMapGen*' ! -name 'update-map-live.yml' -exec rm -rf {} +
           
-          # 2. On copie tout le contenu du template vers la racine
-          cp -r template/wurm-livemap-doriath/* .
+          # 2. On copie tout le contenu du template vers la racine (chemin corrigé)
+          cp -r template/* .
 
       - name: 5. Synchronisation Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # On ajoute tout à la racine (y compris le site rapatrié et les données)
+          # On ajoute tout à la racine
           git add . 
           
-          # On commit si il y a des changements
           if ! git diff --cached --quiet; then
             git commit -m "MAJ auto : synchronisation site et donnees"
             git push origin main
