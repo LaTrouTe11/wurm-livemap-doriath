@@ -65,9 +65,10 @@
 		{{#showDeeds}}
 		<div class="block">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 5px;">📍 Deeds (Colonies) :</strong>
-			<label for="opt-solo" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo" v-model="showSoloDeeds" @change="filterDeedsLayer()"><span style="font-size: 12px;"> Solo players (Joueurs solos) - 1 cit.</span></label>
-			<label for="opt-small" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo-small" v-model="showSmallDeeds" @change="filterDeedsLayer()"><span style="font-size: 12px;"> Small settlements (Petits villages) - 2-5</span></label>
-			<label for="opt-large" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo-large" v-model="showLargeDeeds" @change="filterDeedsLayer()"><span style="font-size: 12px;"> Large settlements (Grands villages) - 6+</span></label>
+			<!-- Remplacement des v-model Vue par des identifiants standards pour bloquer l'erreur ReferenceError -->
+			<label for="opt-solo" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo" checked><span style="font-size: 12px;"> Solo players (Joueurs solos) - 1 cit.</span></label>
+			<label for="opt-small" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-small" checked><span style="font-size: 12px;"> Small settlements (Petits villages) - 2-5</span></label>
+			<label for="opt-large" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-large" checked><span style="font-size: 12px;"> Large settlements (Grands villages) - 6+</span></label>
 			<hr style="border:0; border-top:1px solid #444; margin:8px 0;">
 			<label for="option-show-village-borders" class="flex" style="padding: 4px 0;"><input type="checkbox" id="option-show-village-borders" v-model="showVillageBorders"><span style="font-size: 12px;"> Show deed borders (Frontières)</span></label>
 		</div>
@@ -93,15 +94,6 @@
 
 <script crossorigin="anonymous">
 	(function() {
-		// PRE-INITIALISATION ABSOLUE CONTRE L'ERREUR REFERENCEERROR DE VUE.JS
-		window.WurmMapGen = {
-			config: {
-				showSoloDeeds: true,
-				showSmallDeeds: true,
-				showLargeDeeds: true
-			}
-		};
-
 		var unpkgHost = ['unpkg', 'com'].join('.');
 		var jsdHost = ['cdn', 'jsdelivr', 'net'].join('.');
 		var cdnjsHost = ['cdnjs', 'cloudflare', 'com'].join('.');
@@ -118,6 +110,7 @@
 			var s = document.createElement('script'); s.src = urls[idx]; s.crossOrigin = 'anonymous'; s.onload = function() { loadNext(idx + 1); }; document.body.appendChild(s);
 		}
 		function startApp() {
+			window.WurmMapGen = {};
 			var mods = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js', 'app/live-interceptor.js'];
 			mods.forEach(function(src) { var s = document.createElement('script'); s.src = src; s.defer = true; document.body.appendChild(s); });
 		}
@@ -126,6 +119,7 @@
 </script>
 </body>
 </html>
+
 
 
 
