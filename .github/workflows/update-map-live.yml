@@ -58,7 +58,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet et Injection du Titre Log Visible
+    - name: 5. Configuration Automatique pour Leaflet et Ajustement de la Typographie du Titre
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -70,7 +70,10 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
         
-        # Injection de l'encadré stylisé lisible TOUT EN HAUT sous le titre h1
+        # CORRECTIF TYPOGRAPHIQUE : Force le regroupement de 4k sur la ligne du bas
+        sed -i 's|4k|<span style="white-space: nowrap;">4k</span>|g' index.html
+        
+        # Generation automatique de votre phrase de compilation avec l'heure du Quebec
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
         sed -i "s|2026-06-26 a 22:32:10|$DATE_COMPIL|g" index.html
 
@@ -88,7 +91,7 @@ jobs:
         git commit --allow-empty -m "Derniere compilation reussie le $(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S') [skip ci]"
         git push origin main --force
 
-    - name: 7. Televersement natif vers GitHub Pages (Avec purge automatique de 24h)
+    - name: 7. Televersement natif vers GitHub Pages
       uses: actions/upload-pages-artifact@v3
       with:
         path: '.'
@@ -96,8 +99,6 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
-
-
 
 
 
