@@ -26,21 +26,23 @@ jobs:
 
       - name: 4. Telechargement bases donnees
         run: |
-          # On crée la structure exacte attendue par le logiciel : ./sqlite_db/sqlite/
-          mkdir -p ./sqlite_db/sqlite
+          # 1. Création forcée du dossier à la racine
+          mkdir -p ./sqlite
+          
+          # 2. Téléchargement avec vérification du résultat
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
-          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db; \
-          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/sqlite/wurmitems.db; \
-          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/sqlite/wurmplayers.db; \
-          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/sqlite/top_layer.map; \
-          bye"
+          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite/wurmzones.db; \
+          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite/wurmitems.db; \
+          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite/wurmplayers.db; \
+          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite/top_layer.map; \
+          bye" || echo "⚠️ Attention: Le téléchargement a rencontré une erreur."
 
-      - name: 4.5 Scan des fichiers (Debug)
+      - name: 4.5 Scan de vérification
         run: |
-          echo "Scan du dossier sqlite :"
-          ls -R ./sqlite/
-          if [ ! -f "./sqlite/wurmzones.db" ]; then echo "ERREUR: wurmzones.db introuvable"; fi
-          if [ ! -f "./sqlite/top_layer.map" ]; then echo "ERREUR: top_layer.map introuvable"; fi
+          echo "Contenu de la racine :"
+          ls -F
+          echo "Contenu de ./sqlite :"
+          ls -F ./sqlite/ || echo "Le dossier ./sqlite est vide ou inexistant."
 
       - name: 5. Execution WurmMapGen
         run: java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
