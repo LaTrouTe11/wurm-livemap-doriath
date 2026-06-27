@@ -1,39 +1,37 @@
-- name: 5. Finalisation des assets (sans ecrase config)
+- name: 5. Finalisation des assets
       run: |
-        # On ne supprime plus config.json, on laisse le .jar le créer
         mkdir -p ./data
-        
-        # Copie du template vers la racine
         cp -f template/index.html index.html
-        
-        # Securisation des scripts app/*.js sans les remplacer par les originaux
-        # Note: git checkout HEAD est dangereux ici, on le remplace par une verification
         rm -f app/live-interceptor.js || true
         
         if [ -f "app/map.js" ]; then
-          # Remplacement sécurisé des textes
           sed -i 's|'\''<b>Mayor:</b> '\'' + escapeHtml(village.mayor),|'\''👑 <b>Mayor (Maire) :</b> <span class="txt-m">'\'' + escapeHtml(village.mayor) + '\''</span>'\'',|g' app/map.js
           sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" app/map.js
         fi
 
-        # Injection des variables dans index.html
         sed -i 's|{{serverName}}|Doriath 4K|g' index.html
         sed -i 's|{{enableRealtimeMarkers}}|true|g' index.html
         sed -i 's|{{#showDeeds}}||g; s|{{/showDeeds}}||g' index.html
         sed -i 's|{{#showGuardTowers}}||g; s|{{/showGuardTowers}}||g' index.html
         
-        DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
-        sed -i "s|2026-06-27 a 04:00:00|$DATE_COMPIL|g" index.html
+        # On écrit la date dans un fichier temporaire pour la passer à l'étape suivante
+        echo "$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')" > date_compil.txt
+        sed -i "s|2026-06-27 a 04:00:00|$(cat date_compil.txt)|g" index.html
 
     - name: 6. Envoi des modifications
       run: |
+        DATE_COMPIL=$(cat date_compil.txt)
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        # Ajout uniquement des fichiers modifiés/générés
+        
         git add data/*.json index.html app/*.js
-        # Commit seulement si il y a des changements (evite les commits vides)
-        git diff --quiet && git diff --staged --quiet || git commit -m "Mise a jour auto: $DATE_COMPIL"
-        git push origin main
-
+        
+        # Vérification s'il y a quelque chose à commiter
+        if ! git diff --cached --quiet; then
+          git commit -m "Mise a jour auto: $DATE_COMPIL"
+          git push origin main
+        else
+          echo "Aucun changement détecté, pas de commit."
+        fi
 
 
