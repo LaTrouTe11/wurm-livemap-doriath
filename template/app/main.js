@@ -2,82 +2,61 @@
 
 (function() {
 
-// Prepare arrays for loaded data
+// Initialisation des objets de données
 WurmMapGen.config = null;
-
 WurmMapGen.villages = null;
 WurmMapGen.guardtowers = null;
 WurmMapGen.structures = null;
 WurmMapGen.portals = null;
+WurmMapGen.deeds = null;
+WurmMapGen.towers = null;
+WurmMapGen.players = null;
+WurmMapGen.timestamp = null;
 
-// Helper function to fetch a dataset from a JSON file
+// Fonction de chargement automatique
 function fetchData(key, path) {
-	return fetch('data/' + path)
-		.then(function(response) { return response.json() })
-		.then(function(responseData) {
-			WurmMapGen[key] = responseData[key];
-			return Promise.resolve();
-		});
+    return fetch('data/' + path)
+        .then(function(response) { 
+            if (!response.ok) return null; // Si le fichier est manquant, on continue quand même
+            return response.json(); 
+        })
+        .then(function(responseData) {
+            if (responseData) {
+                WurmMapGen[key] = responseData;
+            }
+            return Promise.resolve();
+        });
 }
 
-// Keep track of whether or not the window is focused and active
-var windowIsFocused = true;
-window.onblur = function(){ windowIsFocused = false; }
-window.onfocus = function(){ windowIsFocused = true; }
-
-// Helper function to set timeout for refreshing realtime data
-function setRealtimeTimer() {
-	var time = 30000;
-
-	// If the window is not focused, use 60s refresh timeout instead of 30s
-	if (!windowIsFocused) {
-		time = 60000;
-	}
-
-	WurmMapGen.realtimeTimer = setTimeout(function() {
-		fetchData('players', 'players.json').then(function() {
-			WurmMapGen.map.updatePlayerMarkers();
-			WurmMapGen.gui.playerCount = WurmMapGen.players.length;
-			setRealtimeTimer();
-		});
-	}, time);
-}
-
-// Prepare promises to load data
-var promises = [
-	fetchData('config', 'config.json'),
-	fetchData('villages', 'villages.json'),
-	fetchData('guardtowers', 'guardtowers.json'),
-	fetchData('structures', 'structures.json'),
-	fetchData('portals', 'portals.json')
+// Liste de TOUS les fichiers à charger depuis la racine (dossier data/)
+var filesToLoad = [
+    {key: 'config', path: 'config.json'},
+    {key: 'villages', path: 'villages.json'},
+    {key: 'guardtowers', path: 'guardtowers.json'},
+    {key: 'structures', path: 'structures.json'},
+    {key: 'portals', path: 'portals.json'},
+    {key: 'deeds', path: 'deeds.json'},
+    {key: 'towers', path: 'towers.json'},
+    {key: 'players', path: 'players.json'},
+    {key: 'timestamp', path: 'timestamp.json'}
 ];
 
-if (document.body.getAttribute('data-realtime') === 'true') {
-	promises.push(fetchData('players', 'players.json'));
-}
-
-// Start loading
-Promise.all(promises)
-.catch(function(err) {
-	console.error('Could not load data');
-	console.error(err);
-	document.write('Something went wrong, map data could not be loaded');
-})
-.then(function() {
-	// Add computed config values
-	WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
-
-	// Create the map
-	WurmMapGen.map.create();
-
-	// Initialise the GUI
-	WurmMapGen.gui.init();
-
-	// Set interval to refresh realtime data
-	if (document.body.getAttribute('data-realtime') === 'true') {
-		setRealtimeTimer();
-	}
+var promises = filesToLoad.map(function(item) {
+    return fetchData(item.key, item.path);
 });
 
-// End IIFE
+Promise.all(promises)
+.then(function() {
+    if (WurmMapGen.config) {
+        WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
+        WurmMapGen.map.create();
+        WurmMapGen.gui.init();
+    } else {
+        console.error('Erreur: config.json introuvable !');
+    }
+})
+.catch(function(err) {
+    console.error('Erreur critique lors du chargement des données:', err);
+});
+
 })();
