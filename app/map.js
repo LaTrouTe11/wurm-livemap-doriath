@@ -99,6 +99,15 @@ WurmMapGen.map = {
             }
         }
 
+        // Suppression sécurisée des IDs
         for (var k = 0; k < idsToRemove.length; k++) {
-            delete WurmMapGen.map.playerMarkers[idsToRemove[k]];
-            //
+            var pidToRemove = idsToRemove[k];
+            delete WurmMapGen.map.playerMarkers[pidToRemove];
+            
+            var index = WurmMapGen.map.playerMarkerIds.indexOf(pidToRemove);
+            if (index > -1) {
+                WurmMapGen.map.playerMarkerIds.splice(index, 1);
+            }
+        }
+    }
+};
