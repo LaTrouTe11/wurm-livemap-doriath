@@ -10,18 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 1. Checkout du depot
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 2. Installation dependances
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement des donnees
+      - name: 3. Telechargement des donnees (Legion Hosting)
         run: |
-          lftp -c "open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ${{ secrets.FTP_HOST }}; get -O . w_map.db"
+          # Utilisation des secrets LEGION_USER, PASS, HOST, PORT
+          lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
+          open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
+          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./w_map.db; \
+          bye"
 
       - name: 4. Execution WurmMapGen
         run: |
-          java -jar WurmMapGen.jar -map w_map.db -out .
+          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar -map w_map.db -out .
           # Mise a jour de la date dans le template
           sed -i "s|{{date_compil}}|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
@@ -30,21 +34,18 @@ jobs:
           echo "Rapport de generation - Doriath 4K" > generation_report.txt
           echo "Date : $(date +'%Y-%m-%d %H:%M:%S')" >> generation_report.txt
           echo "-----------------------------------" >> generation_report.txt
-          echo "Etat de la generation : Succès" >> generation_report.txt
-          echo "Fichiers generes :" >> generation_report.txt
-          ls -lh *.map >> generation_report.txt
+          echo "Etat : Succès" >> generation_report.txt
+          echo "Fichiers detectes :" >> generation_report.txt
+          ls -lh *.db *.map >> generation_report.txt
 
       - name: 6. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Ajout des fichiers modifies
           git add index.html generation_report.txt data/ images/ || true
           
-          # Commit et push seulement s'il y a des changements
           if ! git diff --cached --quiet; then
-            git commit -m "Mise a jour auto: carte et rapport de generation"
+            git commit -m "Mise a jour auto: carte et rapport"
             git push origin main
           else
             echo "Aucun changement detecte."
