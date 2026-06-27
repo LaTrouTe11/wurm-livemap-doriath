@@ -24,18 +24,17 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: 4. Telechargement bases donnees
+     - name: 4. Telechargement bases donnees
         run: |
-          # 1. Création forcée du dossier à la racine
           mkdir -p ./sqlite
-          
-          # 2. Téléchargement avec vérification du résultat
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite/wurmzones.db; \
           get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite/wurmitems.db; \
           get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite/wurmplayers.db; \
           get /dist/Doriath-4k-20/top_layer.map -o ./sqlite/top_layer.map; \
-          bye" || echo "⚠️ Attention: Le téléchargement a rencontré une erreur."
+          bye"
+          # COPIE DE SECURITE : On copie tout à la racine pour éviter les FileNotfoundException
+          cp ./sqlite/* ./
 
       - name: 4.5 Scan de vérification
         run: |
