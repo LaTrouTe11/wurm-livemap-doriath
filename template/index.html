@@ -14,6 +14,40 @@
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
+	
+	<!-- BLINDAGE CSS EMBARQUÉ : Restaure les boutons et le fond anthracite de force -->
+	<style>
+		.leaflet-popup-content-wrapper {
+			background: rgba(26, 26, 26, 0.95) !important;
+			border: 2px solid #ffcc00 !important;
+			box-shadow: 0px 4px 15px rgba(0,0,0,0.7) !important;
+			border-radius: 8px !important; width: 250px !important; max-width: 250px !important; padding: 0 !important; backdrop-filter: blur(4px);
+		}
+		.leaflet-popup-tip { background: rgba(26, 26, 26, 0.95) !important; border: 1px solid #ffcc00 !important; }
+		.leaflet-popup-content { color: #ffffff !important; font-family: 'Roboto', sans-serif !important; font-size: 12px !important; line-height: 1.6 !important; margin: 12px !important; width: auto !important; }
+		.leaflet-popup-content b, .leaflet-popup-content strong { color: #FFD700 !important; text-shadow: 1px 1px 2px #000 !important; }
+		.txt-m { color: #00FF7F !important; font-weight: bold; }
+		.txt-c { color: #ffffff !important; font-weight: bold; }
+		.txt-x { color: #00ffff !important; font-family: monospace; font-weight: bold; }
+		.txt-y { color: #00FF7F !important; font-family: monospace; font-weight: bold; }
+		
+		/* FORÇAGE DES BOUTONS DE LIENS ET DU COMPTEUR DE JOUEURS */
+		.btn-comm {
+			display: block !important;
+			text-align: center !important;
+			text-decoration: none !important;
+			font-family: 'Roboto', sans-serif !important;
+			font-size: 11px !important;
+			font-weight: bold !important;
+			padding: 8px !important;
+			margin: 8px 0 !important;
+			border-radius: 4px !important;
+			text-shadow: 1px 1px 1px #000 !important;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
+		}
+		.btn-web { background: #ffcc00 !important; color: #111111 !important; border: 1px solid #cca300 !important; }
+		.btn-disc { background: #5865F2 !important; color: #ffffff !important; border: 1px solid #4752c4 !important; }
+	</style>
 </head>
 <body data-realtime="{{enableRealtimeMarkers}}">
 
@@ -29,12 +63,13 @@
 					</div>
 				</a>
 			</div>
-			<div style="text-align: center; margin-bottom: 12px; font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: bold; color: #00ffb7;">
-				👥 <span id="custom-playercount">0 players (joueurs) online</span>
+			<!-- COMPTEUR DE JOUEURS EN DIRECT -->
+			<div style="text-align: center; margin-bottom: 12px; font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: bold; color: #00ffb7 !important; display: block !important;">
+				👥 <span id="custom-playercount" style="color: #00ffb7 !important;">0 players (joueurs) online</span>
 			</div>
 		</div>
 
-		<div class="block">
+		<div class="block" style="display: block !important;">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 4px;">🌐 Links (Liens) / Community :</strong>
 			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
 			<a href="https://discord.gg" target="_blank" rel="noreferrer noopener" class="btn-comm btn-disc">💬 JOIN DISCORD (REJOINDRE)</a>
