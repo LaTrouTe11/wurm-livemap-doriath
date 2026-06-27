@@ -18,13 +18,13 @@
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 	<style>
-		/* BLINDAGE CSS DIRECT : Verrouille la taille de la bulle et force le fond noir opaque */
+		/* BLINDAGE CSS : Verrouille la taille de la bulle et force le fond noir opaque */
 		.leaflet-popup-content-wrapper {
 			background: #111111 !important;
 			border: 2px solid #ffcc00 !important;
 			box-shadow: 0px 4px 10px rgba(0,0,0,0.9) !important;
 			border-radius: 8px !important;
-			max-width: 250px !important; /* Force une largeur normale non étirée */
+			max-width: 250px !important;
 			padding: 0 !important;
 		}
 		.leaflet-popup-tip {
@@ -39,7 +39,6 @@
 			margin: 10px !important;
 			width: auto !important;
 		}
-		/* Forçage d'Or éclatant sur les titres gras */
 		.leaflet-popup-content b, .leaflet-popup-content strong {
 			color: #FFD700 !important;
 			text-shadow: 1px 1px 2px #000 !important;
@@ -65,7 +64,7 @@
 			</div>
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center;">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 02:45:00</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 03:30:00</span>
 			</div>
 		</div>
 
@@ -116,7 +115,7 @@
 			activateBulleEngine();
 		}
 
-		// EXTRACTEUR SÉCURISÉ UNIVERSEL PAR EFFACEMENT / RECONSTRUCTION TEXTUELLE
+		// EXTRACTEUR PAR SPLIT GÉOMÉTRIQUE HTML SANS AUCUN RISQUE DE RENTRER DANS LES PATATES
 		function activateBulleEngine() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
@@ -124,48 +123,43 @@
 					
 					mapInstance.on('popupopen', function(e) {
 						var popup = e.popup;
-						var contentHTML = popup.getContent();
+						var html = popup.getContent();
 						
-						// Bloqueur anti-boucle pour figer le calcul de position
-						if (contentHTML && contentHTML.indexOf('txt-p') !== -1) { return; }
+						if (html && html.indexOf('txt-p') !== -1) { return; }
 						
-						if (contentHTML && (contentHTML.indexOf('Mayor:') !== -1 || contentHTML.indexOf('Maire :') !== -1 || contentHTML.indexOf('Citizens:') !== -1)) {
-							var tempDiv = document.createElement('div');
-							tempDiv.innerHTML = contentHTML;
-							
-							// Nettoyage textuel absolu pour capturer les mots-clés d'usine
-							var rawText = tempDiv.innerText || tempDiv.textContent;
-							
-							var villageName = tempDiv.querySelector('b') ? tempDiv.querySelector('b').innerText.trim() : "Colonie";
+						if (html && (html.indexOf('Mayor:') !== -1 || html.indexOf('Maire :') !== -1 || html.indexOf('Citizens:') !== -1)) {
+							// Lecture propre des lignes HTML brutes generees par Java
+							var lines = html.split('<br>');
+							var villageName = "Colonie";
 							var mayorName = "Inconnu";
 							var citizensCount = "1";
 							
-							// Extraction robuste des valeurs par découpage universel
-							var words = rawText.replace(/,/g, ' ').replace(/:/g, ' : ').split(/\s+/);
-							for (var i = 0; i < words.length; i++) {
-								if (words[i].toLowerCase() === 'mayor' || words[i].toLowerCase() === 'maire') {
-									if (words[i+1] === ':') { mayorName = words[i+2] || "Inconnu"; }
-									else { mayorName = words[i+1] || "Inconnu"; }
+							// Nettoie les balises pour extraire uniquement la valeur textuelle
+							for (var i = 0; i < lines.length; i++) {
+								var textNode = lines[i].replace(/<\/?[^>]+(>|$)/g, "").trim();
+								
+								if (i === 0) {
+									villageName = textNode;
 								}
-								if (words[i].toLowerCase() === 'citizens' || words[i].toLowerCase() === 'citoyens') {
-									if (words[i+1] === ':') { citizensCount = words[i+2] || "1"; }
-									else { citizensCount = words[i+1] || "1"; }
+								if (textNode.toLowerCase().indexOf('mayor:') !== -1) {
+									mayorName = textNode.replace(/mayor:/i, "").trim();
+								}
+								if (textNode.toLowerCase().indexOf('citizens:') !== -1) {
+									citizensCount = textNode.replace(/citizens:/i, "").trim();
 								}
 							}
 							
-							// Extraction géospatiale directe au clic
 							var latlng = popup.getLatLng();
 							var px = Math.floor(latlng.lng);
 							var py = Math.floor(-latlng.lat);
 							
-							// Reconstruction totale sous format de mini-grimoire contrasté et calibré
 							var newContent = [
-								'<div align="center"><b style="color: #FFD700; font-size: 14px; text-shadow: 1px 1px 2px #000;">' + villageName + '</b></div>',
+								'<div align="center"><b>' + villageName + '</b></div>',
 								'<hr style="border:0; border-top:1px solid #ffcc00; margin:6px 0; opacity:0.3;">',
-								'<div style="font-size: 11px; line-height: 1.5; color: #ffffff;">',
+								'<div style="font-size: 12px; line-height: 1.5; color: #ffffff;">',
 								'<b>Maire :</b> <span class="txt-m">' + mayorName + '</span><br>',
 								'<b>Citoyens :</b> <span class="txt-c">' + citizensCount + '</span><br>',
-								'<b>Créé en :</b> <span style="color: #ffffff;">2026</span><br>',
+								'<b>Créé le :</b> En 2026<br>',
 								'<b>Position :</b> <span class="txt-p">' + px + ' x, ' + py + ' y</span>',
 								'</div>'
 							].join('');
