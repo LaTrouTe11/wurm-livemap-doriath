@@ -21,6 +21,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         persist-credentials: true
+        fetch-depth: 0
 
     - name: 2. Installation de Java et lftp
       uses: actions/setup-java@v4
@@ -59,7 +60,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet
+    - name: 5. Configuration Automatique pour Leaflet et Nettoyage Git
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -70,6 +71,9 @@ jobs:
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
+        
+        # RESTAURATION COMPLETE DES SCRIPTS D'ORIGINE SANS ERR DE CODAGE
+        git checkout HEAD app/map.js app/main.js app/util.js app/gui.js app/markers.js 2>/dev/null || true
         
         sed -i 's|4k|<span style="white-space: nowrap;">4k</span>|g' index.html
         
@@ -85,9 +89,10 @@ jobs:
         git add *.json || true
         git add index.html || true
         git add app/*.js || true
+        git add css/*.css || true
         git add images/ || true
         git add tiles/ || true
-        git commit --allow-empty -m "Mise a jour de la carte en direct"
+        git commit --allow-empty -m "Nettoyage general et restauration d usine stable"
         git push origin main --force
 
     - name: 7. Televersement natif vers GitHub Pages
