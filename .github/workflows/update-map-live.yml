@@ -43,6 +43,11 @@ jobs:
           echo "Contenu de ./sqlite :"
           ls -F ./sqlite/ || echo "Le dossier ./sqlite est vide ou inexistant."
 
+          - name: 4.6 Verification finale
+        run: |
+          echo "Fichiers présents à la racine :"
+          ls -l top_layer.map wurmzones.db
+
       - name: 5. Execution WurmMapGen
         run: java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
