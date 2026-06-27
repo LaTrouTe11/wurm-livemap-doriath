@@ -14,8 +14,6 @@
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
-	
-	<!-- BLINDAGE CSS EMBARQUÉ : Restaure les boutons et le fond anthracite de force -->
 	<style>
 		.leaflet-popup-content-wrapper {
 			background: rgba(26, 26, 26, 0.95) !important;
@@ -30,8 +28,6 @@
 		.txt-c { color: #ffffff !important; font-weight: bold; }
 		.txt-x { color: #00ffff !important; font-family: monospace; font-weight: bold; }
 		.txt-y { color: #00FF7F !important; font-family: monospace; font-weight: bold; }
-		
-		/* FORÇAGE DES BOUTONS DE LIENS ET DU COMPTEUR DE JOUEURS */
 		.btn-comm {
 			display: block !important;
 			text-align: center !important;
@@ -56,14 +52,14 @@
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; text-align: center; margin-bottom: 8px;">{{serverName}}</h1>
+			
+			<!-- INTEGRATION DE VOTRE BANNIERE LISTFORGE EN HAUT DU MENU -->
 			<div style="text-align: center; margin-bottom: 8px;">
-				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="text-decoration: none; display: inline-block; width: 100%;">
-					<div style="background: #1a1a1a; border: 2px solid #00ccff; padding: 8px; border-radius: 6px; font-family: sans-serif; font-size: 11px; font-weight: bold; color: #00ccff; text-shadow: 1px 1px 2px #000;">
-						🟢 SERVER (SERVEUR) : ONLINE
-					</div>
+				<a href="https://wurm-unlimited.com/server/13208/" target="_blank" rel="noreferrer noopener" style="display: inline-block;">
+					<img src="https://wurm-unlimited.com/server/13208/banners/half-banner-3.png" border="0" alt="Server Banner" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 6px rgba(255,204,0,0.3); max-width: 100%;">
 				</a>
 			</div>
-			<!-- COMPTEUR DE JOUEURS EN DIRECT -->
+			
 			<div style="text-align: center; margin-bottom: 12px; font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: bold; color: #00ffb7 !important; display: block !important;">
 				👥 <span id="custom-playercount" style="color: #00ffb7 !important;">0 players (joueurs) online</span>
 			</div>
@@ -71,7 +67,7 @@
 
 		<div class="block" style="display: block !important;">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 4px;">🌐 Links (Liens) / Community :</strong>
-			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
+			<a href="https://wurm-unlimited.com/server/13208/" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
 			<a href="https://discord.gg" target="_blank" rel="noreferrer noopener" class="btn-comm btn-disc">💬 JOIN DISCORD (REJOINDRE)</a>
 		</div>
 
@@ -129,7 +125,6 @@
 </script>
 </body>
 </html>
-
 
 
 
