@@ -5,14 +5,14 @@
 	<meta charset="utf-8"/>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 	
-	<!-- Chargement direct sans blocage de sécurité ni problème d adresse -->
+	<!-- Chargement des feuilles de style CDNJS officielles validées CORS -->
 	<link rel="stylesheet" href="https://cloudflare.com">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 	
 	<style>
-		/* Style médiéval haute visibilité noir et or */
+		/* Style médiéval haute visibilité noir et or pour toutes les bulles */
 		.leaflet-popup-content-wrapper {
 			background: #111111 !important;
 			border: 2px solid #ffcc00 !important;
@@ -55,7 +55,7 @@
 			<!-- ENCADRE DE SYNCHRONISATION FIXE -->
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center;">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 01:09:49</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 01:14:54</span>
 			</div>
 		</div>
 
@@ -78,6 +78,7 @@
 
 <script crossorigin="anonymous">
 	(function() {
+		// ADRESSES SÉCURISÉES FIXES CONTRE LA POLITIQUE CORS
 		var urls = [
 			'https://cloudflare.com',
 			'dist/Leaflet.Coordinates-0.1.5.min.js',
@@ -90,7 +91,9 @@
 		function loadNext(idx) {
 			if (idx >= urls.length) { startApp(); return; }
 			var s = document.createElement('script');
-			s.src = urls[idx]; s.crossOrigin = 'anonymous'; s.onload = function() { loadNext(idx + 1); };
+			s.src = urls[idx]; 
+			s.crossOrigin = 'anonymous'; 
+			s.onload = function() { loadNext(idx + 1); };
 			document.body.appendChild(s);
 		}
 		
