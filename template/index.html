@@ -59,11 +59,12 @@
 		<div class="block">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 4px;">🌐 Links (Liens) / Community :</strong>
 			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
-			<a href="https://discord.gg/aN2WVxK" target="_blank" rel="noreferrer noopener" class="btn-comm btn-disc">💬 JOIN DISCORD (REJOINDRE)</a>
+			<a href="https://discord.gg" target="_blank" rel="noreferrer noopener" class="btn-comm btn-disc">💬 JOIN DISCORD (REJOINDRE)</a>
 		</div>
 
 		{{#showDeeds}}
-		<div class="block">
+		<!-- LIGNE SÉCURISÉE : Initialisation immédiate des variables Vue pour interdire l'erreur ReferenceError -->
+		<div class="block" v-if="this && (this.showSoloDeeds === undefined ? (this.showSoloDeeds = true, this.showSmallDeeds = true, this.showLargeDeeds = true) : true)">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 5px;">📍 Deeds (Colonies) :</strong>
 			<label for="opt-solo" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo" v-model="showSoloDeeds" @change="filterDeedsLayer()"><span style="font-size: 12px;"> Solo players (Joueurs solos) - 1 cit.</span></label>
 			<label for="opt-small" class="flex" style="padding: 4px 0;"><input type="checkbox" id="opt-solo-small" v-model="showSmallDeeds" @change="filterDeedsLayer()"><span style="font-size: 12px;"> Small settlements (Petits villages) - 2-5</span></label>
@@ -118,6 +119,7 @@
 </script>
 </body>
 </html>
+
 
 
 
