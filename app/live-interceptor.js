@@ -1,36 +1,10 @@
 'use strict';
 
 (function() {
-	function injectVueProperties() {
-		// Injection forcée dans l'instance globale pour interdire l'erreur ReferenceError
-		if (window.WurmMapGen && WurmMapGen.gui && WurmMapGen.gui.app) {
-			var app = WurmMapGen.gui.app;
-			if (!app.hasOwnProperty('showSoloDeeds')) {
-				if (app.$set) {
-					app.$set(app, 'showSoloDeeds', true);
-					app.$set(app, 'showSmallDeeds', true);
-					app.$set(app, 'showLargeDeeds', true);
-				} else {
-					app.showSoloDeeds = true;
-					app.showSmallDeeds = true;
-					app.showLargeDeeds = true;
-				}
-			}
-			setupLeafletHook();
-		} else {
-			// Création préventive de la structure de l'application si non instanciée
-			if (window.WurmMapGen && WurmMapGen.config) {
-				WurmMapGen.config.showSoloDeeds = true;
-				WurmMapGen.config.showSmallDeeds = true;
-				WurmMapGen.config.showLargeDeeds = true;
-			}
-			setTimeout(injectVueProperties, 50);
-		}
-	}
-
 	function setupLeafletHook() {
-		if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
+		if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map && WurmMapGen.gui && WurmMapGen.gui.app) {
 			var mapInstance = WurmMapGen.map.map;
+			var app = WurmMapGen.gui.app;
 
 			setInterval(function() {
 				var countEl = document.getElementById('playercount');
@@ -42,7 +16,6 @@
 			}, 2000);
 
 			WurmMapGen.gui.filterDeedsLayer = function() {
-				var app = WurmMapGen.gui.app;
 				if (!window.WurmMapGen.map.layers.villageMarkers) return;
 				
 				WurmMapGen.map.layers.villageMarkers.eachLayer(function(marker) {
@@ -116,5 +89,6 @@
 		}
 	}
 
-	injectVueProperties();
+	setupLeafletHook();
 })();
+
