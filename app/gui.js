@@ -1,300 +1,101 @@
 'use strict';
 
-(function() {
-
-WurmMapGen.gui = new Vue({
-	el: '#gui',
-
-	data: {
-		sidebarVisible: (window.innerWidth > 1200),
-		sidebarToggled: 0,
-		mapResizeInterval: null,
-
-		loaded: false,
-
-		searchQuery: '',
-
-		playerCount: 0,
-
-		showStructures: true,
-		showPlayers: true,
-		showPortals: true,
-
-		showVillages: true,
-		showVillageBorders: true,
-
-		showTowers: true,
-		showTowerBorders: true
+WurmMapGen.gui = {
+	app: null,
+	init: function() {
+		WurmMapGen.gui.app = new Vue({
+			el: '#gui',
+			data: { loaded: false, sidebarVisible: Cookies.get('sidebar_visible') !== 'false', showVillages: Cookies.get('show_villages') !== 'false', showVillageBorders: Cookies.get('show_village_borders') !== 'false', showTowers: Cookies.get('show_towers') !== 'false', showTowerBorders: Cookies.get('show_tower_borders') !== 'false', searchQuery: '' },
+			computed: {
+				searchResults: function() {
+					var q = this.searchQuery.toLowerCase().trim(); if (q === '') return []; var res = [];
+					if (WurmMapGen.villages) {
+						for (var i = 0; i < WurmMapGen.villages.length; i++) {
+							var v = WurmMapGen.villages[i]; if (v.name.toLowerCase().indexOf(q) !== -1) { res.push({ type: 'village', name: v.name, text: 'Mayor: ' + v.mayor, x: v.x, y: v.y }); }
+						}
+					}
+					if (WurmMapGen.guardtowers) {
+						for (var i = 0; i < WurmMapGen.guardtowers.length; i++) {
+							var t = WurmMapGen.guardtowers[i]; if (t.creator.toLowerCase().indexOf(q) !== -1) { res.push({ type: 'guardtower', name: 'Guard Tower', text: 'Created by ' + t.creator, x: t.x, y: t.y }); }
+						}
+					}
+					return res.slice(0, 5);
+				}
+			},
+			watch: {
+				sidebarVisible: function(v) { Cookies.set('sidebar_visible', v); },
+				showVillages: function(v) { Cookies.set('show_villages', v); WurmMapGen.gui.updateLayers(); },
+				showVillageBorders: function(v) { Cookies.set('show_village_borders', v); WurmMapGen.gui.updateLayers(); },
+				showTowers: function(v) { Cookies.set('show_towers', v); WurmMapGen.gui.updateLayers(); },
+				showTowerBorders: function(v) { Cookies.set('show_tower_borders', v); WurmMapGen.gui.updateLayers(); }
+			},
+			methods: { clickResult: function(r) { this.searchQuery = ''; WurmMapGen.map.map.setView(WurmMapGen.util.xy(r.x, r.y), WurmMapGen.config.mapMaxZoom); } },
+			mounted: function() { this.loaded = true; WurmMapGen.gui.updateLayers(); WurmMapGen.gui.injectCustomDesign(); }
+		});
 	},
-
-	computed: {
-		playerCountLabel: function() {
-			return (this.playerCount === 1 ? '1 player online' : this.playerCount + ' players online');
-		},
-
-		searchResultsOpen: function() {
-			return (this.searchResults.length > 0);
-		},
-
-		searchResults: function() {
-			// Return empty results if no search query is given
-			if (this.searchQuery.length < 1) {
-				return [];
-			}
-
-			var escapeHtml = WurmMapGen.util.escapeHtml;
-
-			var query = this.searchQuery.toLowerCase();
-			var results = [];
-			var i, index;
-
-			// Find online players who match the search query
-			if (WurmMapGen.players && this.showPlayers) {
-				for (i = 0; i < WurmMapGen.players.length; i++) {
-					var player = WurmMapGen.players[i];
-
-					var name = escapeHtml(player.name);
-
-					// Check if player name matches query
-					if ((index = name.toLowerCase().indexOf(query)) > -1) {
-						results.push({
-							type: 'player',
-							x: player.x,
-							y: player.y,
-							label: '<p>' + name.slice(0, index) + '<strong>' + name.slice(index, index + query.length) + '</strong>' + name.slice(index + query.length) + '</p>'
-						});
-					}
-
-					if (results.length >= 8) return results;
-				}
-			}
-
-			// Find villages that match the search query
-			if (this.showVillages) {
-				for (i = 0; i < WurmMapGen.villages.length; i++) {
-					var village = WurmMapGen.villages[i];
-
-					var name = escapeHtml(village.name);
-					var mayor = escapeHtml(village.mayor);
-
-					var label = '';
-
-					// Check if name matches query
-					if ((index = name.toLowerCase().indexOf(query)) > -1) {
-						label = '<p>' + name.slice(0, index) + '<strong>' + name.slice(index, index + query.length) + '</strong>' + name.slice(index + query.length) + '</p><p class="small">Mayor: ' + mayor + '</p>';
-
-					// Check if mayor name matches query
-					} else if ((index = mayor.toLowerCase().indexOf(query)) > -1) {
-						label = '<p>' + name + '</p><p class="small">Mayor: ' + mayor.slice(0, index) + '<strong>' + mayor.slice(index, index + query.length) + '</strong>' + mayor.slice(index + query.length) + '</p>';
-					}
-
-					if (label != '') {
-						results.push({
-							type: 'village',
-							x: village.x,
-							y: village.y,
-							label: label
-						});
-					}
-
-					if (results.length >= 8) return results;
-				}
-			}
-
-			// Find structures that match the search query
-			if (this.showStructures) {
-				for (i = 0; i < WurmMapGen.structures.length; i++) {
-					var structure = WurmMapGen.structures[i];
-
-					var name = escapeHtml(structure.name);
-					var creator = escapeHtml(structure.creator);
-
-					var label = '';
-
-					// Check if structure name matches query
-					if ((index = name.toLowerCase().indexOf(query)) > -1) {
-						label = '<p>' + name.slice(0, index) + '<strong>' + name.slice(index, index + query.length) + '</strong>' + name.slice(index + query.length) + '</p><p class="small">Created by ' + creator + '</p>';
-
-					// Check if creator name matches query
-					} else if ((index = creator.toLowerCase().indexOf(query)) > -1) {
-						label = '<p>' + name + '</p><p class="small">Created by ' + creator.slice(0, index) + '<strong>' + creator.slice(index, index + query.length) + '</strong>' + creator.slice(index + query.length) + '</p>';
-					}
-
-					if (label != '') {
-						results.push({
-							type: 'structure',
-							x: (structure.borders[0] + structure.borders[2]) / 2,
-							y: (structure.borders[1] + structure.borders[3]) / 2,
-							label: label
-						});
-					}
-
-					if (results.length >= 8) return results;
-				}
-			}
-
-			if (this.showPortals) {
-				for (i = 0; i < WurmMapGen.portals.length; i++) {
-					var portal = WurmMapGen.portals[i];
-
-					var name = escapeHtml(portal.name);
-
-					if ((index = name.toLowerCase().indexOf(query)) > -1) {
-						results.push({
-							type: 'portal',
-							x: portal.x,
-							y: portal.y,
-							label: '<p>' + name + '</p><p class="small">Portal</p>'
-						});
-					}
-
-					if (results.length >= 8) return results;
-				}
-			}
-
-			// Find guard towers that match the search query
-			if (this.showTowers) {
-				for (i = 0; i < WurmMapGen.guardtowers.length; i++) {
-					var tower = WurmMapGen.guardtowers[i];
-
-					var creator = escapeHtml(tower.creator);
-
-					// Check if player name matches query
-					if ((index = creator.toLowerCase().indexOf(query)) > -1) {
-						results.push({
-							type: 'guardtower',
-							x: tower.x,
-							y: tower.y,
-							label: '<p>Guard tower</p><p class="small">Created by ' + creator.slice(0, index) + '<strong>' + creator.slice(index, index + query.length) + '</strong>' + creator.slice(index + query.length) + '</p>'
-						});
-					}
-
-					if (results.length >= 8) return results;
-				}
-			}
-
-			return results;
+	updateLayers: function() {
+		var app = WurmMapGen.gui.app, map = WurmMapGen.map.map, layers = WurmMapGen.map.layers; if (!app || !map || !layers) return;
+		if (layers.villageMarkers) { if (app.showVillages) map.addLayer(layers.villageMarkers); else map.removeLayer(layers.villageMarkers); }
+		if (layers.villageBorders) { if (app.showVillages && app.showVillageBorders) map.addLayer(layers.villageBorders); else map.removeLayer(layers.villageBorders); }
+		if (layers.guardtowerMarkers) { if (app.showTowers) map.addLayer(layers.guardtowerMarkers); else map.removeLayer(layers.guardtowerMarkers); }
+		if (layers.guardtowerBorders) { if (app.showTowers && app.showTowerBorders) map.addLayer(layers.guardtowerBorders); else map.removeLayer(layers.guardtowerBorders); }
+	},
+	injectCustomDesign: function() {
+		var sb = document.getElementById('sidebar'), old = document.getElementById('playercount'); if (!sb) return;
+		if (old) old.style.display = 'none';
+		var pad = sb.querySelector('.block.padding');
+		if (pad && !document.getElementById('injected-header')) {
+			var h = document.createElement('div'); h.id = 'injected-header'; h.style.cssText = 'padding:12px;border-bottom:1px solid #444;text-align:center;background:#222;margin:-20px -15px 10px -15px;';
+			h.innerHTML = '<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener"><img src="images/half-banner-1.png" border="0" onerror="this.src=\'https://wurm-unlimited.combanners/half-banner-1.png\';" style="border-radius:4px;border:1px solid #ffcc00;width:100%;max-width:100%;height:auto;object-fit:contain;display:block;margin:0 auto;"></a>';
+			pad.insertBefore(h, pad.firstChild);
 		}
-	},
-
-	watch: {
-		// When the sidebar is toggled, update the map
-		sidebarVisible: function() {
-			this.sidebarToggled = Date.now();
-			this.mapResizeInterval = window.setInterval(function() {
-				WurmMapGen.map.map.invalidateSize({debounceMoveend: true});
-				if (WurmMapGen.gui.sidebarToggled < Date.now() - 150) {
-					clearInterval(WurmMapGen.gui.mapResizeInterval);
-				}
-			}, 10);
-		},
-
-		showStructures: function(value) {
-        	this._setMapLayer('structureBorders', value);
-        },
-		showPortals: function(value) {
-        	this._setMapLayer('portalMarkers', value);
-        },
-		showPlayers: function(value) {
-        	this._setMapLayer('playerMarkers', value);
-        },
-
-		showVillages: function(value) {
-			this._setMapLayer('villageMarkers', value);
-
-			if (value === false) {
-				this._setMapLayer('villageBorders', false);
-			} else {
-				this._setMapLayer('villageBorders', this.showVillageBorders);
-			}
-		},
-		showVillageBorders: function(value) {
-			if (this.showVillages === true) {
-				this._setMapLayer('villageBorders', value);
-			} else {
-				// Don't show the map layer but still save the setting
-				WurmMapGen.util.setConfig('villageBorders', value);
-			}
-		},
-
-		showTowers: function(value) {
-			this._setMapLayer('guardtowerMarkers', value);
-
-			if (value === false) {
-				this._setMapLayer('guardtowerBorders', false);
-			} else {
-				this._setMapLayer('guardtowerBorders', this.showTowerBorders);
-			}
-		},
-		showTowerBorders: function(value) {
-			if (this.showTowers === true) {
-				this._setMapLayer('guardtowerBorders', value);
-			} else {
-				// Don't show the map layer but still save the setting
-				WurmMapGen.util.setConfig('guardtowerBorders', value);
+		if (!document.getElementById('injected-links')) {
+			var blk = document.createElement('div'); blk.className = 'block'; blk.id = 'injected-links';
+			blk.innerHTML = '<strong style="color:#ffcc00;font-size:12px;display:block;margin-bottom:4px;">🌐 Links (Liens) / Community :</strong>' +
+				'<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display:block!important;text-align:center!important;text-decoration:none!important;font-family:sans-serif!important;font-size:11px!important;font-weight:bold!important;padding:8px!important;margin:8px 0!important;border-radius:4px!important;text-shadow:1px 1px 1px #000!important;box-shadow:0 2px 4px rgba(0,0,0,0.4)!important;background:#ffcc00!important;color:#111!important;border:1px solid #cca300!important;">🔗 SERVER WEB PAGE (PAGE WEB)</a>' +
+				'<a href="https://discord.gg" target="_blank" rel="noreferrer noopener" style="display:block!important;text-align:center!important;text-decoration:none!important;font-family:sans-serif!important;font-size:11px!important;font-weight:bold!important;padding:8px!important;margin:8px 0!important;border-radius:4px!important;text-shadow:1px 1px 1px #000!important;box-shadow:0 2px 4px rgba(0,0,0,0.4)!important;background:#5865F2!important;color:#fff!important;border:1px solid #4752c4!important;">💬 JOIN DISCORD (REJOINDRE)</a>';
+			sb.insertBefore(blk, sb.children[1]);
+		}
+		var lbl = sb.getElementsByTagName('span');
+		for (var i = 0; i < lbl.length; i++) {
+			if (lbl[i].innerText === 'Show deeds') lbl[i].innerText = 'Show deeds (Afficher les colonies)';
+			if (lbl[i].innerText === 'Show deed borders') lbl[i].innerText = 'Show deed borders (Frontières)';
+			if (lbl[i].innerText === 'Show guard tower borders') lbl[i].innerText = 'Show tower borders (Rayons d\'action)';
+		}
+		var glbl = sb.getElementsByTagName('label');
+		for (var j = 0; j < glbl.length; j++) {
+			if (glbl[j].textContent.indexOf('Show guard towers') !== -1 && glbl[j].children.length === 1) {
+				var s = document.createElement('span'); s.innerText = ' Show guard towers (Tours de garde)'; glbl[j].appendChild(s);
 			}
 		}
-	},
-
-	methods: {
-		/**
-		 * Initialises the GUI. Should be called once when the rest of the
-		 * application has been loaded and initialised.
-		 */
-		init: function() {
-			if (WurmMapGen.players) {
-				this.playerCount = WurmMapGen.players.length;
-			}
-
-			this.showStructures = WurmMapGen.util.getConfig('structureBorders', true);
-			this.showPortals = WurmMapGen.util.getConfig('portalMarkers', true);
-
-			this.showVillages = WurmMapGen.util.getConfig('villageMarkers', true);
-			this.showVillageBorders = WurmMapGen.util.getConfig('villageBorders', true);
-
-			this.showTowers = WurmMapGen.util.getConfig('guardtowerMarkers', true);
-			this.showTowerBorders = WurmMapGen.util.getConfig('guardtowerBorders', false);
-
-			this.loaded = true;
-		},
-
-		/**
-		 * Focuses the map on coordinates
-		 *
-		 * @param  {number}  x  The x coordinate
-		 * @param  {number}  y  The y coordinate
-		 */
-		focusMap: function(x, y) {
-			WurmMapGen.map.map.setView(WurmMapGen.util.xy(x, y), WurmMapGen.config.mapMaxZoom - 1);
-		},
-
-		/**
-		 * Enables or disables a map layer
-		 *
-		 * @param  {string}  name    The name of the map layer (key in the `WurmMapGen.map.layers` object)
-		 * @param  {boolean}  value  True to enable the layer
-		 *
-		 * @private
-		 */
-		_setMapLayer: function(name, value) {
-			var layer = WurmMapGen.map.layers[name];
-
-			// If the layer is already set to the wanted value, then we
-			// shouldn't change anything
-			if (WurmMapGen.map.map.hasLayer(layer) == value) { return; }
-
-			// Apply the changes to the map
-			if (value === false) {
-				WurmMapGen.map.map.removeLayer(layer);
-			} else {
-				WurmMapGen.map.map.addLayer(layer);
-			}
-
-			// Persist the user settings in a config cookie
-			WurmMapGen.util.setConfig(name, value);
+		var attr = sb.querySelector('.block.attribution');
+		if (attr && !document.getElementById('injected-sync')) {
+			var syn = document.createElement('div'); syn.id = 'injected-sync'; syn.style.cssText = 'background:rgba(0,0,0,0.4);border:1px solid #ffcc00;padding:6px;border-radius:4px;font-size:10px;color:#ffcc00;font-weight:bold;text-align:center;margin-top:10px;line-height:1.3;';
+			syn.innerHTML = 'Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff;font-size:11px;font-family:monospace;">2026-06-27 a 12:00:00</span>';
+			attr.appendChild(syn);
+		}
+		var mapInstance = WurmMapGen.map.map;
+		if (mapInstance) {
+			mapInstance.on('popupopen', function(e) {
+				var p = e.popup, html = p.getContent(); if (html && html.indexOf('txt-x') !== -1) return;
+				if (html && (html.indexOf('Mayor:') !== -1 || html.indexOf('Citizens:') !== -1)) {
+					p.options.maxWidth = 250; p.options.minWidth = 250; p.options.keepInView = true; p.options.autoPan = true; p.options.offset = L.point(0, -15);
+					var lines = html.split('<br>'), vName = "Colonie", mName = "Inconnu", cCount = "1";
+					for (var k = 0; k < lines.length; k++) {
+						var txt = lines[k].replace(/<\/?[^>]+(>|$)/g, "").trim(); if (k === 0) vName = txt;
+						if (txt.toLowerCase().indexOf('mayor:') !== -1) mName = txt.replace(/mayor\s*:\s*/i, "").trim();
+						if (txt.toLowerCase().indexOf('citizens:') !== -1) cCount = txt.replace(/citizens\s*:\s*/i, "").trim();
+					}
+					var ll = p.getLatLng(), mult = WurmMapGen.config && WurmMapGen.config.xyMulitiplier ? WurmMapGen.config.xyMulitiplier : 8;
+					var px = Math.floor(ll.lng * mult), py = Math.floor((-ll.lat) * mult);
+					p.setContent([
+						'<div align="center"><b>' + vName + '</b></div><hr style="border:0;border-top:1px solid #ffcc00;margin:6px 0;opacity:0.3;">',
+						'<div style="font-size:11px;line-height:1.6;color:#fff;">👑 <b>Mayor (Maire) :</b> <span class="txt-m">' + mName + '</span><br>',
+						'👥 <b>Citizens (Citoyens) :</b> <span class="txt-c">' + cCount + '</span><br>📅 <b>Founded (Créé) :</b> <span>2026</span><br>',
+						'📍 <b>Coordinates (Position) :</b> <span class="txt-x">X' + px + '</span>, <span class="txt-y">Y' + py + '</span></div>'
+					].join('')); p.update();
+				}
+			});
 		}
 	}
-});
-
-// End IIFE
-})();
+};
