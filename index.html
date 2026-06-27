@@ -18,14 +18,12 @@
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 	<style>
-		/* BLINDAGE CSS : Verrouille la taille de la bulle et force le fond noir opaque */
+		/* BLINDAGE CSS : Force un boîtier large pour casser l effet tout en longueur */
 		.leaflet-popup-content-wrapper {
 			background: #111111 !important;
 			border: 2px solid #ffcc00 !important;
 			box-shadow: 0px 4px 10px rgba(0,0,0,0.9) !important;
 			border-radius: 8px !important;
-			max-width: 250px !important;
-			padding: 0 !important;
 		}
 		.leaflet-popup-tip {
 			background: #111111 !important;
@@ -36,8 +34,7 @@
 			font-family: 'Roboto', sans-serif !important;
 			font-size: 12px !important;
 			line-height: 1.5 !important;
-			margin: 10px !important;
-			width: auto !important;
+			margin: 12px !important;
 		}
 		.leaflet-popup-content b, .leaflet-popup-content strong {
 			color: #FFD700 !important;
@@ -64,7 +61,7 @@
 			</div>
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center;">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 03:30:00</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 03:35:00</span>
 			</div>
 		</div>
 
@@ -115,7 +112,7 @@
 			activateBulleEngine();
 		}
 
-		// EXTRACTEUR PAR SPLIT GÉOMÉTRIQUE HTML SANS AUCUN RISQUE DE RENTRER DANS LES PATATES
+		// BLINDAGE HORIZONTAL : Force une bulle large et compacte en hauteur au clic
 		function activateBulleEngine() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
@@ -128,24 +125,30 @@
 						if (html && html.indexOf('txt-p') !== -1) { return; }
 						
 						if (html && (html.indexOf('Mayor:') !== -1 || html.indexOf('Maire :') !== -1 || html.indexOf('Citizens:') !== -1)) {
-							// Lecture propre des lignes HTML brutes generees par Java
+							// Forçage de largeur maximum native Leaflet pour étaler horizontalement le texte
+							popup.options.maxWidth = 420;
+							popup.options.minWidth = 380;
+							popup.options.keepInView = true;
+							popup.options.autoPan = true;
+							popup.options.offset = L.point(0, -15);
+							popup.options.autoPanPaddingTopLeft = L.point(50, 280);
+							popup.options.autoPanPaddingBottomRight = L.point(50, 50);
+							
 							var lines = html.split('<br>');
 							var villageName = "Colonie";
 							var mayorName = "Inconnu";
 							var citizensCount = "1";
 							
-							// Nettoie les balises pour extraire uniquement la valeur textuelle
 							for (var i = 0; i < lines.length; i++) {
 								var textNode = lines[i].replace(/<\/?[^>]+(>|$)/g, "").trim();
+								if (i === 0) { villageName = textNode; }
 								
-								if (i === 0) {
-									villageName = textNode;
-								}
+								// Nettoyage précis des chaînes d'usine
 								if (textNode.toLowerCase().indexOf('mayor:') !== -1) {
-									mayorName = textNode.replace(/mayor:/i, "").trim();
+									mayorName = textNode.replace(/mayor\s*:\s*mayor\s*:/i, "").replace(/mayor\s*:/i, "").trim();
 								}
 								if (textNode.toLowerCase().indexOf('citizens:') !== -1) {
-									citizensCount = textNode.replace(/citizens:/i, "").trim();
+									citizensCount = textNode.replace(/citizens\s*:\s*citizens\s*:/i, "").replace(/citizens\s*:/i, "").trim();
 								}
 							}
 							
@@ -153,14 +156,17 @@
 							var px = Math.floor(latlng.lng);
 							var py = Math.floor(-latlng.lat);
 							
+							// RECONSTRUCTION EN MODE BANDEAU HORIZONTAL COMPACT ET BILINGUE
 							var newContent = [
-								'<div align="center"><b>' + villageName + '</b></div>',
-								'<hr style="border:0; border-top:1px solid #ffcc00; margin:6px 0; opacity:0.3;">',
-								'<div style="font-size: 12px; line-height: 1.5; color: #ffffff;">',
-								'<b>Maire :</b> <span class="txt-m">' + mayorName + '</span><br>',
-								'<b>Citoyens :</b> <span class="txt-c">' + citizensCount + '</span><br>',
-								'<b>Créé le :</b> En 2026<br>',
-								'<b>Position :</b> <span class="txt-p">' + px + ' x, ' + py + ' y</span>',
+								'<div align="center" style="margin-bottom: 4px;"><b>' + villageName + '</b></div>',
+								'<hr style="border:0; border-top:1px solid #ffcc00; margin:4px 0; opacity:0.3;">',
+								'<div style="white-space: nowrap; font-size: 12px;">',
+								'<b>Mayor (Maire) :</b> <span class="txt-m">' + mayorName + '</span> &nbsp;|&nbsp; ',
+								'<b>Citizens (Citoyens) :</b> <span class="txt-c">' + citizensCount + '</span>',
+								'</div>',
+								'<div style="margin-top: 4px; white-space: nowrap; font-size: 11px; color: #bbb;">',
+								'<b>Founded (Créé) :</b> 2026 &nbsp;|&nbsp; ',
+								'<b>Position :</b> <span class="txt-p">' + px + 'x, ' + py + 'y</span>',
 								'</div>'
 							].join('');
 							
@@ -179,6 +185,7 @@
 </script>
 </body>
 </html>
+
 
 
 
