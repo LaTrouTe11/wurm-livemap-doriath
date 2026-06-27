@@ -1,55 +1,37 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{serverName}}</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css">
-    <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <title>QBC LiveMap - Doriath</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+        #map { flex-grow: 1; }
+        .banner-container { padding: 10px; background: #222; text-align: center; }
+    </style>
 </head>
-<body data-realtime="{{enableRealtimeMarkers}}">
+<body data-realtime="true">
 
-<div id="gui">
-    <div id="sidebar">
-        <h1>{{serverName}}</h1>
-        <p>Dernière mise à jour :<br><strong><span id="sync-date">MAJ_DATE_ICI</span></strong></p>
-        
-        <div class="block">
-            <label><input type="checkbox" v-model="showVillages"> Afficher Villages</label>
-            <label><input type="checkbox" v-model="showVillageBorders"> Afficher Bordures</label>
-        </div>
-    </div>
-
-    <div id="search">
-        <input type="text" placeholder="Rechercher..." v-model="searchQuery">
-        <div id="search-results">
-            {{=<% %>=}}
-            <div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
-                <p><strong>{{ result.name }}</strong></p>
-                <p class="small">{{ result.text }}</p>
-            </div>
-            <%={{ }}=%>
-        </div>
+    <div class="banner-container">
+        <a href="https://wurm-unlimited.com/server/13208/">
+            <img src="https://wurm-unlimited.com/server/13208/banners/half-banner-1.png" 
+                 border="0" 
+                 loading="lazy" 
+                 onerror="this.style.display='none';">
+        </a>
     </div>
 
     <div id="map"></div>
-</div>
 
-<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.9/vue.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie.min.js"></script>
-
-<script>
-    (function() {
-        window.WurmMapGen = {};
-        // Chargement ordonné des scripts
+    <script>
+        // Liste des scripts à charger dans l'ordre
+        // Si vos fichiers sont à la racine, enlevez le 'app/' devant les noms
         ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'].forEach(function(src) { 
             var s = document.createElement('script'); 
             s.src = src; 
             s.defer = true; 
             document.body.appendChild(s); 
         });
-    })();
-</script>
+    </script>
 </body>
 </html>
