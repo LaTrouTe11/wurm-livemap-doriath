@@ -18,12 +18,15 @@
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 	<style>
-		/* BLINDAGE CSS : Force un boîtier large pour casser l effet tout en longueur */
+		/* BLINDAGE CSS : Largeur reduite a 240px pour une bulle verticale elegante */
 		.leaflet-popup-content-wrapper {
 			background: #111111 !important;
 			border: 2px solid #ffcc00 !important;
 			box-shadow: 0px 4px 10px rgba(0,0,0,0.9) !important;
 			border-radius: 8px !important;
+			width: 240px !important;
+			max-width: 240px !important;
+			padding: 0 !important;
 		}
 		.leaflet-popup-tip {
 			background: #111111 !important;
@@ -33,8 +36,9 @@
 			color: #ffffff !important;
 			font-family: 'Roboto', sans-serif !important;
 			font-size: 12px !important;
-			line-height: 1.5 !important;
+			line-height: 1.6 !important;
 			margin: 12px !important;
+			width: auto !important;
 		}
 		.leaflet-popup-content b, .leaflet-popup-content strong {
 			color: #FFD700 !important;
@@ -116,7 +120,7 @@
 			activateBulleEngine();
 		}
 
-		// BLINDAGE HORIZONTAL : Force une bulle large et compacte en hauteur au clic
+		// CONFIGURATION SÉCURISÉE SUR 4 LIGNES HORIZONTALES NETTES
 		function activateBulleEngine() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
@@ -129,9 +133,9 @@
 						if (html && html.indexOf('txt-p') !== -1) { return; }
 						
 						if (html && (html.indexOf('Mayor:') !== -1 || html.indexOf('Maire :') !== -1 || html.indexOf('Citizens:') !== -1)) {
-							// Forçage de largeur maximum native Leaflet pour étaler horizontalement le texte
-							popup.options.maxWidth = 420;
-							popup.options.minWidth = 380;
+							// Forçage de largeur maximum native Leaflet pour maintenir la bulle compacte
+							popup.options.maxWidth = 240;
+							popup.options.minWidth = 240;
 							popup.options.keepInView = true;
 							popup.options.autoPan = true;
 							popup.options.offset = L.point(0, -15);
@@ -147,7 +151,6 @@
 								var textNode = lines[i].replace(/<\/?[^>]+(>|$)/g, "").trim();
 								if (i === 0) { villageName = textNode; }
 								
-								// Nettoyage précis des chaînes d'usine
 								if (textNode.toLowerCase().indexOf('mayor:') !== -1) {
 									mayorName = textNode.replace(/mayor\s*:\s*mayor\s*:/i, "").replace(/mayor\s*:/i, "").trim();
 								}
@@ -160,16 +163,14 @@
 							var px = Math.floor(latlng.lng);
 							var py = Math.floor(-latlng.lat);
 							
-							// RECONSTRUCTION EN MODE BANDEAU HORIZONTAL COMPACT ET BILINGUE
+							// PRÉSENTATION CLAIRE, ESPACÉE ET PARFAITEMENT ALIGNÉE SUR 4 LIGNES
 							var newContent = [
-								'<div align="center" style="margin-bottom: 4px;"><b>' + villageName + '</b></div>',
-								'<hr style="border:0; border-top:1px solid #ffcc00; margin:4px 0; opacity:0.3;">',
-								'<div style="white-space: nowrap; font-size: 12px;">',
-								'<b>Mayor (Maire) :</b> <span class="txt-m">' + mayorName + '</span> &nbsp;|&nbsp; ',
-								'<b>Citizens (Citoyens) :</b> <span class="txt-c">' + citizensCount + '</span>',
-								'</div>',
-								'<div style="margin-top: 4px; white-space: nowrap; font-size: 11px; color: #bbb;">',
-								'<b>Founded (Créé) :</b> 2026 &nbsp;|&nbsp; ',
+								'<div align="center"><b>' + villageName + '</b></div>',
+								'<hr style="border:0; border-top:1px solid #ffcc00; margin:6px 0; opacity:0.3;">',
+								'<div style="font-size: 11px; line-height: 1.6; color: #ffffff;">',
+								'<b>Mayor (Maire) :</b> <span class="txt-m">' + mayorName + '</span><br>',
+								'<b>Citizens (Citoyens) :</b> <span class="txt-c">' + citizensCount + '</span><br>',
+								'<b>Founded (Créé) :</b> <span>2026</span><br>',
 								'<b>Position :</b> <span class="txt-p">' + px + 'x, ' + py + 'y</span>',
 								'</div>'
 							].join('');
@@ -189,7 +190,6 @@
 </script>
 </body>
 </html>
-
 
 
 
