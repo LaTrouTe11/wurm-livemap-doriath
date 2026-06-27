@@ -1,1 +1,7 @@
-Dernière compilation réussie le 2026-06-26 a 22:32:10
+Rapport de generation - QBC Doriath 4K
+Date : 2026-06-27 20:12:37
+Fichiers detectes :
+-rw-r--r-- 1 runner runner  14M Jun 27 20:04 ./sqlite/wurmitems.db
+-rw-r--r-- 1 runner runner 254K Jun 27 15:03 ./sqlite/wurmplayers.db
+-rw-r--r-- 1 runner runner 161K Jun 27 08:00 ./sqlite/wurmzones.db
+-rw-r--r-- 1 runner runner  65M Jun 27 20:12 top_layer.map
