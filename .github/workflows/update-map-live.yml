@@ -48,17 +48,22 @@ jobs:
           mapMaxZoom=5
           EOF
 
-          # Lancement avec arguments système pour forcer la config
-          java -Djava.awt.headless=true -Xmx6g \
-          -DrmiHost="localhost" -DrmiPort="8080" \
-          -jar WurmMapGen.jar || true
+          # Lancement du générateur
+          java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
-          # NETTOYAGE RADICAL
-          # Convertit les .php en .json
-          for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done
-          # Supprime tous les .php restants
+          # NETTOYAGE ET CONVERSION AUTOMATIQUE
+          echo "Conversion des fichiers en cours..."
+          mkdir -p data
+          
+          # Renommage sécurisé (ne plante pas si aucun fichier n'existe)
+          for f in data/*.php; do 
+            [ -e "$f" ] || continue
+            mv "$f" "${f%.php}.json"
+          done
+          
+          # Suppression de tout reste potentiel
           rm -f data/*.php
-          rm -f config.php
+          rm -f *.php
           
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
@@ -68,9 +73,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin main
           git reset --hard origin/main
-          # On ajoute uniquement les fichiers souhaités
           git add index.html data/ images/ || true
-          # On retire le suivi de tout fichier php qui aurait pu passer entre les mailles
           git rm -f data/*.php || true
           if ! git diff --cached --quiet; then
             git commit -m "MAJ auto : carte et donnees JSON"
