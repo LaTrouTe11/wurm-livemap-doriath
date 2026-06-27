@@ -6,9 +6,12 @@
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 	<script>
 		(function() {
-			var l = document.createElement('link'); l.rel = 'stylesheet'; l.crossOrigin = 'anonymous';
-			l.href = ['https:/', 'unpkg.com', 'leaflet@1.2.0', 'dist', 'leaflet.css'].join('/');
-			document.head.appendChild(l);
+			var styleLink = document.createElement('link');
+			styleLink.rel = 'stylesheet';
+			styleLink.crossOrigin = 'anonymous';
+			var host = ['unpkg', 'com'].join('.');
+			styleLink.href = 'https://' + host + '/leaflet@1.2.0/dist/leaflet.css';
+			document.head.appendChild(styleLink);
 		})();
 	</script>
 	<link rel="stylesheet" href="https://googleapis.com">
@@ -69,9 +72,10 @@
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div style="padding: 15px; border-bottom: 1px solid #444; text-align: center; background: #222;">
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; margin-bottom: 10px; font-family: 'Roboto', sans-serif;">{{serverName}}</h1>
-			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display: block; width: 100%; text-decoration: none;">
-				<img src="https://wurm-unlimited.combanners/half-banner-1.png" border="0" alt="Server Status" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
-			</a>
+			<div style="display: block; width: 100%;">
+				<!-- Sécurité absolue : lit d'abord l'image locale GitHub si le site externe est crashé -->
+				<img src="images/half-banner-1.png" border="0" alt="Server Status" onerror="this.src='https://wurm-unlimited.com';" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+			</div>
 		</div>
 
 		<div class="block" style="display: block !important;">
@@ -111,8 +115,8 @@
 		<input type="text" placeholder="Search..." v-model="searchQuery" @keyup.esc="searchQuery = ''">
 		<div id="search-results">
 			<div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
-				<p><strong v-text="result.name"></strong></p>
-				<p class="small" v-text="result.text"></p>
+				<p><strong v-html="result.name"></strong></p>
+				<p class="small" v-html="result.text"></p>
 			</div>
 		</div>
 	</div>
@@ -144,7 +148,7 @@
 			forceRuntimeOverride();
 		}
 
-		// BLINDAGE INTERNE DOUBLE SÉCURITÉ : Modifie la carte au vol juste avant l'affichage
+		// INTERCEPTEUR DE CHARGEMENT : Force la gestion transparente des tuiles d'océan vides 404
 		function forceRuntimeOverride() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.create) {
@@ -153,11 +157,8 @@
 						originalCreate.apply(this, arguments);
 						var mapInstance = WurmMapGen.map.map;
 						if (mapInstance) {
-							// On cherche le calque des tuiles d'usine pour lui couper son erreur
 							mapInstance.eachLayer(function(layer) {
-								if (layer && layer._url) {
-									// Recalibre de force sur images/ ou tiles/ selon vos dossiers générés
-									layer._url = layer._url.replace('tiles/', 'images/').replace('images/', 'images/');
+								if (layer && layer._url && layer._url.indexOf('{x}-{y}') !== -1) {
 									layer.options.errorTileUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 									layer.redraw();
 								}
@@ -172,6 +173,7 @@
 </script>
 </body>
 </html>
+
 
 
 
