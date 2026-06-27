@@ -14,8 +14,8 @@ jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+      - name: Checkout depot
+        uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -24,7 +24,7 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-     - name: 4. Telechargement bases donnees
+      - name: Telechargement bases donnees
         run: |
           mkdir -p ./sqlite
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
@@ -33,36 +33,29 @@ jobs:
           get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite/wurmplayers.db; \
           get /dist/Doriath-4k-20/top_layer.map -o ./sqlite/top_layer.map; \
           bye"
-          # COPIE DE SECURITE : On copie tout à la racine pour éviter les FileNotfoundException
-          cp ./sqlite/* ./
+          # COPIE FORCEE A LA RACINE (Solution miracle pour FileNotFoundError)
+          cp -f ./sqlite/* ./
 
-      - name: 4.5 Scan de vérification
-        run: |
-          echo "Contenu de la racine :"
-          ls -F
-          echo "Contenu de ./sqlite :"
-          ls -F ./sqlite/ || echo "Le dossier ./sqlite est vide ou inexistant."
-
-          - name: 4.6 Verification finale
-        run: |
-          echo "Fichiers présents à la racine :"
-          ls -l top_layer.map wurmzones.db
-
-      - name: 5. Execution WurmMapGen
+      - name: Execution WurmMapGen
         run: java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-      - name: 6. Finalisation
+      - name: Finalisation assets
         run: |
           mkdir -p ./data
           cp -f template/index.html index.html
           sed -i "s|2026-06-27 a 04:00:00|$(date +'%Y-%m-%d a %H:%M:%S')|g" index.html
 
-      - name: 7. Envoi au depot
+      - name: Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ images/ index.html app/ || true
+          git add data/ images/ index.html || true
           if ! git diff --cached --quiet; then
-            git commit -m "Mise a jour auto carte"
+            git commit -m "MAJ auto carte"
             git push origin main
           fi
+
+      - name: Upload et Deploiement
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
