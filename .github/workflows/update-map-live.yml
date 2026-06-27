@@ -29,8 +29,11 @@ jobs:
 
       - name: 4. Execution, Nettoyage et Conversion
         run: |
-          # Generation de la map
-          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
+          # On force le robot à utiliser les chemins relatifs corrects pour Linux
+          # On suppose que la carte est à la racine et le dossier de sauvegarde aussi
+          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar \
+          wurmMapLocation=. \
+          saveLocation=.
           
           # Nettoyage : Suppression des fichiers PHP inutiles
           rm -f config.php
@@ -43,7 +46,7 @@ jobs:
             done
           fi
           
-          # Injection de la date de derniere mise a jour
+          # Injection de la date
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
       - name: 5. Synchronisation Git robuste
