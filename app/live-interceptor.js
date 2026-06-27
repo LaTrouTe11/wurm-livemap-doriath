@@ -1,16 +1,26 @@
 'use strict';
 
 (function() {
-	window.addEventListener('vue-ready', function() {
+	function hookVueApp() {
 		if (window.WurmMapGen && WurmMapGen.gui && WurmMapGen.gui.app) {
 			var app = WurmMapGen.gui.app;
-			app.showSoloDeeds = true;
-			app.showSmallDeeds = true;
-			app.showLargeDeeds = true;
+			// Injection directe sans plantage de reference Vue
+			if (app.$set) {
+				app.$set(app, 'showSoloDeeds', true);
+				app.$set(app, 'showSmallDeeds', true);
+				app.$set(app, 'showLargeDeeds', true);
+			} else {
+				app.showSoloDeeds = true;
+				app.showSmallDeeds = true;
+				app.showLargeDeeds = true;
+			}
+			setupLeafletHook();
+		} else {
+			setTimeout(hookVueApp, 100);
 		}
-	});
+	}
 
-	setTimeout(function() {
+	function setupLeafletHook() {
 		if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
 			var mapInstance = WurmMapGen.map.map;
 
@@ -50,8 +60,7 @@
 			mapInstance.on('popupopen', function(e) {
 				var popup = e.popup;
 				var html = popup.getContent();
-				
-				if (html && html.indexOf('txt-x') !== -1) { return; }
+				if (html && html.indexOf('txt-x') !== -1) return;
 				
 				if (html && (html.indexOf('Mayor:') !== -1 || html.indexOf('Maire :') !== -1 || html.indexOf('Citizens:') !== -1)) {
 					popup.options.maxWidth = 250;
@@ -65,7 +74,7 @@
 					
 					for (var i = 0; i < lines.length; i++) {
 						var textNode = lines[i].replace(/<\/?[^>]+(>|$)/g, "").trim();
-						if (i === 0) { villageName = textNode; }
+						if (i === 0) villageName = textNode;
 						if (textNode.toLowerCase().indexOf('mayor:') !== -1) {
 							mayorName = textNode.replace(/mayor\s*:\s*mayor\s*:/i, "").replace(/mayor\s*:/i, "").trim();
 						}
@@ -94,6 +103,10 @@
 					popup.update();
 				}
 			});
+		} else {
+			setTimeout(setupLeafletHook, 100);
 		}
-	}, 1500);
+	}
+
+	hookVueApp();
 })();
