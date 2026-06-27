@@ -46,9 +46,12 @@ jobs:
           bye
         " || echo "⚠️ Fin du téléchargement FTP."
 
-    - name: 3.5 Miroir de securite pour la topographie
+    - name: 3.5 Miroir de securite absolue pour la topographie 4K
       run: |
+        # Force la duplication et la presence de la carte de relief pour empêcher l ecran blanc
+        cp ./sqlite_db/top_layer.map ./top_layer.map 2>/dev/null || true
         cp ./sqlite_db/top_layer.map ./sqlite_db/sqlite/top_layer.map 2>/dev/null || true
+        cp ./sqlite_db/top_layer.map ./sqlite_db/top_layer.map 2>/dev/null || true
 
     - name: 3.9 Purge absolue de l'ancien cache index de racine
       run: |
@@ -58,7 +61,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet et Ajustement de la Typographie du Titre
+    - name: 5. Configuration Automatique pour Leaflet et Ajustement du Titre
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -70,10 +73,8 @@ jobs:
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
         
-        # Force le regroupement de 4k sur la ligne du bas
         sed -i 's|4k|<span style="white-space: nowrap;">4k</span>|g' index.html
         
-        # Generation automatique de votre phrase de compilation avec l'heure du Quebec
         DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
         sed -i "s|2026-06-26 a 22:32:10|$DATE_COMPIL|g" index.html
 
@@ -99,6 +100,7 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
+
 
 
 
