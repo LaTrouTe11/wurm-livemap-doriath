@@ -15,49 +15,15 @@
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 	<style>
-		.leaflet-popup-content-wrapper {
-			background: rgba(45, 45, 45, 0.88) !important;
-			border: 2px solid #ffcc00 !important;
-			box-shadow: 0px 4px 15px rgba(0,0,0,0.5) !important;
-			border-radius: 8px !important; 
-			width: 250px !important; 
-			max-width: 250px !important; 
-			padding: 0 !important; 
-			backdrop-filter: blur(6px);
-		}
-		.leaflet-popup-tip { 
-			background: rgba(45, 45, 45, 0.88) !important; 
-			border: 1px solid #ffcc00 !important; 
-		}
-		.leaflet-popup-content { 
-			color: #ffffff !important; 
-			font-family: 'Roboto', sans-serif !important; 
-			font-size: 12px !important; 
-			line-height: 1.6 !important; 
-			margin: 12px !important; 
-			width: auto !important; 
-		}
-		.leaflet-popup-content b, .leaflet-popup-content strong { 
-			color: #FFD700 !important; 
-			text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important; 
-		}
+		.leaflet-popup-content-wrapper { background: rgba(45, 45, 45, 0.88) !important; border: 2px solid #ffcc00 !important; box-shadow: 0px 4px 15px rgba(0,0,0,0.5) !important; border-radius: 8px !important; width: 250px !important; max-width: 250px !important; padding: 0 !important; backdrop-filter: blur(6px); }
+		.leaflet-popup-tip { background: rgba(45, 45, 45, 0.88) !important; border: 1px solid #ffcc00 !important; }
+		.leaflet-popup-content { color: #ffffff !important; font-family: 'Roboto', sans-serif !important; font-size: 12px !important; line-height: 1.6 !important; margin: 12px !important; width: auto !important; }
+		.leaflet-popup-content b, .leaflet-popup-content strong { color: #FFD700 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important; }
 		.txt-m { color: #00FF7F !important; font-weight: bold; }
 		.txt-c { color: #ffffff !important; font-weight: bold; }
 		.txt-x { color: #00ffff !important; font-family: monospace; font-weight: bold; }
 		.txt-y { color: #00FF7F !important; font-family: monospace; font-weight: bold; }
-		.btn-comm { 
-			display: block !important; 
-			text-align: center !important; 
-			text-decoration: none !important; 
-			font-family: 'Roboto', sans-serif !important; 
-			font-size: 11px !important; 
-			font-weight: bold !important; 
-			padding: 8px !important; 
-			margin: 8px 0 !important; 
-			border-radius: 4px !important; 
-			text-shadow: 1px 1px 1px #000 !important; 
-			box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important; 
-		}
+		.btn-comm { display: block !important; text-align: center !important; text-decoration: none !important; font-family: 'Roboto', sans-serif !important; font-size: 11px !important; font-weight: bold !important; padding: 8px !important; margin: 8px 0 !important; border-radius: 4px !important; text-shadow: 1px 1px 1px #000 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important; }
 		.btn-web { background: #ffcc00 !important; color: #111111 !important; border: 1px solid #cca300 !important; }
 		.btn-disc { background: #5865F2 !important; color: #ffffff !important; border: 1px solid #4752c4 !important; }
 	</style>
@@ -67,7 +33,6 @@
 <div id="gui" :class="{sidebar: sidebarVisible}">
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
-		
 		<div style="padding: 15px; border-bottom: 1px solid #444; text-align: center; background: #222;">
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; margin-bottom: 10px; font-family: 'Roboto', sans-serif;">{{serverName}}</h1>
 			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display: block; width: 100%; text-decoration: none;">
@@ -102,14 +67,11 @@
 
 		<div class="block attribution">
 			<p><a href="https://github.com" target="_blank">WurmMapGen</a> powered by <a href="http://leafletjs.com" target="_blank">Leaflet</a></p>
-			<div style="background: rgba(0, 0, 0, 0.4); border: 1px solid #ffcc00; padding: 6px; border-radius: 4px; font-size: 10px; color: #ffcc00; font-weight: bold; text-align: center; margin-top: 10px; line-height: 1.3;">
-				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 04:00:00</span>
-			</div>
+			<div style="background: rgba(0, 0, 0, 0.4); border: 1px solid #ffcc00; padding: 6px; border-radius: 4px; font-size: 10px; color: #ffcc00; font-weight: bold; text-align: center; margin-top: 10px; line-height: 1.3;">Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 04:00:00</span></div>
 		</div>
 	</div>
 	
-	<!-- RESTAURATION DE LA BARRE DE RECHERCHE D'USINE EN HAUT DE LA MAP -->
-	<div id="search" class="absolute transition z-gui" :class="{open: searchResults.length > 0}">
+	<div id="search" class="absolute transition z-gui" :class="{open: searchQuery.length > 0 && searchResults.length > 0}">
 		<input type="text" placeholder="Search..." v-model="searchQuery" @keyup.esc="searchQuery = ''">
 		<div id="search-results">
 			<div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
@@ -147,6 +109,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 
