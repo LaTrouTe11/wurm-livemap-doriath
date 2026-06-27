@@ -9,13 +9,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout du depot
+      - name: 1. Checkout
         uses: actions/checkout@v4
 
-      - name: 2. Installation dependances
+      - name: 2. Installation
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement complet (Bases + Map)
+      - name: 3. Telechargement complet
         run: |
           mkdir -p ./sqlite
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
@@ -28,76 +28,33 @@ jobs:
 
       - name: 4. Execution WurmMapGen
         run: |
-          # On execute Java (il utilisera le template avec les {{{ variables }}})
+          # Java va chercher les fichiers dans ./sqlite/ et à la racine
           java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
-          # On injecte la date proprement apres la generation
+          # On injecte la date proprement
           sed -i "s|{{date_compil}}|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
       - name: 5. Generation du rapport
         run: |
           echo "Rapport de generation - QBC Doriath 4K" > generation_report.txt
           echo "Date : $(date +'%Y-%m-%d %H:%M:%S')" >> generation_report.txt
-          echo "Etat : Succès" >> generation_report.txt
+          echo "Statut : Generation terminee" >> generation_report.txt
           ls -lh ./sqlite/*.db top_layer.map >> generation_report.txt
 
-      - name: 6. Envoi au depot (Ultra-Robuste)
+      - name: 6. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # On récupère les changements distants pour éviter le "Lock Ref"
           git fetch origin main
           git reset --hard origin/main
+          
+          # On ajoute tout ce qui est généré
           git add index.html generation_report.txt data/ images/ || true
+          
           if ! git diff --cached --quiet; then
             git commit -m "MAJ auto carte et rapport"
             git push origin main
+          else
+            echo "Aucun changement a envoyer."
           fi
-
-### 2. Fichier Template corrigé (`template/index.html`)
-L'utilisation des **triples accolades** `{{{ }}}` empêche le crash du moteur Java tout en laissant Vue.js fonctionner.
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{serverName}} - WU MapGen</title>
-    <meta charset="utf-8"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css">
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body data-realtime="{{enableRealtimeMarkers}}">
-
-<div id="gui">
-    <div id="sidebar">
-        <h1>{{serverName}}</h1>
-        <div class="block">
-            <p>Dernière mise à jour :<br><strong>{{date_compil}}</strong></p>
-        </div>
-    </div>
-    
-    <div id="search">
-        <input type="text" placeholder="Rechercher..." v-model="searchQuery">
-        <div id="search-results">
-            <div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
-                <p><strong>{{{ result.name }}}</strong></p>
-                <p class="small">{{{ result.text }}}</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="map"></div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.9/vue.min.js"></script>
-<script>
-    (function() {
-        window.WurmMapGen = {};
-        ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'].forEach(function(src) { 
-            var s = document.createElement('script'); s.src = src; s.defer = true; document.body.appendChild(s); 
-        });
-    })();
-</script>
-</body>
-</html>
-
-Votre projet LiveMap est maintenant paré pour fonctionner de manière autonome. N'hésitez pas à me solliciter si vous souhaitez ajuster d'autres paramètres du serveur !
