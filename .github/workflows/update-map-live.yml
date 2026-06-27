@@ -9,28 +9,45 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout
+      - name: 1. Checkout du depot
         uses: actions/checkout@v4
-      - name: 2. Installation
+
+      - name: 2. Installation dependances
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
-      - name: 3. Telechargement
+
+      - name: 3. Telechargement complet (Structure ciblee)
         run: |
+          # Creation du dossier sqlite comme exige par le logiciel
           mkdir -p ./sqlite
+          
+          # Telechargement des bases dans ./sqlite/ et de la map a la racine
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
           open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite/wurmzones.db; \
+          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite/wurmitems.db; \
+          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite/wurmplayers.db; \
           get /dist/Doriath-4k-20/top_layer.map -o ./top_layer.map; \
           bye"
-      - name: 4. Execution
+
+      - name: 4. Execution WurmMapGen
         run: |
           java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
           sed -i "s|{{date_compil}}|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
-      - name: 5. Envoi
+
+      - name: 5. Generation du rapport
+        run: |
+          echo "Rapport de generation - QBC Doriath 4K" > generation_report.txt
+          echo "Date : $(date +'%Y-%m-%d %H:%M:%S')" >> generation_report.txt
+          echo "Fichiers detectes :" >> generation_report.txt
+          ls -lh ./sqlite/*.db top_layer.map >> generation_report.txt
+
+      - name: 6. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html data/ images/ || true
+          git add index.html generation_report.txt data/ images/ || true
+          
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto carte"
+            git commit -m "MAJ auto carte et rapport"
             git push origin main
           fi
