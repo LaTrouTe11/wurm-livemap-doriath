@@ -76,7 +76,7 @@
 		}
 		function startApp() {
 			window.WurmMapGen = {};
-			var mods = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js', 'app/live-interceptor.js'];
+			var mods = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
 			mods.forEach(function(src) { var s = document.createElement('script'); s.src = src; s.defer = true; document.body.appendChild(s); });
 		}
 		loadNext(0);
