@@ -26,12 +26,13 @@ jobs:
 
       - name: 4. Telechargement bases donnees
         run: |
-          mkdir -p ./sqlite_db
+          # On crée la structure exacte attendue par le logiciel : ./sqlite_db/sqlite/
+          mkdir -p ./sqlite_db/sqlite
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
-          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/wurmzones.db; \
-          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/wurmitems.db; \
-          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/wurmplayers.db; \
-          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map; \
+          get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db; \
+          get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/sqlite/wurmitems.db; \
+          get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/sqlite/wurmplayers.db; \
+          get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/sqlite/top_layer.map; \
           bye"
 
       - name: 5. Execution WurmMapGen
