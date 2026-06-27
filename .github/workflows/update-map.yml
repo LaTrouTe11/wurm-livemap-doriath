@@ -58,7 +58,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet et Injection du Titre Log Visible
+    - name: 5. Configuration Automatique pour Leaflet
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -69,12 +69,8 @@ jobs:
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
-        
-        # Injection de l'encadré stylisé lisible TOUT EN HAUT sous le titre h1
-        DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
-        sed -i "s|<h1>{{serverName}}</h1>|<h1>{{serverName}}</h1><div style=\"margin-top: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 10px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.5; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);\">Dernière compilation réussie<br><span style=\"color:#fff; font-size:12px;\">$DATE_COMPIL</span></div>|g" index.html
 
-    - name: 6. Sauvegarde et Envoi automatique force
+    - name: 6. Sauvegarde et Envoi automatique force avec Date Quebecoise
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
@@ -85,6 +81,8 @@ jobs:
         git add app/*.js || true
         git add images/ || true
         git add tiles/ || true
+        
+        # Le robot ecrit l'heure precise qui sera lue par l API du template
         git commit --allow-empty -m "Derniere compilation reussie le $(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S') [skip ci]"
         git push origin main --force
 
@@ -95,6 +93,7 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
+
 
 
 
