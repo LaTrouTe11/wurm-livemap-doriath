@@ -129,12 +129,17 @@ WurmMapGen.map = {
 				{icon: WurmMapGen.markers.getMarker('guardtower')}
 			);
 
-			marker.bindPopup([
-				'<div align="center"><b>Guard Tower</b>',
-				'<i>Created by ' + escapeHtml(tower.creator) + '</i></div>',
-				'<b>QL:</b> ' + escapeHtml(tower.ql),
-				'<b>DMG:</b> ' + escapeHtml(tower.dmg)
-				].join('<br>'));
+				marker.bindPopup(
+				'<div align="center"><b style="color: #FFD700; font-size: 15px; text-shadow: 1px 2px 3px #000; font-family: Roboto, sans-serif; letter-spacing: 0.5px;">' + escapeHtml(village.name) + '</b><br>' +
+				(village.motto ? '<i style="color: #bbb; font-size: 11px;">' + escapeHtml(village.motto) + '</i>' : '') + '</div>' +
+				'<div style="margin-top: 8px; font-size: 11px; line-height: 1.4; color: #fff;">' +
+				'<b>Maire :</b> <span style="color: #00FF7F; font-weight: bold;">' + (village.mayor ? escapeHtml(village.mayor) : 'Inconnu') + '</span><br>' +
+				'<b>Citoyens :</b> <span style="color: #00FFFF; font-weight: bold;">' + (village.citizens ? escapeHtml(village.citizens) : '1') + '</span><br>' +
+				'<b>Créé le :</b> ' + (village.creation ? escapeHtml(village.creation) + ' 2026' : 'En 2026') + '<br>' +
+				'<b>Position :</b> <span style="font-family: monospace;">' + Math.floor(village.x) + ' x, ' + Math.floor(village.y) + ' y</span>' +
+				'</div>'
+			);
+
 
 			// Open the marker popup when the border is clicked
 			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
