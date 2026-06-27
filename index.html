@@ -6,14 +6,13 @@
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
 	
-	<!-- Chargement natif et fluide du CSS Leaflet d'usine -->
-	<link rel="stylesheet" href="https://cloudflare.com" crossorigin="anonymous">
+	<!-- Serveur CDNJS officiel pour contourner la politique CORS -->
+	<link rel="stylesheet" href="https://cloudflare.com">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
 	
 	<style>
-		/* Style médiéval haute visibilité noir et or */
 		.leaflet-popup-content-wrapper {
 			background: #111111 !important;
 			border: 2px solid #ffcc00 !important;
@@ -51,7 +50,7 @@
 			</div>
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center;">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 01:02:14</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 01:05:37</span>
 			</div>
 		</div>
 
@@ -86,7 +85,7 @@
 		function loadNext(idx) {
 			if (idx >= urls.length) { startApp(); return; }
 			var s = document.createElement('script');
-			s.src = urls[idx]; s.onload = function() { loadNext(idx + 1); };
+			s.src = urls[idx]; s.crossOrigin = 'anonymous'; s.onload = function() { loadNext(idx + 1); };
 			document.body.appendChild(s);
 		}
 		
