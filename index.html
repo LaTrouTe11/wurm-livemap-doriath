@@ -27,6 +27,13 @@
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
 			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
+			
+			<!-- ENCADRÉ DE SYNCHRONISATION GRAVÉ EN TEXTE HAUTE LISIBILITÉ -->
+			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 10px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.5; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
+				Dernière compilation réussie<br>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">En attente du robot...</span>
+			</div>
+			
 		</div>
 
 
@@ -117,6 +124,30 @@
 				s.defer = true;
 				document.body.appendChild(s);
 			});
+			loadLiveLog();
+		}
+
+		function loadLiveLog() {
+			setTimeout(function() {
+				// Utilise l'API native de GitHub pour injecter la date du commit directement dans la balise HTML fixe
+				fetch('https://github.com')
+					.then(function(res) { return res.json(); })
+					.then(function(data) {
+						if (data && data[0] && data[0].commit) {
+							var msg = data[0].commit.message;
+							// Extrait uniquement la date du message de commit du robot
+							var cleanDate = msg.replace('Derniere compilation reussie le', '').replace('[skip ci]', '').trim();
+							if(cleanDate) {
+								document.getElementById('live-sync-date').innerText = cleanDate;
+							} else {
+								document.getElementById('live-sync-date').innerText = "A jour";
+							}
+						}
+					})
+					.catch(function() {
+						document.getElementById('live-sync-date').innerText = "Monde en ligne";
+					});
+			}, 1000);
 		}
 
 		loadNext(0);
@@ -124,6 +155,7 @@
 </script>
 </body>
 </html>
+
 
 
 
