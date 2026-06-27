@@ -15,23 +15,24 @@ jobs:
       - name: 2. Installation dependances
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement cible (Doriath-4k-20 uniquement)
+      - name: 3. Telechargement (Mode securise)
         run: |
-          mkdir -p ./sqlite
-          # Navigation stricte dans le dossier du monde specifique
+          # 1. On télécharge tout à la racine du runner
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
           open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
           cd /dist/Doriath-4k-20/sqlite/; \
-          get wurmzones.db -o ../../sqlite/wurmzones.db; \
-          get wurmitems.db -o ../../sqlite/wurmitems.db; \
-          get wurmplayers.db -o ../../sqlite/wurmplayers.db; \
+          mget wurmzones.db wurmitems.db wurmplayers.db; \
           cd ../; \
-          get top_layer.map -o ../top_layer.map; \
+          get top_layer.map; \
           bye"
+          
+          # 2. On crée le dossier sqlite attendu et on y déplace les bases
+          mkdir -p ./sqlite
+          mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
 
       - name: 4. Execution WurmMapGen
         run: |
-          # Java va scanner le dossier ./sqlite/ local
+          # Le logiciel trouvera les DB dans ./sqlite/ et la map à la racine
           java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
           sed -i "s|{{date_compil}}|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
@@ -39,24 +40,21 @@ jobs:
         run: |
           echo "Rapport de generation - QBC Doriath 4K" > generation_report.txt
           echo "Date : $(date +'%Y-%m-%d %H:%M:%S')" >> generation_report.txt
-          echo "Statut : Generation reussie" >> generation_report.txt
           ls -lh ./sqlite/*.db top_layer.map >> generation_report.txt
 
-      - name: 6. Envoi au depot (Robustesse maximale)
+      - name: 6. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # S'assurer que le depot local est identique au distant avant de pousser
+          # Synchronisation forcée pour éviter les erreurs de verrouillage
           git fetch origin main
           git reset --hard origin/main
           
-          # Ajouter les changements
           git add index.html generation_report.txt data/ images/ || true
           
-          # Commiter et pousser
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto carte Doriath-4k-20"
+            git commit -m "MAJ auto carte et rapport"
             git push origin main
           else
             echo "Aucun changement a envoyer."
