@@ -1,12 +1,11 @@
 'use strict';
 
 (function() {
-	function checkLeafletHook() {
-		if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map && WurmMapGen.gui && WurmMapGen.gui.app) {
+	function setupLeafletHook() {
+		if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
 			var mapInstance = WurmMapGen.map.map;
-			var app = WurmMapGen.gui.app;
 
-			// Met à jour le compteur bilingue en temps réel
+			// Synchronisation du compteur de joueurs en ligne
 			setInterval(function() {
 				var countEl = document.getElementById('playercount');
 				var targetEl = document.getElementById('custom-playercount');
@@ -16,8 +15,12 @@
 				}
 			}, 2000);
 
-			// Moteur de filtrage dynamique multicritères
-			WurmMapGen.gui.filterDeedsLayer = function() {
+			// Écouteurs d'événements pour les cases à cocher en JavaScript pur
+			var cbSolo = document.getElementById('opt-solo');
+			var cbSmall = document.getElementById('opt-small');
+			var cbLarge = document.getElementById('opt-large');
+
+			function runFilter() {
 				if (!window.WurmMapGen.map.layers.villageMarkers) return;
 				
 				WurmMapGen.map.layers.villageMarkers.eachLayer(function(marker) {
@@ -28,9 +31,9 @@
 					var count = parseInt(citText) || 1;
 
 					var visible = false;
-					if (count === 1 && app.showSoloDeeds) visible = true;
-					if (count >= 2 && count <= 5 && app.showSmallDeeds) visible = true;
-					if (count >= 6 && app.showLargeDeeds) visible = true;
+					if (count === 1 && cbSolo && cbSolo.checked) visible = true;
+					if (count >= 2 && count <= 5 && cbSmall && cbSmall.checked) visible = true;
+					if (count >= 6 && cbLarge && cbLarge.checked) visible = true;
 
 					if (visible) {
 						if (!mapInstance.hasLayer(marker)) mapInstance.addLayer(marker);
@@ -38,7 +41,11 @@
 						if (mapInstance.hasLayer(marker)) mapInstance.removeLayer(marker);
 					}
 				});
-			};
+			}
+
+			if (cbSolo) cbSolo.addEventListener('change', runFilter);
+			if (cbSmall) cbSmall.addEventListener('change', runFilter);
+			if (cbLarge) cbLarge.addEventListener('change', runFilter);
 			
 			// Intercepteur et reformateur géospatiel de bulles au clic
 			mapInstance.on('popupopen', function(e) {
@@ -88,10 +95,10 @@
 				}
 			});
 		} else {
-			setTimeout(checkLeafletHook, 50);
+			setTimeout(setupLeafletHook, 100);
 		}
 	}
 
-	checkLeafletHook();
+	setupLeafletHook();
 })();
 
