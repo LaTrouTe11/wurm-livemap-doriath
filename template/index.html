@@ -101,7 +101,6 @@
 						var popup = e.popup;
 						var html = popup.getContent();
 						
-						// BLOQUEUR DE BOUCLE ANTI-DOUBLON
 						if (html && html.indexOf('txt-p') !== -1) { return; }
 						
 						popup.options.keepInView = true;
@@ -142,5 +141,6 @@
 </script>
 </body>
 </html>
+
 
 
