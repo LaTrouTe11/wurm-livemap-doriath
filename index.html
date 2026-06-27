@@ -48,6 +48,8 @@
 		.txt-c { color: #ffffff !important; font-weight: bold; }
 		.txt-x { color: #00ffff !important; font-family: monospace; font-weight: bold; }
 		.txt-y { color: #00FF7F !important; font-family: monospace; font-weight: bold; }
+		
+		/* HABILLAGE DES BOUTONS COMMUNAUTAIRES */
 		.btn-comm {
 			display: block !important;
 			text-align: center !important;
@@ -62,7 +64,9 @@
 			box-shadow: 0 2px 4px rgba(0,0,0,0.4) !important;
 		}
 		.btn-web { background: #ffcc00 !important; color: #111111 !important; border: 1px solid #cca300 !important; }
+		.btn-web:hover { background: #ffe066; }
 		.btn-disc { background: #5865F2 !important; color: #ffffff !important; border: 1px solid #4752c4 !important; }
+		.btn-disc:hover { background: #6a77f3; }
 	</style>
 </head>
 <body data-realtime="false">
@@ -70,14 +74,16 @@
 <div id="gui" :class="{sidebar: sidebarVisible}">
 	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">≡</a>
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
-		<div style="padding: 15px; border-bottom: 1px solid #444; text-align: center; background: #222;">
+		
+		<!-- ZONE HAUTE : PLACE MAXIMALE POUR LA BANNIÈRE UNIQUE -->
+		<div style="padding: 12px; border-bottom: 1px solid #444; text-align: center; background: #222;">
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; margin-bottom: 10px; font-family: 'Roboto', sans-serif;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
-			<div style="display: block; width: 100%;">
-				<!-- Sécurité absolue : lit d'abord l'image locale GitHub si le site externe est crashé -->
-				<img src="images/half-banner-1.png" border="0" alt="Server Status" onerror="this.src='https://wurm-unlimited.com';" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
-			</div>
+			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="display: block; width: 100%; text-decoration: none;">
+				<img src="images/half-banner-1.png" border="0" alt="Server Status" onerror="this.src='https://wurm-unlimited.combanners/half-banner-1.png';" style="border-radius: 4px; border: 1px solid #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); width: 100%; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto;">
+			</a>
 		</div>
 
+		<!-- ZONE DES LIENS ET COMMUNAUTÉ DIRECTEMENT SOUS LA BANNIÈRE -->
 		<div class="block" style="display: block !important;">
 			<strong style="color: #ffcc00; font-size: 12px; display: block; margin-bottom: 4px;">🌐 Links (Liens) / Community :</strong>
 			<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" class="btn-comm btn-web">🔗 SERVER WEB PAGE (PAGE WEB)</a>
@@ -99,10 +105,11 @@
 			<label for="option-show-tower-borders" class="flex" :class="{inactive:!showTowers}" style="padding: 4px 0;"><input type="checkbox" id="option-show-tower-borders" v-model="showTowerBorders"><span style="font-size: 12px;"> Show tower borders (Rayons d'action)</span></label>
 		</div>
 
+		<!-- ZONE BASSE : DROITS D AUTEUR ET MISE A JOUR DE LA CARTE REGROUPÉS -->
 		<div class="block attribution">
 			<p><a href="https://github.com" target="_blank">WurmMapGen</a> powered by <a href="http://leafletjs.com" target="_blank">Leaflet</a></p>
 			<div style="background: rgba(0, 0, 0, 0.4); border: 1px solid #ffcc00; padding: 6px; border-radius: 4px; font-size: 10px; color: #ffcc00; font-weight: bold; text-align: center; margin-top: 10px; line-height: 1.3;">
-				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 12:28:17</span>
+				Last update / Dernière mise à jour :<br><span id="live-sync-date" style="color:#fff; font-size:11px; font-family: monospace;">2026-06-27 a 12:32:20</span>
 			</div>
 		</div>
 	</div>
@@ -144,7 +151,6 @@
 			forceRuntimeOverride();
 		}
 
-		// INTERCEPTEUR DE CHARGEMENT : Force la gestion transparente des tuiles d'océan vides 404
 		function forceRuntimeOverride() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.create) {
@@ -169,6 +175,7 @@
 </script>
 </body>
 </html>
+
 
 
 
