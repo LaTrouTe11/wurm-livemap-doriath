@@ -110,12 +110,13 @@
 		</div>
 	</div>
 	
+	<!-- RESTAURATION DE LA SYNTAXE TECHNIQUE D'USINE DE LA RECHERCHE SONT AUCUNE ACCOLADE PARASITE -->
 	<div id="search" class="absolute transition z-gui" :class="{open: searchQuery.length > 0 && searchResults.length > 0}">
 		<input type="text" placeholder="Search..." v-model="searchQuery" @keyup.esc="searchQuery = ''">
 		<div id="search-results">
 			<div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
-				<p><strong>{<span v-html="result.name"></span>}</strong></p>
-				<p class="small">{<span v-html="result.text"></span>}</p>
+				<p><strong>{{result.name}}</strong></p>
+				<p class="small">{{result.text}}</p>
 			</div>
 		</div>
 	</div>
