@@ -12,10 +12,10 @@ jobs:
       - name: 1. Checkout
         uses: actions/checkout@v4
 
-      - name: 2. Installation
+      - name: 2. Installation des outils
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement (Monde Doriath-4k-20)
+      - name: 3. Telechargement des donnees (Doriath)
         run: |
           mkdir -p ./sqlite
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
@@ -27,19 +27,34 @@ jobs:
           bye"
           mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
 
-      - name: 4. Execution et Injection Date
+      - name: 4. Execution, Nettoyage et Conversion
         run: |
+          # Generation de la map
           java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
+          
+          # Nettoyage : Suppression des fichiers PHP inutiles pour GitHub
+          rm -f config.php
+          
+          # Conversion : Renommage des fichiers .php en .json pour la lecture JS
+          # On boucle sur le dossier data pour convertir les exports du robot
+          if [ -d "data" ]; then
+            for f in data/*.php; do
+                [ -e "$f" ] || continue
+                mv "$f" "${f%.php}.json"
+            done
+          fi
+          
+          # Injection de la date de derniere mise a jour dans l'index
           sed -i "s|MAJ_DATE_ICI|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
-      - name: 5. Envoi au depot
+      - name: 5. Synchronisation Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git reset --hard origin/main
           git add index.html data/ images/ || true
+          
+          # Verifie s'il y a des changements avant de pusher
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto carte Doriath-4k-20"
+            git commit -m "MAJ auto : carte et donnees joueurs (JSON)"
             git push origin main
           fi
