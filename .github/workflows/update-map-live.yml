@@ -1,37 +1,84 @@
-- name: 5. Finalisation des assets
-      run: |
-        mkdir -p ./data
-        cp -f template/index.html index.html
-        rm -f app/live-interceptor.js || true
-        
-        if [ -f "app/map.js" ]; then
-          sed -i 's|'\''<b>Mayor:</b> '\'' + escapeHtml(village.mayor),|'\''👑 <b>Mayor (Maire) :</b> <span class="txt-m">'\'' + escapeHtml(village.mayor) + '\''</span>'\'',|g' app/map.js
-          sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" app/map.js
-        fi
+name: Synchro Carte Wurm Legion Hosting
 
-        sed -i 's|{{serverName}}|Doriath 4K|g' index.html
-        sed -i 's|{{enableRealtimeMarkers}}|true|g' index.html
-        sed -i 's|{{#showDeeds}}||g; s|{{/showDeeds}}||g' index.html
-        sed -i 's|{{#showGuardTowers}}||g; s|{{/showGuardTowers}}||g' index.html
-        
-        # On écrit la date dans un fichier temporaire pour la passer à l'étape suivante
-        echo "$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')" > date_compil.txt
-        sed -i "s|2026-06-27 a 04:00:00|$(cat date_compil.txt)|g" index.html
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
 
-    - name: 6. Envoi des modifications
-      run: |
-        DATE_COMPIL=$(cat date_compil.txt)
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
-        git add data/*.json index.html app/*.js
-        
-        # Vérification s'il y a quelque chose à commiter
-        if ! git diff --cached --quiet; then
-          git commit -m "Mise a jour auto: $DATE_COMPIL"
-          git push origin main
-        else
-          echo "Aucun changement détecté, pas de commit."
-        fi
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout depot
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 2. Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+        
+      - name: 3. Installation outils
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: 4. Telechargement bases donnees
+        run: |
+          mkdir -p ./sqlite_db/sqlite
+          lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} -e "
+            get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./sqlite_db/sqlite/wurmzones.db;
+            get /dist/Doriath-4k-20/sqlite/wurmitems.db -o ./sqlite_db/sqlite/wurmitems.db;
+            get /dist/Doriath-4k-20/sqlite/wurmplayers.db -o ./sqlite_db/sqlite/wurmplayers.db;
+            get /dist/Doriath-4k-20/top_layer.map -o ./sqlite_db/top_layer.map;
+            bye"
+
+      - name: 5. Execution WurmMapGen
+        run: java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
+
+      - name: 6. Finalisation assets et index
+        run: |
+          mkdir -p ./data
+          cp -f template/index.html index.html
+          
+          # Nettoyage et mise a jour fichiers
+          if [ -f "app/map.js" ]; then
+            sed -i 's|'\''<b>Mayor:</b> '\'' + escapeHtml(village.mayor),|'\''👑 <b>Mayor (Maire) :</b> <span class="txt-m">'\'' + escapeHtml(village.mayor) + '\''</span>'\'',|g' app/map.js
+            sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" app/map.js
+          fi
+
+          # Injection variables index.html
+          sed -i 's|{{serverName}}|QBC Doriath 4K|g' index.html
+          sed -i 's|{{enableRealtimeMarkers}}|true|g' index.html
+          sed -i 's|{{#showDeeds}}||g; s|{{/showDeeds}}||g' index.html
+          sed -i 's|{{#showGuardTowers}}||g; s|{{/showGuardTowers}}||g' index.html
+          
+          echo "$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')" > date_compil.txt
+          sed -i "s|2026-06-27 a 04:00:00|$(cat date_compil.txt)|g" index.html
+
+      - name: 7. Envoi et deploiement
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add data/*.json index.html app/*.js
+          if ! git diff --cached --quiet; then
+            git commit -m "Mise a jour auto: $(cat date_compil.txt)"
+            git push origin main
+          fi
+
+      - name: 8. Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: 9. Deploy Pages
+        uses: actions/deploy-pages@v4
