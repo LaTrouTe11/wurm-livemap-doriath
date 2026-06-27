@@ -148,8 +148,8 @@
 		
 		function startApplication() {
 			window.WurmMapGen = {};
-			// MODIFICATION DE SÉCURITÉ CRUCIALE : On charge map-live.js qui est protégé contre le robot
-			var modules = ['app/util.js', 'app/markers.js', 'app/map-live.js', 'app/gui.js', 'app/main.js'];
+			// RESTAURATION COMMANDE OFFICIELLE : map.js charge de nouveau sans écran blanc
+			var modules = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
 			modules.forEach(function(src) {
 				var s = document.createElement('script');
 				s.src = src;
@@ -163,6 +163,7 @@
 </script>
 </body>
 </html>
+
 
 
 
