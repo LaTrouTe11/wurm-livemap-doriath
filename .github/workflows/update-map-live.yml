@@ -66,35 +66,21 @@ jobs:
         mkdir -p ./data
         echo '{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}' > ./data/config.json
         
-        # DOUBLE VERIFICATION DES FICHIERS DE DONNEES DES VILLAGES CONTRE L ERREUR DE CHARGEMENT
-        if [ -f "./data/deeds.json" ]; then
-          cp -f ./data/deeds.json ./data/villages.json 2>/dev/null || true
-        fi
-        if [ -f "./data/villages.json" ]; then
-          cp -f ./data/villages.json ./data/deeds.json 2>/dev/null || true
-        fi
-        if [ -f "./data/towers.json" ]; then
-          cp -f ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
-        fi
-        if [ -f "./data/guardtowers.json" ]; then
-          cp -f ./data/guardtowers.json ./data/towers.json 2>/dev/null || true
-        fi
+        if [ -f "./data/deeds.json" ]; then cp -f ./data/deeds.json ./data/villages.json 2>/dev/null || true; fi
+        if [ -f "./data/villages.json" ]; then cp -f ./data/villages.json ./data/deeds.json 2>/dev/null || true; fi
+        if [ -f "./data/towers.json" ]; then cp -f ./data/towers.json ./data/guardtowers.json 2>/dev/null || true; fi
+        if [ -f "./data/guardtowers.json" ]; then cp -f ./data/guardtowers.json ./data/towers.json 2>/dev/null || true; fi
         
-        # BLINDAGE ABSOLU : On ecrase l index casse de Java par notre modele template parfait
         cp -f template/index.html index.html
-        
-        # RESTAURATION FORCEE DES SCRIPTS ORIGINAUX SANS ERREUR JS
         git checkout HEAD app/util.js app/markers.js app/map.js app/gui.js app/main.js 2>/dev/null || true
         rm -f app/live-interceptor.js || true
         
-        # INJECTION SÉCURISÉE DE LA CORRECTION DATE 2026 DANS LE CODE SOURCE DE LA MAP
         if [ -f "app/map.js" ]; then
           sed -i "s|'<b>Mayor:</b> ' + escapeHtml(village.mayor),|'👑 <b>Mayor (Maire) :</b> <span class=\"txt-m\">' + escapeHtml(village.mayor) + '</span>',|g" app/map.js
           sed -i "s|'<b>Citizens:</b> ' + escapeHtml(village.citizens)|'👥 <b>Citizens (Citoyens) :</b> <span class=\"txt-c\">' + escapeHtml(village.citizens) + '</span><br>📅 <b>Founded (Créé) :</b> <span>2026</span><br>📍 <b>Coordinates (Position) :</b> <span class=\"txt-x\">X' + Math.floor(village.x) + '</span>, <span class=\"txt-y\">Y' + Math.floor(village.y) + '</span>'|g" app/map.js
           sed -i "s|tms: false|tms: false, errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='|g" app/map.js
         fi
 
-		# Remplacement dynamique du nom du serveur et de la date dans le fichier final
         sed -i 's|{{serverName}}|Doriath 4K|g' index.html
         sed -i 's|{{enableRealtimeMarkers}}|true|g' index.html
         sed -i 's|{{#showDeeds}}||g' index.html
@@ -128,5 +114,6 @@ jobs:
 
     - name: 8. Deploiement Final au Vert
       uses: actions/deploy-pages@v4
+
 
 
