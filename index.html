@@ -28,10 +28,17 @@
 		<div class="block padding">
 			<h1>[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
 			
+			<!-- INTEGRATION DE VOTRE BANNIERE WURM-UNLIMITED EN DIRECT -->
+			<div style="margin-top: 12px; margin-bottom: 12px; text-align: center;">
+				<a href="https://wurm-unlimited.com/server/13208/" target="_blank" rel="noreferrer noopener">
+					<img src="https://wurm-unlimited.com/server/13208/banners/half-banner-1.png" alt="Statut QBC Doriath" style="max-width: 100%; border-radius: 4px; border: 1px solid #333; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+				</a>
+			</div>
+
 			<!-- ENCADRE DE SYNCHRONISATION FIXE HAUTE LISIBILITE -->
 			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 10px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.5; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 20:37:13</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 20:53:08</span>
 			</div>
 			
 		</div>
@@ -127,7 +134,6 @@
 			activateBulleInterceptor();
 		}
 
-		// BLINDAGE ABSOLU : Capture la date reelle du serveur liee aux fichiers json
 		function activateBulleInterceptor() {
 			setTimeout(function() {
 				if (WurmMapGen.map && WurmMapGen.map.map) {
@@ -153,8 +159,6 @@
 								var mottoText = targetVillage.motto ? targetVillage.motto : '';
 								var mayorText = targetVillage.mayor ? targetVillage.mayor : 'Inconnu';
 								var citizensCount = targetVillage.citizens ? targetVillage.citizens : '1';
-								
-								// Capture de la date d'origine du serveur liee a l'annee 2026
 								var dateComplete = targetVillage.creation ? targetVillage.creation + ' 2026' : 'En 2026';
 								
 								var newContent = [
@@ -181,7 +185,6 @@
 </script>
 </body>
 </html>
-
 
 
 
