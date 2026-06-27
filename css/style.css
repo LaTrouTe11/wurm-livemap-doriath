@@ -102,3 +102,35 @@ img {
 	image-rendering: optimize-contrast;
 	-ms-interpolation-mode: nearest-neighbor;
 }
+
+/* ==========================================================================
+   STYLE DE GRIMOIRE MÉDIÉVAL HAUTE VISIBILITÉ - SERVEUR DORIATH
+   ========================================================================== */
+.leaflet-popup-content-wrapper {
+	background: #111111 !important;
+	border: 2px solid #ffcc00 !important;
+	box-shadow: 0px 4px 12px rgba(0,0,0,0.9) !important;
+	border-radius: 6px !important;
+}
+.leaflet-popup-tip {
+	background: #111111 !important;
+	border: 1px solid #ffcc00 !important;
+}
+.leaflet-popup-content {
+	color: #ffffff !important;
+	font-family: 'Roboto', sans-serif !important;
+	font-size: 13px !important;
+	line-height: 1.6 !important;
+}
+.leaflet-popup-content b, .leaflet-popup-content strong {
+	color: #FFD700 !important;
+	text-shadow: 1px 1px 2px #000 !important;
+}
+.leaflet-popup-content li {
+	color: #ffffff !important;
+	list-style-type: square !important;
+	margin-bottom: 4px !important;
+}
+.txt-m { color: #00FF7F !important; font-weight: bold; }
+.txt-c { color: #00FFFF !important; font-weight: bold; }
+.txt-p { color: #ffcc00 !important; font-family: monospace; font-weight: bold; }
