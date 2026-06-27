@@ -15,38 +15,32 @@ jobs:
       - name: 2. Installation dependances
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement des donnees (Legion Hosting)
+      - name: 3. Telechargement des donnees
         run: |
-          # Utilisation des secrets LEGION_USER, PASS, HOST, PORT
           lftp -c "set sftp:auto-confirm yes; set ssl:verify-certificate no; \
           open sftp://${{ secrets.LEGION_USER }}:${{ secrets.LEGION_PASS }}@${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }}; \
           get /dist/Doriath-4k-20/sqlite/wurmzones.db -o ./w_map.db; \
+          get /dist/Doriath-4k-20/top_layer.map -o ./top_layer.map; \
           bye"
 
       - name: 4. Execution WurmMapGen
         run: |
-          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar -map w_map.db -out .
-          # Mise a jour de la date dans le template
+          java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
           sed -i "s|{{date_compil}}|$(date +'%Y-%m-%d %H:%M:%S')|g" index.html
 
       - name: 5. Generation du rapport
         run: |
           echo "Rapport de generation - Doriath 4K" > generation_report.txt
           echo "Date : $(date +'%Y-%m-%d %H:%M:%S')" >> generation_report.txt
-          echo "-----------------------------------" >> generation_report.txt
-          echo "Etat : Succès" >> generation_report.txt
           echo "Fichiers detectes :" >> generation_report.txt
-          ls -lh *.db *.map >> generation_report.txt
+          ls -lh w_map.db top_layer.map >> generation_report.txt
 
       - name: 6. Envoi au depot
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html generation_report.txt data/ images/ || true
-          
           if ! git diff --cached --quiet; then
-            git commit -m "Mise a jour auto: carte et rapport"
+            git commit -m "MAJ auto carte et rapport"
             git push origin main
-          else
-            echo "Aucun changement detecte."
           fi
