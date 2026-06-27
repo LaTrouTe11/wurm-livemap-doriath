@@ -41,10 +41,9 @@
 			color: #FFD700 !important;
 			text-shadow: 1px 1px 2px #000 !important;
 		}
-		/* Styles pour les étiquettes personnalisées en couleur */
-		.bulle-maire { color: #00FF7F !important; font-weight: bold; }
-		.bulle-citoyens { color: #00FFFF; font-weight: bold; }
-		.bulle-coord { color: #ffcc00; font-weight: bold; font-family: monospace; }
+		.bulle-m { color: #00FF7F !important; font-weight: bold; }
+		.bulle-c { color: #00FFFF !important; font-weight: bold; }
+		.bulle-p { color: #ffcc00 !important; font-weight: bold; font-family: monospace; }
 	</style>
 </head>
 <body data-realtime="false">
@@ -68,7 +67,7 @@
 			<!-- ENCADRE DE SYNCHRONISATION FIXE -->
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.4; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 00:47:32</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-27 a 00:52:51</span>
 			</div>
 			
 		</div>
@@ -163,7 +162,7 @@
 			activateGlobalPanControl();
 		}
 
-		// TRADUCTEUR COMPACT ET ULTRA-STABLE SANS COUPURE
+		// TRADUCTEUR LIÉ PAR TEXTE INTEGRAL BRUT (PLUS AUCUN UNDEFINED POSSIBLE)
 		function activateGlobalPanControl() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
@@ -180,37 +179,43 @@
 						popup.options.autoPanPaddingBottomRight = L.point(50, 50);
 						
 						if (content && (content.indexOf('Mayor:') !== -1 || content.indexOf('Citizens:') !== -1)) {
-							var txt = content.replace(/<\/?[^>]+(>|$)/g, "\n");
-							var lines = txt.split('\n');
+							// Extraction du nom de la colonie
+							var vName = "Colonie";
+							var titleM = content.match(/<b>(.*?)<\/b>/);
+							if (titleM) vName = titleM[1];
 							
-							var villageName = "Colonie";
-							var mayorName = "Inconnu";
-							var citizensCount = "1";
-							var creationDate = "En 2026";
+							// Nettoyage de toutes les balises HTML de listes complexes pour avoir du texte pur
+							var textPure = content.replace(/<\/?[^>]+(>|$)/g, "\n");
+							var segments = textPure.split('\n');
 							
-							// Extraction simplifiée du titre gras
-							var titleMatch = content.match(/<b>(.*?)<\/b>/);
-							if (titleMatch) villageName = titleMatch[1];
+							var mName = "Inconnu";
+							var cCount = "1";
+							var fDate = "En 2026";
 							
-							for (var i = 0; i < lines.length; i++) {
-								var l = lines[i].trim();
-								if (l.toLowerCase().indexOf('mayor:') !== -1) mayorName = l.split(':')[1].trim();
-								if (l.toLowerCase().indexOf('citizens:') !== -1) citizensCount = l.split(':')[1].trim();
-								if (l.toLowerCase().indexOf('founded:') !== -1) creationDate = l.split(':')[1].trim();
+							for (var i = 0; i < segments.length; i++) {
+								var chunk = segments[i].trim();
+								if (chunk.toLowerCase().indexOf('mayor:') !== -1) {
+									mName = chunk.substring(chunk.indexOf(':') + 1).trim();
+								}
+								if (chunk.toLowerCase().indexOf('citizens:') !== -1) {
+									cCount = chunk.substring(chunk.indexOf(':') + 1).trim();
+								}
+								if (chunk.toLowerCase().indexOf('founded:') !== -1) {
+									fDate = chunk.substring(chunk.indexOf(':') + 1).trim();
+								}
 							}
 							
-							// Capture géospatiale directe par le clic de la souris
 							var latlng = popup.getLatLng();
 							var posX = Math.floor(latlng.lng);
 							var posY = Math.floor(-latlng.lat);
 							
 							var newContent = [
-								'<div align="center"><b>' + villageName + '</b></div>',
+								'<div align="center"><b>' + vName + '</b></div>',
 								'<hr style="border:0; border-top:1px solid #ffcc00; margin:6px 0; opacity:0.3;">',
-								'Maire : <span class="bulle-maire">' + mayorName + '</span><br>',
-								'Citoyens : <span class="bulle-citoyens">' + citizensCount + '</span><br>',
-								'Créé le : ' + creationDate + '<br>',
-								'Position : <span class="bulle-coord">' + posX + ' x, ' + posY + ' y</span>'
+								'Maire : <span class="bulle-m">' + mName + '</span><br>',
+								'Citoyens : <span class="bulle-c">' + cCount + '</span><br>',
+								'Créé le : ' + fDate + '<br>',
+								'Position : <span class="bulle-p">' + posX + ' x, ' + posY + ' y</span>'
 							].join('');
 							
 							popup.setContent(newContent);
@@ -228,7 +233,6 @@
 </script>
 </body>
 </html>
-
 
 
 
