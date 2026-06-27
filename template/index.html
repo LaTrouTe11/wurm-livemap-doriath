@@ -5,19 +5,13 @@
 	<meta charset="utf-8"/>
 	<base href="/wurm-livemap-doriath/">
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
-	<script>
-		(function() {
-			var host = '://cloudflare.com';
-			var l = document.createElement('link');
-			l.rel = 'stylesheet';
-			l.crossOrigin = 'anonymous';
-			l.href = 'https://' + host + '/ajax/libs/leaflet/1.2.0/leaflet.css';
-			document.head.appendChild(l);
-		})();
-	</script>
+	
+	<!-- Chargement natif et fluide du CSS Leaflet d'usine -->
+	<link rel="stylesheet" href="https://cloudflare.com" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://googleapis.com">
 	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
 	<link rel="stylesheet" href="css/style.css">
+	
 	<style>
 		/* Style médiéval haute visibilité noir et or */
 		.leaflet-popup-content-wrapper {
@@ -50,7 +44,7 @@
 			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 18px; text-align: center; margin-bottom: 8px;">{{serverName}}</h1>
 			<div style="text-align: center; margin-bottom: 14px;">
 				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener" style="text-decoration: none;">
-					<div style="background: #1a1a1a; border: 2px solid #00ccff; padding: 8px 16px; border-radius: 6px; font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: bold; color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.3);">
+					<div style="background: #1a1a1a; border: 2px solid #00ccff; padding: 8px 16px; border-radius: 6px; font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: bold; color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.3); text-shadow: 1px 1px 2px #000;">
 						🟢 SERVEUR : ONLINE
 					</div>
 				</a>
@@ -86,15 +80,13 @@
 
 <script crossorigin="anonymous">
 	(function() {
-		var cdn = '://cloudflare.com';
-		var jsd = 'cdn.jsdelivr.net';
 		var urls = [
-			'https://' + cdn + '/ajax/libs/leaflet/1.2.0/leaflet.js',
+			'https://cloudflare.com',
 			'dist/Leaflet.Coordinates-0.1.5.min.js',
-			'https://' + jsd + '/npm/cookies-js@1.2.3/dist/cookies.min.js',
-			'https://' + cdn + '/ajax/libs/fetch/2.0.4/fetch.min.js',
-			'https://' + cdn + '/ajax/libs/es6-promise/4.2.8/es6-promise.auto.min.js',
-			'https://' + cdn + '/ajax/libs/vue/2.5.9/vue.min.js'
+			'https://jsdelivr.net',
+			'https://cloudflare.com',
+			'https://cloudflare.com',
+			'https://cloudflare.com'
 		];
 		
 		function loadNext(idx) {
@@ -113,7 +105,6 @@
 			activatePanAndTranslate();
 		}
 
-		// VERSION COMPACTE : Traduction directe par remplacement de texte (Pas de coupure de fichier)
 		function activatePanAndTranslate() {
 			setTimeout(function() {
 				if (window.WurmMapGen && WurmMapGen.map && WurmMapGen.map.map) {
@@ -128,19 +119,20 @@
 						popup.options.autoPanPaddingTopLeft = L.point(50, 280);
 						popup.options.autoPanPaddingBottomRight = L.point(50, 50);
 						
-						if (html && (html.indexOf('Mayor:') !== -1 || html.indexOf('Citizens:') !== -1)) {
+						if (html && (html.indexOf('Mayor:') !== -1 || html.indexOf('Maire :') !== -1 || html.indexOf('Citizens:') !== -1)) {
 							var latlng = popup.getLatLng();
 							var px = Math.floor(latlng.lng);
 							var py = Math.floor(-latlng.lat);
 							
-							// Traduction instantanee des mots-clés anglais en français avec styles de couleur
 							var cleanHtml = html
 								.replace(/Mayor:/g, 'Maire : <span class="txt-m">')
+								.replace(/Maire :/g, 'Maire : <span class="txt-m">')
 								.replace(/Citizens:/g, '</span>Citoyens : <span class="txt-c">')
+								.replace(/Citoyens :/g, '</span>Citoyens : <span class="txt-c">')
 								.replace(/Founded:/g, '</span>Créé le : <span>')
+								.replace(/Créé le :/g, '</span>Créé le : <span>')
 								.replace(/<\/li>/g, '</span></li>');
 
-							// Injection propre de la ligne de position X/Y à la fin de la liste
 							if (cleanHtml.indexOf('</ul>') !== -1) {
 								cleanHtml = cleanHtml.replace('</ul>', '<li>Position : <span class="txt-p">' + px + ' x, ' + py + ' y</span></li></ul>');
 							} else {
@@ -159,5 +151,4 @@
 </script>
 </body>
 </html>
-
 
