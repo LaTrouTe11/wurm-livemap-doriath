@@ -58,7 +58,7 @@ jobs:
       run: |
         java -Djava.awt.headless=true -Xmx3g -jar WurmMapGen.jar
 
-    - name: 5. Configuration Automatique pour Leaflet
+    - name: 5. Configuration Automatique pour Leaflet et Injection du Titre Log Visible
       run: |
         rm -f ./config.json || true
         mkdir -p ./data
@@ -69,8 +69,12 @@ jobs:
         if [ -f "./data/towers.json" ]; then
           cp ./data/towers.json ./data/guardtowers.json 2>/dev/null || true
         fi
+        
+        # Injection forcee de votre phrase exacte quebecoise au format demande
+        DATE_COMPIL=$(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S')
+        sed -i "s|2026-06-26 a 22:32:10|$DATE_COMPIL|g" index.html
 
-    - name: 6. Sauvegarde et Envoi automatique force avec Date Quebecoise
+    - name: 6. Sauvegarde et Envoi automatique force
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
@@ -81,8 +85,6 @@ jobs:
         git add app/*.js || true
         git add images/ || true
         git add tiles/ || true
-        
-        # Le robot ecrit l'heure precise qui sera lue par l API du template
         git commit --allow-empty -m "Derniere compilation reussie le $(TZ="America/Toronto" date +'%Y-%m-%d a %H:%M:%S') [skip ci]"
         git push origin main --force
 
