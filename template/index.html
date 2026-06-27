@@ -43,7 +43,7 @@
         <div class="block attribution">
             <p>WurmMapGen powered by Leaflet</p>
             <div style="border: 1px solid #ffcc00; padding: 6px; font-size: 10px; color: #ffcc00; text-align: center;">
-                Last update :<br><span id="live-sync-date" style="color:#fff;">2026-06-27</span>
+                Last update :<br><span id="live-sync-date" style="color:#fff;">{{date_compil}}</span>
             </div>
         </div>
     </div>
@@ -51,12 +51,10 @@
     <div id="search" class="absolute transition z-gui" :class="{open: searchQuery.length > 0 && searchResults.length > 0}">
         <input type="text" placeholder="Search..." v-model="searchQuery" @keyup.esc="searchQuery = ''">
         <div id="search-results">
-            <%={{=% =%>=%>
             <div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
-                <p><strong>{{ result.name }}</strong></p>
-                <p class="small">{{ result.text }}</p>
+                <p><strong>{{{ result.name }}}</strong></p>
+                <p class="small">{{{ result.text }}}</p>
             </div>
-            <%={{ }}=%>
         </div>
     </div>
 
@@ -75,7 +73,6 @@
 </script>
 </body>
 </html>
-
 
 
 
