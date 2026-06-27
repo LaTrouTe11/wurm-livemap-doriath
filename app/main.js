@@ -35,7 +35,7 @@ function setRealtimeTimer() {
 	}
 
 	WurmMapGen.realtimeTimer = setTimeout(function() {
-		fetchData('players', 'players.php').then(function() {
+		fetchData('players', 'players.json').then(function() {
 			WurmMapGen.map.updatePlayerMarkers();
 			WurmMapGen.gui.playerCount = WurmMapGen.players.length;
 			setRealtimeTimer();
@@ -53,7 +53,7 @@ var promises = [
 ];
 
 if (document.body.getAttribute('data-realtime') === 'true') {
-	promises.push(fetchData('players', 'players.php'));
+	promises.push(fetchData('players', 'players.json'));
 }
 
 // Start loading
@@ -61,7 +61,7 @@ Promise.all(promises)
 .catch(function(err) {
 	console.error('Could not load data');
 	console.error(err);
-	document.write('Something went wrong, map data could not be loaded'); // TODO add better error handling
+	document.write('Something went wrong, map data could not be loaded');
 })
 .then(function() {
 	// Add computed config values
