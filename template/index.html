@@ -20,10 +20,12 @@
     <div id="search">
         <input type="text" placeholder="Rechercher..." v-model="searchQuery">
         <div id="search-results">
+            <%={{ }}=%> 
             <div v-for="result in searchResults" :class="result.type" @click="clickResult(result)">
-                <p><strong>{{{ result.name }}}</strong></p>
-                <p class="small">{{{ result.text }}}</p>
+                <p><strong>{{ result.name }}</strong></p>
+                <p class="small">{{ result.text }}</p>
             </div>
+            <%={{ }}=%> 
         </div>
     </div>
 
@@ -42,5 +44,4 @@
 </script>
 </body>
 </html>
-
 
