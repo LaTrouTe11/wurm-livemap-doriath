@@ -41,7 +41,7 @@
 			<!-- ENCADRE DE SYNCHRONISATION FIXE -->
 			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.4; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 22:52:23</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 22:56:26</span>
 			</div>
 			
 		</div>
@@ -127,8 +127,8 @@
 		
 		function startApplication() {
 			window.WurmMapGen = {};
-			// MODIFICATION DE SÉCURITÉ CRUCIALE : On charge map-live.js qui est protégé contre le robot
-			var modules = ['app/util.js', 'app/markers.js', 'app/map-live.js', 'app/gui.js', 'app/main.js'];
+			// RESTAURATION COMMANDE OFFICIELLE : map.js charge de nouveau sans écran blanc
+			var modules = ['app/util.js', 'app/markers.js', 'app/map.js', 'app/gui.js', 'app/main.js'];
 			modules.forEach(function(src) {
 				var s = document.createElement('script');
 				s.src = src;
@@ -142,6 +142,7 @@
 </script>
 </body>
 </html>
+
 
 
 
