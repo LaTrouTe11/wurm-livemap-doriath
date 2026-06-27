@@ -27,19 +27,19 @@
 	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
 		<div class="block padding">
 			<!-- TITRE DU SERVEUR EN OR MEDIEVAL -->
-			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 22px; letter-spacing: 0.5px; text-align: center;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
+			<h1 style="color: #ffcc00; text-shadow: 0px 2px 4px rgba(0,0,0,0.8); font-size: 22px; letter-spacing: 0.5px; text-align: center; margin-bottom: 12px;">[QC/FR/CAN] QBC Doriath |PVE | MODS 4 K 2025</h1>
 			
-			<!-- BANNIERE EN DIRECT AVEC LE NOMBRE DE JOUEURS EN LIGNE -->
-			<div style="margin-top: 12px; text-align: center;">
+			<!-- BANNIÈRE SÉCURISÉE EN DIRECT (ID SERVEUR DORIATH : 13208) -->
+			<div id="wurm-banner-box" style="text-align: center; margin-bottom: 10px;">
 				<a href="https://wurm-unlimited.com" target="_blank" rel="noreferrer noopener">
 					<img src="https://wurm-unlimited.combanners/half-banner-1.png" alt="Statut du serveur Doriath" style="max-width: 100%; border-radius: 4px; border: 1px solid #333; box-shadow: 0 2px 5px rgba(0,0,0,0.5);" border="0">
 				</a>
 			</div>
 
 			<!-- ENCADRE DE SYNCHRONISATION FIXE HAUTE LISIBILITE -->
-			<div style="margin-top: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 10px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.5; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
+			<div style="background: rgba(0, 0, 0, 0.5); border: 2px solid #00ffb7; padding: 10px; border-radius: 6px; font-size: 11px; color: #00ffb7; font-weight: bold; text-align: center; line-height: 1.5; font-family: Roboto, sans-serif; box-shadow: 0 0 10px rgba(0,255,183,0.2);">
 				Dernière compilation réussie<br>
-				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 21:44:26</span>
+				<span id="live-sync-date" style="color:#fff; font-size:12px;">2026-06-26 a 21:49:55</span>
 			</div>
 			
 		</div>
@@ -138,9 +138,18 @@
 		function activateBulleInterceptor() {
 			setTimeout(function() {
 				if (WurmMapGen.map && WurmMapGen.map.map) {
-					WurmMapGen.map.map.on('popupopen', function(e) {
+					var mapInstance = WurmMapGen.map.map;
+					
+					mapInstance.on('popupopen', function(e) {
 						var popup = e.popup;
 						var content = popup.getContent();
+						
+						// CORRECTIF DE POSITION : Forcer la carte a glisser pour centrer la bulle si elle touche le bord haut
+						// Ajout des options de marge de securite pour le recentrage
+						popup.options.autoPan = true;
+						popup.options.autoPanPaddingTopLeft = L.point(20, 150); // Marge pour ne pas cacher derriere le titre
+						popup.options.autoPanPadding = L.point(20, 20);
+						mapInstance.panTo(popup.getLatLng()); // Glissement automatique direct force
 						
 						if (content && (content.indexOf('Mayor:') !== -1 || content.indexOf('Maire :') !== -1)) {
 							var titleMatch = content.match(/<b>(.*?)<\/b>/);
@@ -162,7 +171,6 @@
 								var citizensCount = targetVillage.citizens ? targetVillage.citizens : '1';
 								var dateComplete = targetVillage.creation ? targetVillage.creation + ' 2026' : 'En 2026';
 								
-								// NOM DU VILLAGE EN OR MEDIEVAL (#ffcc00)
 								var newContent = [
 									'<div align="center"><b style="color: #ffcc00; font-size: 14px; text-shadow: 1px 1px 2px #000;">' + window.WurmMapGen.util.escapeHtml(targetVillage.name) + '</b><br>',
 									(mottoText ? '<i>' + window.WurmMapGen.util.escapeHtml(mottoText) + '</i>' : '') + '</div><br>',
@@ -187,6 +195,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 
