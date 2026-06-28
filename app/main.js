@@ -2,7 +2,8 @@
 
 (function() {
 
-// Initialisation des objets de données
+// Initialisation des objets
+window.WurmMapGen = window.WurmMapGen || {};
 WurmMapGen.config = null;
 WurmMapGen.villages = null;
 WurmMapGen.guardtowers = null;
@@ -11,40 +12,22 @@ WurmMapGen.portals = null;
 WurmMapGen.deeds = null;
 WurmMapGen.towers = null;
 WurmMapGen.players = null;
-WurmMapGen.timestamp = null;
 
-// Fonction de chargement robuste (ne plante pas si un fichier est vide ou manque)
+// Fonction de chargement avec debug intégré
 function fetchData(key, path) {
     return fetch('data/' + path)
-        .then(function(response) { 
-            if (!response.ok) return null;
-            return response.json(); 
+        .then(function(response) {
+            if (!response.ok) throw new Error('Fichier introuvable: ' + path);
+            return response.json();
         })
         .then(function(responseData) {
-            // On stocke directement la donnée sans chercher de clé intermédiaire
-            if (responseData) {
-                WurmMapGen[key] = responseData;
-            }
+            WurmMapGen[key] = responseData;
             return Promise.resolve();
+        })
+        .catch(function(err) {
+            console.warn('Attention: Impossible de charger ' + path + ' (' + err.message + ')');
+            return null; // On continue même si un fichier manque
         });
-}
-
-// Gestion du focus (pour économiser la batterie des visiteurs)
-var windowIsFocused = true;
-window.onblur = function(){ windowIsFocused = false; }
-window.onfocus = function(){ windowIsFocused = true; }
-
-// Timer temps réel pour les joueurs
-function setRealtimeTimer() {
-    var time = windowIsFocused ? 30000 : 60000;
-    WurmMapGen.realtimeTimer = setTimeout(function() {
-        fetchData('players', 'players.json').then(function() {
-            if (WurmMapGen.map.updatePlayerMarkers) {
-                WurmMapGen.map.updatePlayerMarkers();
-            }
-            setRealtimeTimer();
-        });
-    }, time);
 }
 
 // Liste des fichiers à charger
@@ -55,33 +38,32 @@ var filesToLoad = [
     {key: 'structures', path: 'structures.json'},
     {key: 'portals', path: 'portals.json'},
     {key: 'deeds', path: 'deeds.json'},
-    {key: 'towers', path: 'towers.json'},
-    {key: 'players', path: 'players.json'}
+    {key: 'towers', path: 'towers.json'}
 ];
 
-// Chargement
 var promises = filesToLoad.map(function(item) {
     return fetchData(item.key, item.path);
 });
 
+// Lancement
 Promise.all(promises)
 .then(function() {
     if (!WurmMapGen.config) {
-        throw new Error('config.json introuvable ou corrompu');
+        throw new Error('CONFIG.JSON EST ABSENT ! La carte ne peut pas démarrer.');
     }
-    
-    // Calculs de base pour la carte
+
+    // Calculs nécessaires
     WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
-    
+
+    // Initialisation de la carte
     WurmMapGen.map.create();
     WurmMapGen.gui.init();
-
-    if (document.body.getAttribute('data-realtime') === 'true') {
-        setRealtimeTimer();
-    }
+    
+    console.log('Carte chargée avec succès !');
 })
 .catch(function(err) {
-    console.error('Erreur lors du chargement:', err);
+    console.error('ERREUR CRITIQUE:', err.message);
+    document.body.innerHTML = '<h2 style="color:red;">Erreur de chargement: ' + err.message + '</h2>';
 });
 
 })();
