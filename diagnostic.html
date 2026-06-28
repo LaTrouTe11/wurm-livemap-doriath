@@ -2,39 +2,112 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Diagnostic LiveMap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Final Ordre - LiveMap</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a24; color: #fff; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #222230; padding: 20px; border-radius: 8px; }
-        .status { font-weight: bold; padding: 4px; border-radius: 4px; }
-        .ok { background: #2e7d32; } .error { background: #c62828; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a24; color: #fff; padding: 20px; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; background: #222230; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h1 { color: #2196F3; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
+        .row-check { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #333; font-size: 15px; }
+        .row-check:last-of-type { border-bottom: none; margin-bottom: 20px; }
+        .status { font-weight: bold; padding: 4px 12px; border-radius: 4px; font-size: 13px; text-transform: uppercase; }
+        .ok { background: #2e7d32; color: #fff; }
+        .error { background: #c62828; color: #fff; }
+        .warning { background: #ef6c00; color: #fff; }
+        .result-box { background: #2d2d40; padding: 15px; border-radius: 6px; text-align: center; font-size: 16px; font-weight: bold; border: 1px solid #444; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h1>Analyseur Ordre & Dépendances</h1>
-    <!-- Structure simplifiée pour le diagnostic -->
-    <p>Étape 1 (Leaflet): <span id="ord-leaflet" class="status">Analyse...</span></p>
-    <p>Étape 2 (Vue): <span id="ord-vue" class="status">Analyse...</span></p>
-    <p>Étape 3 (WurmMapGen): <span id="ord-wmg" class="status">Analyse...</span></p>
-    <p>... (autres vérifications) ...</p>
-    <p><b>Résultat:</b> <span id="global-order-status">Calcul...</span></p>
+    <h1>Analyseur d'Ordre & Dépendances Éléments</h1>
+    <p>Ce module scanne la mémoire vive de votre navigateur à la recherche des objets globaux du site.</p>
+
+    <div class="row-check">
+        <span><b>Étape 1 :</b> Moteur Cartographique (Leaflet)</span>
+        <span id="check-leaflet" class="status warning">Analyse...</span>
+    </div>
+    <div class="row-check">
+        <span><b>Étape 2 :</b> Framework d'Interface (Vue.js)</span>
+        <span id="check-vue" class="status warning">Analyse...</span>
+    </div>
+    <div class="row-check">
+        <span><b>Étape 3 :</b> Gestionnaire de Cookies (js-cookie)</span>
+        <span id="check-cookie" class="status warning">Analyse...</span>
+    </div>
+    <div class="row-check">
+        <span><b>Étape 4 :</b> Initialisation Racine (`WurmMapGen`)</span>
+        <span id="check-wmg" class="status warning">Analyse...</span>
+    </div>
+
+    <div class="result-box" id="global-box">
+        Analyse de la structure séquentielle en cours...
+    </div>
 </div>
+
 <script>
-    // Script de diagnostic forcé (500ms)
-    setTimeout(() => {
-        const checks = ['L', 'Vue', 'WurmMapGen'];
-        checks.forEach(lib => {
-            const el = document.getElementById('ord-' + lib.toLowerCase());
-            if (typeof window[lib] !== 'undefined') {
-                el.innerHTML = '✔ OK'; el.className = 'status ok';
-            } else {
-                el.innerHTML = '✖ MANQUANT'; el.className = 'status error';
-            }
-        });
-    }, 500);
+    // Exécution forcée après 400 millisecondes pour laisser le temps aux modules asynchrones de s'enregistrer
+    setTimeout(function() {
+        var hasError = false;
+
+        // 1. Analyse Leaflet
+        var elLeaflet = document.getElementById('check-leaflet');
+        if (typeof window.L !== 'undefined') {
+            elLeaflet.innerHTML = '✔ OK (Prêt)';
+            elLeaflet.className = 'status ok';
+        } else {
+            elLeaflet.innerHTML = '✖ Manquant';
+            elLeaflet.className = 'status error';
+            hasError = true;
+        }
+
+        // 2. Analyse Vue.js
+        var elVue = document.getElementById('check-vue');
+        if (typeof window.Vue !== 'undefined') {
+            elVue.innerHTML = '✔ OK (Prêt)';
+            elVue.className = 'status ok';
+        } else {
+            elVue.innerHTML = '✖ Manquant';
+            elVue.className = 'status error';
+            hasError = true;
+        }
+
+        // 3. Analyse Cookies
+        var elCookie = document.getElementById('check-cookie');
+        if (typeof window.Cookies !== 'undefined') {
+            elCookie.innerHTML = '✔ OK (Prêt)';
+            elCookie.className = 'status ok';
+        } else {
+            elCookie.innerHTML = '✖ Manquant';
+            elCookie.className = 'status error';
+            hasError = true;
+        }
+
+        // 4. Analyse de l'objet racine
+        var elWmg = document.getElementById('check-wmg');
+        if (typeof window.WurmMapGen !== 'undefined') {
+            elWmg.innerHTML = '✔ OK (Déclaré)';
+            elWmg.className = 'status ok';
+        } else {
+            elWmg.innerHTML = '✖ Introuvable';
+            elWmg.className = 'status error';
+            hasError = true;
+        }
+
+        // Rendu du verdict global
+        var globalBox = document.getElementById('global-box');
+        if (!hasError) {
+            globalBox.innerHTML = '<span style="color:#81c784;">✔ CHRONOLOGIE DU SITE VALIDE : PRÊT À S\'AFFICHER</span>';
+            globalBox.style.borderColor = '#2e7d32';
+        } else {
+            globalBox.innerHTML = '<span style="color:#e57373;">✖ CONFLIT SÉQUENTIEL : UN COMPOSANT SUR L\'INDEX HTML BLOQUE L\'AFFICHAGE</span>';
+            globalBox.style.borderColor = '#c62828';
+        }
+    }, 400);
 </script>
+
 </body>
 </html>
+
 
 
