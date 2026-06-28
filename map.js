@@ -48,18 +48,20 @@ WurmMapGen.map = {
 		}).addTo(map);
 
 		// Add coordinates display
-		L.control.coordinates({
-			position:"bottomleft",
-			labelFormatterLng : function(e){
-				if (e < 0) {
-					e = ((180 + e) + 180);
+		if (typeof L.control.coordinates === 'function') {
+			L.control.coordinates({
+				position:"bottomleft",
+				labelFormatterLng : function(e){
+					if (e < 0) {
+						e = ((180 + e) + 180);
+					}
+					return Math.floor(e * config.xyMulitiplier) + ' x,';
+				},
+				labelFormatterLat : function(e){
+					return Math.floor((-e) * config.xyMulitiplier) + ' y';
 				}
-				return Math.floor(e * config.xyMulitiplier) + ' x,';
-			},
-			labelFormatterLat : function(e){
-				return Math.floor((-e) * config.xyMulitiplier) + ' y';
-			}
-		}).addTo(map);
+			}).addTo(map);
+		}
 
 		// Create layer groups
 		var villageBorders = WurmMapGen.map.layers.villageBorders = L.layerGroup();
@@ -71,110 +73,121 @@ WurmMapGen.map = {
 		var playerMarkers = WurmMapGen.map.layers.playerMarkers = L.layerGroup();
 
 		// Add villages
-		for (var i = 0; i < WurmMapGen.villages.length; i++) {
-			var village = WurmMapGen.villages[i];
+		if (WurmMapGen.villages) {
+			for (var i = 0; i < WurmMapGen.villages.length; i++) {
+				var village = WurmMapGen.villages[i];
 
-			var border = L.polygon([
-				xy(village.borders[0], village.borders[1]),
-				xy(village.borders[2], village.borders[1]),
-				xy(village.borders[2], village.borders[3]),
-				xy(village.borders[0], village.borders[3])
-			], {
-				color: (village.permanent ? 'orange' : 'white'),
-				fillOpacity: 0,
-				weight: 1
-			});
+				// REPARATION : Indexation exacte des quatre coins géographiques, [1], [2], [3]
+				var border = L.polygon([
+					xy(village.borders[0], village.borders[1]),
+					xy(village.borders[2], village.borders[1]),
+					xy(village.borders[2], village.borders[3]),
+					xy(village.borders[0], village.borders[3])
+				], {
+					color: (village.permanent ? 'orange' : 'white'),
+					fillOpacity: 0,
+					weight: 1
+				});
 
-			var marker = L.marker(xy(village.x, village.y),
-				{icon: WurmMapGen.markers.getMarker('village', village)}
-			);
+				var marker = L.marker(xy(village.x, village.y),
+					{icon: WurmMapGen.markers.getMarker('village', village)}
+				);
 
-			marker.bindPopup([
-				'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
-				'<i>' + escapeHtml(village.motto) + '</i></div>',
-				'<b>Mayor:</b> ' + escapeHtml(village.mayor),
-				'<b>Citizens:</b> ' + escapeHtml(village.citizens)
-				].join('<br>'));
+				marker.bindPopup([
+					'<div align="center"><b>' + escapeHtml(village.name) + '</b>',
+					'<i>' + escapeHtml(village.motto) + '</i></div>',
+					'<b>Mayor:</b> ' + escapeHtml(village.mayor),
+					'<b>Citizens:</b> ' + escapeHtml(village.citizens)
+					].join('<br>'));
 
-			if (WurmMapGen.config.markerType === 3) {
-				marker.setZIndexOffset(1000);
+				if (WurmMapGen.config.markerType === 3) {
+					marker.setZIndexOffset(1000);
+				}
+
+				border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
+
+				villageBorders.addLayer(border);
+				villageMarkers.addLayer(marker);
 			}
-
-			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
-
-			villageBorders.addLayer(border);
-			villageMarkers.addLayer(marker);
 		}
 
 		// Add guard towers
-		for (var i = 0; i < WurmMapGen.guardtowers.length; i++) {
-			var tower = WurmMapGen.guardtowers[i];
+		if (WurmMapGen.guardtowers) {
+			for (var i = 0; i < WurmMapGen.guardtowers.length; i++) {
+				var tower = WurmMapGen.guardtowers[i];
 
-			var border = L.polygon([
-				xy(tower.borders[0], tower.borders[1]),
-				xy(tower.borders[2], tower.borders[1]),
-				xy(tower.borders[2], tower.borders[3]),
-				xy(tower.borders[0], tower.borders[3])
-			], {
-				color: 'red',
-				fillOpacity: 0.1,
-				weight: 1
-			});
+				// REPARATION : Indexation exacte des quatre coins géographiques
+				var border = L.polygon([
+					xy(tower.borders[0], tower.borders[1]),
+					xy(tower.borders[2], tower.borders[1]),
+					xy(tower.borders[2], tower.borders[3]),
+					xy(tower.borders[0], tower.borders[3])
+				], {
+					color: 'red',
+					fillOpacity: 0.1,
+					weight: 1
+				});
 
-			var marker = L.marker(xy(tower.x, tower.y),
-				{icon: WurmMapGen.markers.getMarker('guardtower')}
-			);
+				var marker = L.marker(xy(tower.x, tower.y),
+					{icon: WurmMapGen.markers.getMarker('guardtower')}
+				);
 
-			marker.bindPopup([
-				'<div align="center"><b>Guard Tower</b>',
-				'<i>Created by ' + escapeHtml(tower.creator) + '</i></div>',
-				'<b>QL:</b> ' + escapeHtml(tower.ql),
-				'<b>DMG:</b> ' + escapeHtml(tower.dmg)
-				].join('<br>'));
+				marker.bindPopup([
+					'<div align="center"><b>Guard Tower</b>',
+					'<i>Created by ' + escapeHtml(tower.creator) + '</i></div>',
+					'<b>QL:</b> ' + escapeHtml(tower.ql),
+					'<b>DMG:</b> ' + escapeHtml(tower.dmg)
+					].join('<br>'));
 
-			border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
+				border.on('click', WurmMapGen.map.openMarker.bind(null, marker));
 
-			guardtowerBorders.addLayer(border);
-			guardtowerMarkers.addLayer(marker);
+				guardtowerBorders.addLayer(border);
+				guardtowerMarkers.addLayer(marker);
+			}
 		}
 
 		// Add structures
-		for (var i = 0; i < WurmMapGen.structures.length; i++) {
-			var structure = WurmMapGen.structures[i];
+		if (WurmMapGen.structures) {
+			for (var i = 0; i < WurmMapGen.structures.length; i++) {
+				var structure = WurmMapGen.structures[i];
 
-			var border = L.polygon([
-				xy(structure.borders[0], structure.borders[1]),
-				xy(structure.borders[2], structure.borders[1]),
-				xy(structure.borders[2], structure.borders[3]),
-				xy(structure.borders[0], structure.borders[3])
-			], {
-				color: 'blue',
-				fillOpacity: 0.1,
-				weight: 1
-			});
+				// REPARATION : Indexation exacte des quatre coins géographiques
+				var border = L.polygon([
+					xy(structure.borders[0], structure.borders[1]),
+					xy(structure.borders[2], structure.borders[1]),
+					xy(structure.borders[2], structure.borders[3]),
+					xy(structure.borders[0], structure.borders[3])
+				], {
+					color: 'blue',
+					fillOpacity: 0.1,
+					weight: 1
+				});
 
-			border.bindPopup([
-				'<div align="center"><b>' + escapeHtml(structure.name) + '</b>',
-				'<i>Created by ' + escapeHtml(structure.creator) + '</i></div>'
-				].join('<br>'));
+				border.bindPopup([
+					'<div align="center"><b>' + escapeHtml(structure.name) + '</b>',
+					'<i>Created by ' + escapeHtml(structure.creator) + '</i></div>'
+					].join('<br>'));
 
-			structureBorders.addLayer(border);
+				structureBorders.addLayer(border);
+			}
 		}
 
 		// Add portals
-		for (var i = 0; i < WurmMapGen.portals.length; i++) {
-			var portal = WurmMapGen.portals[i];
+		if (WurmMapGen.portals) {
+			for (var i = 0; i < WurmMapGen.portals.length; i++) {
+				var portal = WurmMapGen.portals[i];
 
-			var marker = L.marker(xy(portal.x, portal.y),
-				{icon: WurmMapGen.markers.getMarker('portal')}
-			);
+				var marker = L.marker(xy(portal.x, portal.y),
+					{icon: WurmMapGen.markers.getMarker('portal')}
+				);
 
-			marker.bindPopup([
-				'<div align="center"><b>' + escapeHtml(portal.name) + '</b>',
-				'<i>Portal</i></div>'
-				].join('<br>'));
+				marker.bindPopup([
+					'<div align="center"><b>' + escapeHtml(portal.name) + '</b>',
+					'<i>Portal</i></div>'
+					].join('<br>'));
 
-			portalMarkers.addLayer(marker);
+				portalMarkers.addLayer(marker);
+			}
 		}
 
 		// Encadré de la dernière mise à jour basé sur timestamp.json
@@ -214,7 +227,7 @@ WurmMapGen.map = {
 	 * Updates the player markers on the map with newly loaded data.
 	 */
 	updatePlayerMarkers: function() {
-		if (!WurmMapGen.players) { return; }
+		if (!WurmMapGen.players || !WurmMapGen.map.layers.playerMarkers) { return; }
 
 		var timestamp = Date.now();
 
@@ -242,7 +255,7 @@ WurmMapGen.map = {
 			var playerId = WurmMapGen.map.playerMarkerIds[i];
 			var marker = WurmMapGen.map.playerMarkers[playerId];
 
-			if (marker.updated !== timestamp) {
+			if (marker && marker.updated !== timestamp) {
 				WurmMapGen.map.layers.playerMarkers.removeLayer(marker.marker);
 				idsToRemove.push(playerId);
 			}
@@ -250,7 +263,6 @@ WurmMapGen.map = {
 
 		for (var i = 0; i < idsToRemove.length; i++) {
 			var playerId = idsToRemove[i];
-
 			delete WurmMapGen.map.playerMarkers[playerId];
 			WurmMapGen.map.playerMarkerIds.splice(WurmMapGen.map.playerMarkerIds.indexOf(playerId), 1);
 		}
