@@ -62,20 +62,24 @@ jobs:
           # Conversion des .php en .json
           for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done || true
 
-      - name: 4c. Copie vers template
+      - name: 4c. Synchronisation Totale
         run: |
+          # On s'assure que tout est identique partout
           mkdir -p template/data
+          mkdir -p template/app
           cp data/*.json template/data/ || true
+          # On force la copie du main.js pour qu'il soit identique à la racine et dans le template
+          [ -f app/main.js ] && cp app/main.js template/app/main.js || true
 
       - name: 5. Synchronisation Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add data/
-          git add template/data/
+          # On ajoute tout pour être sûr que le commit contient les dernières modifs
+          git add -A
           
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ auto : donnees et synchronisation template"
+            git commit -m "MAJ synchro totale : main.js et data"
             git push origin main
           fi
