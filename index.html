@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QBC LiveMap - Doriath</title>
+    <!-- Chargement indispensable des styles et scripts Leaflet et Vue.js -->
     <link rel="stylesheet" href="https://unpkg.com" />
+    <script src="https://unpkg.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
+    <link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css" />
+    <script src="dist/Leaflet.Coordinates-0.1.5.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
     <style>
         body { margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
         #map { flex-grow: 1; width: 100%; height: 100%; }
@@ -12,13 +19,42 @@
 </head>
 <body data-realtime="false">
 
+    <!-- Structure HTML requise par le script gui.js -->
+    <div id="gui" :class="{ sidebar: sidebarVisible }" v-cloak>
+        <div id="sidebar" :class="{ loaded: loaded }">
+            <div class="block padding">
+                <h1>{{ WurmMapGen.config ? WurmMapGen.config.serverName : 'Serveur' }}</h1>
+                <p id="playercount">{{ playerCountLabel }}</p>
+            </div>
+            <div class="block">
+                <label><input type="checkbox" v-model="showVillages"> Villages</label>
+                <label class="indent" :class="{ inactive: !showVillages }"><input type="checkbox" v-model="showVillageBorders" :disabled="!showVillages"> Bordures</label>
+                <label><input type="checkbox" v-model="showTowers"> Tours de garde</label>
+                <label class="indent" :class="{ inactive: !showTowers }"><input type="checkbox" v-model="showTowerBorders" :disabled="!showTowers"> Zone d'influence</label>
+                <label><input type="checkbox" v-model="showStructures"> Structures</label>
+                <label><input type="checkbox" v-model="showPortals"> Portails</label>
+                <label><input type="checkbox" v-model="showPlayers"> Joueurs</label>
+            </div>
+        </div>
+        <div id="sidebar-toggle" class="absolute transition" @click="sidebarVisible = !sidebarVisible">
+            <span v-if="sidebarVisible">&#x276e;</span>
+            <span v-else>&#x276f;</span>
+        </div>
+        <div id="search" class="absolute transition" :class="{ open: searchResultsOpen }">
+            <input type="text" v-model="searchQuery" placeholder="Rechercher un village, joueur...">
+            <div id="search-results">
+                <div v-for="res in searchResults" :class="res.type" @click="focusMap(res.x, res.y)" v-html="res.label"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="map"></div>
 
     <script>
-        // Déclaration immédiate de l'objet global pour éviter l'erreur "not defined"
+        // Déclaration immédiate de l'objet global
         window.WurmMapGen = window.WurmMapGen || {};
         
-        // Chargement ordonné et séquentiel des dépendances de la carte
+        // Chargement ordonné des contrôles applicatifs de la carte
         ['util.js', 'markers.js', 'map.js', 'gui.js', 'main.js'].forEach(function(src) { 
             var s = document.createElement('script'); 
             s.src = src; 
@@ -28,4 +64,5 @@
     </script>
 </body>
 </html>
+
 
