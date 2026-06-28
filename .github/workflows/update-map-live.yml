@@ -24,7 +24,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 2. Installation des paquets requis
-        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lftp openjdk-17-jre
 
       - name: 3. Telechargement des donnees serveurs (.db et .map)
         run: |
@@ -43,14 +47,24 @@ jobs:
 
       - name: 4. Execution du Generateur WurmMapGen 2.33
         run: |
+          # 1. Création de la structure de template exigée
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+          
+          # 2. Copie de votre index.html pour satisfaire le TemplateHandler du générateur
+          if [ -f "index.html" ]; then
+            cp index.html template/index.html
+          fi
+          
+          # 3. Exécution du binaire Java
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
+          # 4. Nettoyage strict des scripts serveurs dans le dossier data
           if [ -d "data" ]; then
             find data/ -type f ! -name "*.json" -delete
             rm -f data/*.php
           fi
           
+          # 5. Nettoyage des gros fichiers temporaires
           rm -rf sqlite/
           rm -f top_layer.map
           rm -rf template/
@@ -70,7 +84,6 @@ jobs:
       - name: 6. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
 
 
 
