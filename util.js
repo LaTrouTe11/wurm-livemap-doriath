@@ -38,3 +38,4 @@ WurmMapGen.util = {
 		Cookies.set('wmg_setting_' + key, value, {expires: Infinity});
 	}
 };
+
