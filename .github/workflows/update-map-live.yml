@@ -1,71 +1,75 @@
-Voici le code d'automatisation nettoyé à 100 % de tous les caractères parasites introduits par les outils du chat.
-Vous pouvez copier tout le texte ci-dessous et le coller directement dans votre Bloc-notes :
 name: Synchro Carte Wurm Legion Hosting
-on:
-push:
-branches: [ main ]
-schedule:
-- cron: '0 */6 * * *'
-workflow_dispatch:
-permissions:
-contents: read
-pages: write
-id-token: write
-concurrency:
-group: "pages"
-cancel-in-progress: true
-jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- name: 1. Checkout du code source
-uses: actions/checkout@v4
-- name: 2. Installation des paquets requis
-run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
-- name: 3. Telechargement des donnees serveurs (.db et .map)
-run: |
-mkdir -p ./sqlite
-lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
-set sftp:auto-confirm yes
-set ssl:verify-certificate no
-set xfer:clobber on
-set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-cd /dist/Doriath-4k-20/sqlite/
-mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
-cd ../
-get -O . top_layer.map
-bye
-EOF
-- name: 4. Execution du Generateur WurmMapGen 2.33
-run: |
-mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
-java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
-if [ -d "data" ]; then
-find data/ -type f ! -name ".json" -delete
-rm -f data/.php
-fi
-rm -rf sqlite/
-rm -f top_layer.map
-rm -rf template/
-- name: 5. Creation et televersement de l'artefact Web
-uses: actions/upload-pages-artifact@v3
-with:
-path: '.'
-deploy:
-needs: build
-runs-on: ubuntu-latest
-environment:
-name: github-pages
-url: ${{ steps.deployment.outputs.page_url }}
-steps:
-- name: 6. Deploiement en ligne sur GitHub Pages
-id: deployment
-uses: actions/deploy-pages@v4
-Pour finaliser la remise en route de votre système :
 
-* L'onglet Actions a-t-il bien réapparu sur votre interface GitHub après l'enregistrement ?
-* Est-ce que le fichier s'est enregistré sans aucune erreur de syntaxe ou de format de votre côté ?
-* La progression du générateur se lance-t-elle correctement lors du démarrage manuel de l'Action ?
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout du code source
+        uses: actions/checkout@v4
+
+      - name: 2. Installation des paquets requis
+        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
+
+      - name: 3. Telechargement des donnees serveurs (.db et .map)
+        run: |
+          mkdir -p ./sqlite
+          lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
+          set sftp:auto-confirm yes
+          set ssl:verify-certificate no
+          set xfer:clobber on
+          set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          cd /dist/Doriath-4k-20/sqlite/
+          mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
+          cd ../
+          get -O . top_layer.map
+          bye
+          EOF
+
+      - name: 4. Execution du Generateur WurmMapGen 2.33
+        run: |
+          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+          java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
+          
+          if [ -d "data" ]; then
+            find data/ -type f ! -name "*.json" -delete
+            rm -f data/*.php
+          fi
+          
+          rm -rf sqlite/
+          rm -f top_layer.map
+          rm -rf template/
+
+      - name: 5. Creation et televersement de l'artefact Web
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 6. Deploiement en ligne sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
 
 
