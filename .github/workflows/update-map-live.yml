@@ -32,17 +32,19 @@ jobs:
 
       - name: 4. Execution et Synchronisation Racine
         run: |
-          # Création de TOUS les dossiers requis par WurmMapGen pour éviter le plantage
+          # 1. Création de tous les dossiers requis par WurmMapGen pour éviter le plantage
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
           
-          # Exécution du générateur
+          # 2. Copie du fichier index.html racine vers template (requis pour le générateur)
+          cp index.html template/index.html
+          
+          # 3. Exécution du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
-          # Copie des fichiers générés vers la racine (pour GitHub Pages)
-          # Le '-rf' copie récursivement et écrase les anciens fichiers
+          # 4. Copie des fichiers générés vers la racine (pour GitHub Pages)
           cp -rf template/* . 
           
-          # Nettoyage : suppression du dossier temporaire et des fichiers PHP inutiles
+          # 5. Nettoyage : suppression du dossier temporaire et des fichiers PHP inutiles
           rm -rf template/
           rm -f data/*.php
 
@@ -51,7 +53,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Ajout de TOUT le contenu racine (y compris les nouveaux fichiers générés)
+          # Ajout de TOUT le contenu racine
           git add -A
           
           if ! git diff --cached --quiet; then
