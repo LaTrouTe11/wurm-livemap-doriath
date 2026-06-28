@@ -3,7 +3,19 @@ name: Synchro Carte Wurm Legion Hosting
 on:
   push:
     branches: [ main ]
+  schedule:
+    - cron: '0 */6 * * *' # S'exécute automatiquement toutes les 6 heures
   workflow_dispatch:
+
+# Autorise le workflow à modifier le site GitHub Pages lié
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -30,36 +42,35 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution et Synchronisation Racine
+      - name: 4. Execution du Generateur Wurm
         run: |
-          # 1. Création de tous les dossiers requis par le générateur
-          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+          # Exécution de WurmMapGen avec une allocation de mémoire adaptée aux limites de GitHub
+          java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 2. Copie du index.html racine vers template (nécessaire pour WurmMapGen)
-          cp index.html template/index.html
-          
-          # 3. Exécution du générateur
-          java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
-          
-          # 4. Nettoyage : On supprime tout ce qui n'est pas .json dans data/
-          find data/ -type f ! -name "*.json" -delete
-          
-          # 5. Copie vers la racine
-          cp -rf template/* . 
-          
-          # 6. Nettoyage final
-          rm -rf template/
-          rm -f data/*.php
-
-      - name: 5. Synchronisation Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Ajout de TOUT le contenu racine
-          git add -A
-          
-          if ! git diff --cached --quiet; then
-            git commit -m "MAJ AUTO : Synchronisation racine terminée"
-            git push origin main
+          # Nettoyage strict des scripts serveurs dans le dossier data
+          if [ -d "data" ]; then
+            find data/ -type f ! -name "*.json" -delete
+            rm -f data/*.php
           fi
+          
+          # Suppression immédiate des fichiers sources lourds pour libérer l'espace disque de la VM
+          rm -rf sqlite/
+          rm -f top_layer.map
+
+      - name: 5. Televersement de l'artéfact Web
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Téléverse directement tout le répertoire racine vers l'hébergement web sans polluer l'historique Git
+          path: '.'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps:deployment.outputs.page_url }}
+    steps:
+      - name: 6. Déploiement vers GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
