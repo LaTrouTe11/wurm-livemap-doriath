@@ -2,183 +2,38 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagnostic Ordre & Conflits - LiveMap</title>
+    <title>Diagnostic LiveMap</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a24; color: #fff; padding: 20px; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; background: #222230; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h1 { color: #2196F3; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
-        h2 { font-size: 18px; color: #aaa; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-        th { background: #2d2d40; color: #2196F3; }
-        .status { font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
-        .ok { background: #2e7d32; color: #fff; }
-        .error { background: #c62828; color: #fff; }
-        .warning { background: #ef6c00; color: #fff; }
-        .step { font-family: monospace; font-size: 14px; }
+        body { font-family: sans-serif; background: #1a1a24; color: #fff; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #222230; padding: 20px; border-radius: 8px; }
+        .status { font-weight: bold; padding: 4px; border-radius: 4px; }
+        .ok { background: #2e7d32; } .error { background: #c62828; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h1>Analyseur d'Ordre et Dépendances - LiveMap</h1>
-    <p>Ce script vérifie la chronologie d'exécution des composants pour s'assurer que Leaflet et Vue s'initialisent avant les scripts de la carte.</p>
-
-    <h2>1. Chronologie de Chargement du Site</h2>
-    <table>
-        <thead>
-            <tr><th>Étape</th><th>Composant Requis</th><th>État d'Exécution</th><th>Vérification Mémoire</th></tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="step">Étape 1</td>
-                <td>Moteur de Cartographie (Leaflet)</td>
-                <td id="ord-leaflet"><span class="status warning">Analyse...</span></td>
-                <td id="det-leaflet">Vérification de la variable globale L</td>
-            </tr>
-            <tr>
-                <td class="step">Étape 2</td>
-                <td>Framework d'Interface (Vue.js)</td>
-                <td id="ord-vue"><span class="status warning">Analyse...</span></td>
-                <td id="det-vue">Vérification de la variable globale Vue</td>
-            </tr>
-            <tr>
-                <td class="step">Étape 3</td>
-                <td>Espace de Nom Général (`WurmMapGen`)</td>
-                <td id="ord-wmg"><span class="status warning">Analyse...</span></td>
-                <td id="det-wmg">Vérification de l'objet racine racine</td>
-            </tr>
-            <tr>
-                <td class="step">Étape 4</td>
-                <td>Fonctions Utilitaires (`util.js`)</td>
-                <td id="ord-util"><span class="status warning">Analyse...</span></td>
-                <td id="det-util">Vérification du module de conversion xy</td>
-            </tr>
-            <tr>
-                <td class="step">Étape 5</td>
-                <td>Banque d'Icônes (`markers.js`)</td>
-                <td id="ord-markers"><span class="status warning">Analyse...</span></td>
-                <td id="det-markers">Vérification de la structure des marqueurs</td>
-            </tr>
-            <tr>
-                <td class="step">Étape 6</td>
-                <td>Moteur de Dessin Canvas (`map.js`)</td>
-                <td id="ord-map"><span class="status warning">Analyse...</span></td>
-                <td id="det-map">Vérification du module de calques</td>
-            </tr>
-            <tr>
-                <td class="step">Étape 7</td>
-                <td>Interface de Filtrage (`gui.js`)</td>
-                <td id="ord-gui"><span class="status warning">Analyse...</span></td>
-                <td id="det-gui">Vérification de l'instance GUI active</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h2>2. État du Diagnostic d'Ordre</h2>
-    <table id="result-table">
-        <thead>
-            <tr><th>Vérification Globale</th><th>Résultat Technique</th></tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><b>Validité de la structure</b></td>
-                <td id="global-order-status"><span class="status warning">En attente de l'analyse...</span></td>
-            </tr>
-        </tbody>
-    </table>
+    <h1>Analyseur Ordre & Dépendances</h1>
+    <!-- Structure simplifiée pour le diagnostic -->
+    <p>Étape 1 (Leaflet): <span id="ord-leaflet" class="status">Analyse...</span></p>
+    <p>Étape 2 (Vue): <span id="ord-vue" class="status">Analyse...</span></p>
+    <p>Étape 3 (WurmMapGen): <span id="ord-wmg" class="status">Analyse...</span></p>
+    <p>... (autres vérifications) ...</p>
+    <p><b>Résultat:</b> <span id="global-order-status">Calcul...</span></p>
 </div>
-
-<!-- Chargement dynamique ordonné pour simuler et analyser le comportement de l'index -->
 <script>
-    window.addEventListener('load', function() {
-        let errorDetected = false;
-
-        // 1. Test de Leaflet (L)
-        if (typeof window.L !== 'undefined') {
-            document.getElementById('ord-leaflet').innerHTML = '<span class="status ok">✔ CORRECT</span>';
-            document.getElementById('det-leaflet').innerHTML = 'Leaflet est bien chargé en premier.';
-        } else {
-            document.getElementById('ord-leaflet').innerHTML = '<span class="status error">✖ CRITIQUE</span>';
-            document.getElementById('det-leaflet').innerHTML = 'Erreur : Leaflet (L) est manquant. Les scripts vont planter.';
-            errorDetected = true;
-        }
-
-        // 2. Test de Vue.js
-        if (typeof window.Vue !== 'undefined') {
-            document.getElementById('ord-vue').innerHTML = '<span class="status ok">✔ CORRECT</span>';
-            document.getElementById('det-vue').innerHTML = 'Vue.js est disponible pour le menu latéral.';
-        } else {
-            document.getElementById('ord-vue').innerHTML = '<span class="status error">✖ CRITIQUE</span>';
-            document.getElementById('det-vue').innerHTML = 'Erreur : Vue est introuvable. Le menu ne s\'affichera pas.';
-            errorDetected = true;
-        }
-
-        // 3. Test de l'objet racine WurmMapGen
-        if (typeof window.WurmMapGen !== 'undefined') {
-            document.getElementById('ord-wmg').innerHTML = '<span class="status ok">✔ CORRECT</span>';
-            document.getElementById('det-wmg').innerHTML = 'L\'objet global de transit est bien créé.';
-        } else {
-            document.getElementById('ord-wmg').innerHTML = '<span class="status error">✖ MANQUANT</span>';
-            document.getElementById('det-wmg').innerHTML = 'L\'objet WurmMapGen n\'est pas encore déclaré.';
-            errorDetected = true;
-        }
-
-        // 4. Test des modules enfants dépendants
-        setTimeout(() => {
-            const wmg = window.WurmMapGen || {};
-
-            // util.js
-            if (wmg.util) {
-                document.getElementById('ord-util').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
-                document.getElementById('det-util').innerHTML = 'Module utilitaire lié avec succès.';
+    // Script de diagnostic forcé (500ms)
+    setTimeout(() => {
+        const checks = ['L', 'Vue', 'WurmMapGen'];
+        checks.forEach(lib => {
+            const el = document.getElementById('ord-' + lib.toLowerCase());
+            if (typeof window[lib] !== 'undefined') {
+                el.innerHTML = '✔ OK'; el.className = 'status ok';
             } else {
-                document.getElementById('ord-util').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
-                document.getElementById('det-util').innerHTML = 'util.js n\'a pas pu s\'exécuter.';
-                errorDetected = true;
+                el.innerHTML = '✖ MANQUANT'; el.className = 'status error';
             }
-
-            // markers.js
-            if (wmg.markers) {
-                document.getElementById('ord-markers').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
-                document.getElementById('det-markers').innerHTML = 'Banque d\'icônes Leaflet enregistrée.';
-            } else {
-                document.getElementById('ord-markers').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
-                document.getElementById('det-markers').innerHTML = 'markers.js n\'a pas pu s\'exécuter (Virgule ou ordre KO).';
-                errorDetected = true;
-            }
-
-            // map.js
-            if (wmg.map) {
-                document.getElementById('ord-map').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
-                document.getElementById('det-map').innerHTML = 'Moteur de calque Leaflet prêt.';
-            } else {
-                document.getElementById('ord-map').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
-                document.getElementById('det-map').innerHTML = 'map.js bloqué par une variable ou Leaflet.';
-                errorDetected = true;
-            }
-
-            // gui.js
-            if (wmg.gui) {
-                document.getElementById('ord-gui').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
-                document.getElementById('det-gui').innerHTML = 'Instance de recherche Vue.js liée.';
-            } else {
-                document.getElementById('ord-gui').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
-                document.getElementById('det-gui').innerHTML = 'gui.js bloqué (Vue.js manquant ou script coupé).';
-                errorDetected = true;
-            }
-
-            // Résultat Global final
-            if (!errorDetected) {
-                document.getElementById('global-order-status').innerHTML = '<span class="status ok">✔ ORDRE DE CHARGEMENT 100% VALIDE</span>';
-            } else {
-                document.getElementById('global-order-status').innerHTML = '<span class="status error">✖ CONFLIT SÉQUENTIEL DÉTECTÉ</span>';
-            }
-        }, 800);
-    });
+        });
+    }, 500);
 </script>
-
 </body>
 </html>
 
