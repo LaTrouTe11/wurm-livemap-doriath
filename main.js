@@ -1,3 +1,4 @@
+
 'use strict';
 
 (function() {
@@ -14,8 +15,22 @@
             })
             .catch(function(err) {
                 console.warn('Chargement sauté ou fichier vide : ' + path);
-                // Sécurité totale : initialise des données vides par défaut pour éviter l'écran blanc
-                WurmMapGen[key] = (key === 'config' || key === 'timestamp') ? {} : [];
+                // Sécurité totale : initialise des structures vides pour éviter le blocage de l'affichage
+                if (key === 'config') {
+                    WurmMapGen[key] = {
+                        serverName: "[QC/FR/CAN] QBC Doriath",
+                        actualMapSize: 4096,
+                        mapTileSize: 256,
+                        mapMaxZoom: 5,
+                        mapMinZoom: 0,
+                        nativeZoom: 5,
+                        markerType: 2
+                    };
+                } else if (key === 'timestamp') {
+                    WurmMapGen[key] = { timestamp: Math.floor(Date.now() / 1000) };
+                } else {
+                    WurmMapGen[key] = [];
+                }
             });
     }
 
@@ -31,7 +46,7 @@
 
     Promise.all(filesToLoad.map(function(item) { return fetchData(item.key, item.path); }))
     .then(function() {
-        // Si le fichier config n'a pas pu être chargé du tout, on applique des valeurs de secours
+        // Double sécurité sur la configuration
         if (!WurmMapGen.config || !WurmMapGen.config.actualMapSize) {
             WurmMapGen.config = {
                 serverName: "[QC/FR/CAN] QBC Doriath",
@@ -46,13 +61,25 @@
         
         WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
         
-        // Initialisation sécurisée des composants de la carte
+        // Initialisation forcée et sécurisée des modules de la carte
         if (WurmMapGen.map && typeof WurmMapGen.map.create === 'function') {
-            WurmMapGen.map.create();
+            try {
+                WurmMapGen.map.create();
+            } catch(mapError) {
+                console.error("Erreur durant la création de la carte Leaflet:", mapError);
+            }
+        } else {
+            console.error("Le module map.js est introuvable ou mal chargé.");
         }
         
         if (WurmMapGen.gui && typeof WurmMapGen.gui.init === 'function') {
-            WurmMapGen.gui.init();
+            try {
+                WurmMapGen.gui.init();
+            } catch(guiError) {
+                console.error("Erreur durant l'initialisation du menu Vue.js:", guiError);
+            }
+        } else {
+            console.error("Le module gui.js est introuvable ou mal chargé.");
         }
     });
 })();
