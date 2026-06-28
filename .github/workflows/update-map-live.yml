@@ -32,11 +32,11 @@ jobs:
 
       - name: 4. Execution et Conversion
         run: |
-          # Création forcée du config.json indispensable au main.js
+          # Création forcée du config.json
           mkdir -p data
           echo '{"actualMapSize":4096,"mapTileSize":256,"mapMaxZoom":5,"mapMinZoom":0,"nativeZoom":5,"markerType":2}' > data/config.json
           
-          # Configuration du générateur
+          # Configuration complète du générateur
           cat <<EOF > WurmMapGen.properties
           serverName=[QC/FR/CAN] QBC Doriath
           wurmMapLocation=.
@@ -52,6 +52,8 @@ jobs:
           nativeZoom=5
           markerType=2
           enableRealtimeMarkers=false
+          rmiHost=localhost
+          rmiPort=7220
           EOF
 
           # Lancement du générateur
