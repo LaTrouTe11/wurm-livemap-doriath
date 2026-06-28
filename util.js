@@ -13,7 +13,7 @@ WurmMapGen.util = {
 	 */
 	escapeHtml: function(unescaped) {
 		if (typeof unescaped !== 'string') { return unescaped; }
-		return unescaped.replace(/(<)/g, '&lt;').replace(/(>)/g, '&gt');
+		return unescaped.replace(/(<)/g, '&lt;').replace(/(>)/g, '&gt;');
 	},
 
 	/**
