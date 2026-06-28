@@ -14,6 +14,8 @@
             })
             .catch(function(err) {
                 console.warn('Chargement sauté pour: ' + path);
+                // Sécurité : évite le crash si players.json ou un autre fichier facultatif est absent
+                if (key === 'players') { WurmMapGen[key] = []; }
             });
     }
 
@@ -34,8 +36,18 @@
             return;
         }
         WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
-        WurmMapGen.map.create();
-        WurmMapGen.gui.init();
+        
+        // Sécurité : s'assurer que WurmMapGen.map existe avant d'appeler create()
+        if (WurmMapGen.map && typeof WurmMapGen.map.create === 'function') {
+            WurmMapGen.map.create();
+        } else {
+            console.error("Erreur : Le script map.js n'a pas pu être initialisé correctement.");
+        }
+        
+        if (WurmMapGen.gui && typeof WurmMapGen.gui.init === 'function') {
+            WurmMapGen.gui.init();
+        }
     });
 })();
+
 
