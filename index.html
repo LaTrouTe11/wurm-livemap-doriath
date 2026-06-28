@@ -2,19 +2,17 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QBC LiveMap - Doriath</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com" />
     <style>
         body { margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
-        #map { flex-grow: 1; }
+        #map { flex-grow: 1; width: 100%; height: 100%; }
     </style>
 </head>
-<body data-realtime="true">
-
-    <div id="map"></div>
+<body data-realtime="false">
 
     <script>
-        // Scripts corrigés : suppression du préfixe 'app/' pour pointer vers la racine
         ['util.js', 'markers.js', 'map.js', 'gui.js', 'main.js'].forEach(function(src) { 
             var s = document.createElement('script'); 
             s.src = src; 
