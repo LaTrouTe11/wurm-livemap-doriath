@@ -13,9 +13,9 @@
                 WurmMapGen[key] = data;
             })
             .catch(function(err) {
-                console.warn('Chargement sauté pour: ' + path);
-                // Sécurité : évite le crash si players.json ou un autre fichier facultatif est absent
-                if (key === 'players') { WurmMapGen[key] = []; }
+                console.warn('Chargement sauté ou fichier vide : ' + path);
+                // Sécurité totale : initialise des données vides par défaut pour éviter l'écran blanc
+                WurmMapGen[key] = (key === 'config' || key === 'timestamp') ? {} : [];
             });
     }
 
@@ -31,17 +31,24 @@
 
     Promise.all(filesToLoad.map(function(item) { return fetchData(item.key, item.path); }))
     .then(function() {
-        if (!WurmMapGen.config) {
-            document.body.innerHTML = '<h2 style="color:red;">Erreur: config.json manquant.</h2>';
-            return;
+        // Si le fichier config n'a pas pu être chargé du tout, on applique des valeurs de secours
+        if (!WurmMapGen.config || !WurmMapGen.config.actualMapSize) {
+            WurmMapGen.config = {
+                serverName: "[QC/FR/CAN] QBC Doriath",
+                actualMapSize: 4096,
+                mapTileSize: 256,
+                mapMaxZoom: 5,
+                mapMinZoom: 0,
+                nativeZoom: 5,
+                markerType: 2
+            };
         }
+        
         WurmMapGen.config.xyMulitiplier = (WurmMapGen.config.actualMapSize / WurmMapGen.config.mapTileSize);
         
-        // Sécurité : s'assurer que WurmMapGen.map existe avant d'appeler create()
+        // Initialisation sécurisée des composants de la carte
         if (WurmMapGen.map && typeof WurmMapGen.map.create === 'function') {
             WurmMapGen.map.create();
-        } else {
-            console.error("Erreur : Le script map.js n'a pas pu être initialisé correctement.");
         }
         
         if (WurmMapGen.gui && typeof WurmMapGen.gui.init === 'function') {
