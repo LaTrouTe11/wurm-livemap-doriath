@@ -2,46 +2,100 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnostic Technique - LiveMap</title>
-    <!-- Chargement de Leaflet indispensable pour que util.js et map.js ne plantent pas au démarrage -->
-    <script src="https://unpkg.com"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a24; color: #fff; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: #222230; padding: 25px; border-radius: 8px; }
-        h1 { color: #2196F3; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a24; color: #fff; padding: 20px; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: #222230; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h1 { color: #2196F3; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
+        h2 { font-size: 18px; color: #aaa; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-        .status { font-weight: bold; padding: 4px 8px; border-radius: 4px; }
-        .ok { background: #2e7d32; }
-        .error { background: #c62828; }
-        .warning { background: #ef6c00; }
-        .console-box { background: #000; color: #0f0; padding: 15px; border-radius: 4px; max-height: 200px; overflow-y: auto; }
+        th { background: #2d2d40; color: #2196F3; }
+        .status { font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .ok { background: #2e7d32; color: #fff; }
+        .error { background: #c62828; color: #fff; }
+        .warning { background: #ef6c00; color: #fff; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h1>Analyseur de Problèmes - QBC LiveMap</h1>
-    <h2>1. Vérification des Fichiers Scripts (.js)</h2>
+    <h1>Analyseur de Conflits - QBC LiveMap</h1>
+    <p>Ce script vérifie la présence réelle de vos fichiers sur les serveurs de GitHub Pages.</p>
+
+    <h2>1. État des Scripts Applicatifs (.js)</h2>
     <table>
-        <thead><tr><th>Nom du Fichier</th><th>État</th><th>Détails</th></tr></thead>
-        <tbody id="scripts-table">
-            <tr><td>util.js</td><td id="s-util"><span class="status warning">Vérification...</span></td><td id="d-util">-</td></tr>
-            <tr><td>map.js</td><td id="s-map"><span class="status warning">Vérification...</span></td><td id="d-map">-</td></tr>
-        </tbody>
+        <thead>
+            <tr><th>Nom du Fichier</th><th>État GitHub Pages</th><th>Action requise</th></tr>
+        </thead>
+        <tbody id="scripts-table"></tbody>
     </table>
-    <h2>2. Vérification des Fichiers de Données (.json)</h2>
-    <table id="json-table"><thead><tr><th>Fichier</th><th>État</th><th>Infos</th></tr></thead><tbody></tbody></table>
-    <h2>3. Journal des Erreurs</h2>
-    <div class="console-box" id="console-log">Aucune erreur...</div>
+
+    <h2>2. État des Fichiers de Données (.json)</h2>
+    <table>
+        <thead>
+            <tr><th>Fichier de données</th><th>État de génération</th><th>Contenu détecté</th></tr>
+        </thead>
+        <tbody id="json-table"></tbody>
+    </table>
 </div>
+
 <script>
-    // ... [Le script JS complet est disponible dans le document original] ...
-    // Espace de nom global requis pour les tests
-    window.WurmMapGen = window.WurmMapGen || {};
-    window.WurmMapGen.config = { xyMulitiplier: 16, actualMapSize: 4096 };
-    // ... (Logique de chargement des scripts/JSON identique à l'original) ...
+    const scripts = ['util.js', 'markers.js', 'map.js', 'gui.js', 'main.js'];
+    const jsonFiles = [
+        { key: 'config', path: 'data/config.json' },
+        { key: 'villages', path: 'data/villages.json' },
+        { key: 'guardtowers', path: 'data/guardtowers.json' },
+        { key: 'structures', path: 'data/structures.json' },
+        { key: 'portals', path: 'data/portals.json' },
+        { key: 'players', path: 'data/players.json' },
+        { key: 'timestamp', path: 'data/timestamp.json' }
+    ];
+
+    // 1. Vérification des scripts
+    const scriptsTable = document.getElementById('scripts-table');
+    scripts.forEach(src => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><b>${src}</b></td><td id="s-${src.split('.')[0]}"><span class="status warning">Analyse...</span></td><td id="d-${src.split('.')[0]}">-</td>`;
+        scriptsTable.appendChild(row);
+
+        fetch(src)
+            .then(res => {
+                if(!res.ok) throw new Error();
+                document.getElementById(`s-${src.split('.')[0]}`).innerHTML = '<span class="status ok">✔ DISPONIBLE</span>';
+                document.getElementById(`d-${src.split('.')[0]}`).innerHTML = 'Prêt pour l\'affichage.';
+            })
+            .catch(() => {
+                document.getElementById(`s-${src.split('.')[0]}`).innerHTML = '<span class="status error">✖ INTROUVABLE (404)</span>';
+                document.getElementById(`d-${src.split('.')[0]}`).innerHTML = 'Créez ce fichier à la racine de votre GitHub.';
+            });
+    });
+
+    // 2. Vérification des données JSON
+    const jsonTable = document.getElementById('json-table');
+    jsonFiles.forEach(file => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>data/${file.key}.json</td><td id="status-${file.key}"><span class="status warning">Analyse...</span></td><td id="info-${file.key}">-</td>`;
+        jsonTable.appendChild(row);
+
+        fetch(file.path)
+            .then(res => {
+                if(!res.ok) throw new Error();
+                return res.json();
+            })
+            .then(data => {
+                let detail = Array.isArray(data) ? `${data.length} éléments chargés` : 'Fichier valide';
+                document.getElementById(`status-${file.key}`).innerHTML = '<span class="status ok">✔ LIÉ</span>';
+                document.getElementById(`info-${file.key}`).innerHTML = detail;
+            })
+            .catch(() => {
+                document.getElementById(`status-${file.key}`).innerHTML = '<span class="status error">✖ MANQUANT</span>';
+                document.getElementById(`info-${file.key}`).innerHTML = 'Vérifiez l\'étape 4 de votre Action GitHub.';
+            });
+    });
 </script>
+
 </body>
 </html>
-
 
