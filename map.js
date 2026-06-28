@@ -27,13 +27,12 @@ WurmMapGen.map = {
 
 		new L.Control.Zoom({position: 'bottomright'}).addTo(map);
 
-		// Correction : Remplacement de maxMapSize par actualMapSize conforme à WurmMapGen
 		var mapBounds = new L.LatLngBounds(
 			map.unproject([0, config.actualMapSize], config.mapMaxZoom),
 			map.unproject([config.actualMapSize, 0], config.mapMaxZoom));
 
 		map.fitBounds(mapBounds);
-        map.setZoom(Math.ceil((config.mapMinZoom + config.mapMaxZoom) / 2) - 1);
+		map.setZoom(Math.ceil((config.mapMinZoom + config.mapMaxZoom) / 2) - 1);
 
 		var wurmMapLayer = L.tileLayer('images/{x}-{y}.png', {
 			tileSize: config.mapTileSize,
@@ -75,7 +74,6 @@ WurmMapGen.map = {
 		for (var i = 0; i < WurmMapGen.villages.length; i++) {
 			var village = WurmMapGen.villages[i];
 
-			// Create polygon based on village border data
 			var border = L.polygon([
 				xy(village.borders[0], village.borders[1]),
 				xy(village.borders[2], village.borders[1]),
@@ -179,6 +177,26 @@ WurmMapGen.map = {
 			portalMarkers.addLayer(marker);
 		}
 
+		// Encadré de la dernière mise à jour basé sur timestamp.json
+		if (WurmMapGen.timestamp && WurmMapGen.timestamp.timestamp) {
+			var updateControl = L.Control.extend({
+				options: { position: 'bottomleft' },
+				onAdd: function() {
+					var container = L.DomUtil.create('div', 'wurm-timestamp-control');
+					var date = new Date(WurmMapGen.timestamp.timestamp * 1000);
+					var jour = String(date.getDate()).padStart(2, '0');
+					var mois = String(date.getMonth() + 1).padStart(2, '0');
+					var annee = date.getFullYear();
+					var heures = String(date.getHours()).padStart(2, '0');
+					var minutes = String(date.getMinutes()).padStart(2, '0');
+					
+					container.innerHTML = '<b>Mise à jour :</b> ' + jour + '/' + mois + '/' + annee + ' à ' + heures + ':' + minutes;
+					return container;
+				}
+			});
+			map.addControl(new updateControl());
+		}
+
 		// Add players
 		WurmMapGen.map.updatePlayerMarkers();
 
@@ -230,7 +248,6 @@ WurmMapGen.map = {
 			}
 		}
 
-		// Correction : Remplacement des crochets par des parenthèses pour le .indexOf()
 		for (var i = 0; i < idsToRemove.length; i++) {
 			var playerId = idsToRemove[i];
 
