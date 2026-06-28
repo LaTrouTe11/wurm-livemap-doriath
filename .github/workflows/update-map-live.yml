@@ -18,18 +18,18 @@ jobs:
       - name: 3. Telechargement des donnees
         run: |
           mkdir -p ./sqlite
-          # Correction : Ajout de sftp:connect-program pour ignorer la vérification de clé hôte
+          # Utilisation de lftp avec forçage de connexion et remplacement des fichiers existants
           lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
+          set xfer:clobber on
           set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
           cd /dist/Doriath-4k-20/sqlite/
-          mget wurmzones.db wurmitems.db wurmplayers.db
+          mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
           cd ../
-          get top_layer.map
+          get -O . top_layer.map
           bye
           EOF
-          mv wurmzones.db wurmitems.db wurmplayers.db ./sqlite/
 
       - name: 4. Execution et Conversion
         run: |
@@ -40,7 +40,7 @@ jobs:
           # Lancement du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
-          # Nettoyage radical : on supprime tout ce qui n'est pas .json
+          # NETTOYAGE RADICAL : Suppression de tous les .php qui bloquent l'affichage JSON
           rm -f data/*.php
 
       - name: 4c. Synchronisation Totale
@@ -56,6 +56,6 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ finale : correction connexion SFTP et nettoyage JSON"
+            git commit -m "MAJ finale : correction SFTP, écrasement et nettoyage PHP"
             git push origin main
           fi
