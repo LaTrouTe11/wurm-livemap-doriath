@@ -47,25 +47,25 @@ jobs:
 
       - name: 4. Execution du Generateur WurmMapGen 2.33
         run: |
-          # 1. Préparation de l'arborescence requise par Java
+          # 1. Préparation de la structure de template minimale pour le binaire
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
           
-          # 2. Exécution brute du binaire officiel
+          # 2. Exécution brute de l'application Java
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 3. Nettoyage et tri des fichiers dans data/
+          # 3. Tri et nettoyage du dossier data
           if [ -d "data" ]; then
             find data/ -type f ! -name "*.json" -delete
             rm -f data/*.php
           fi
           
-          # 4. Correction automatisée en ligne du bug de la virgule orpheline dans markers.js généré
+          # 4. FORCE-FIX : Injection automatique des dimensions d'icônes Leaflet dans le fichier écrasé
           if [ -f "markers.js" ]; then
             sed -i 's/iconSize:[[:space:]]*,/iconSize: [32, 37],/g' markers.js
             sed -i 's/iconAnchor:[[:space:]]*,/iconAnchor: [16, 37],/g' markers.js
           fi
 
-          # 5. Suppression définitive des gros fichiers serveurs pour l'artefact
+          # 5. Nettoyage final des structures temporaires
           rm -rf sqlite/
           rm -f top_layer.map
           rm -rf template/
