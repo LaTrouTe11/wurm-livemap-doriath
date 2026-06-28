@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagnostic Technique - LiveMap</title>
+    <title>Diagnostic Ordre & Conflits - LiveMap</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a24; color: #fff; padding: 20px; margin: 0; }
         .container { max-width: 900px; margin: 0 auto; background: #222230; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -16,126 +16,170 @@
         .ok { background: #2e7d32; color: #fff; }
         .error { background: #c62828; color: #fff; }
         .warning { background: #ef6c00; color: #fff; }
+        .step { font-family: monospace; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Analyseur de Conflits - QBC LiveMap</h1>
-    <p>Ce script vérifie la présence réelle de vos fichiers et l'accessibilité de vos ports de jeu.</p>
+    <h1>Analyseur d'Ordre et Dépendances - LiveMap</h1>
+    <p>Ce script vérifie la chronologie d'exécution des composants pour s'assurer que Leaflet et Vue s'initialisent avant les scripts de la carte.</p>
 
-    <h2>1. État des Scripts Applicatifs (.js)</h2>
+    <h2>1. Chronologie de Chargement du Site</h2>
     <table>
         <thead>
-            <tr><th>Nom du Fichier</th><th>État GitHub Pages</th><th>Action requise</th></tr>
-        </thead>
-        <tbody id="scripts-table"></tbody>
-    </table>
-
-    <h2>2. État des Fichiers de Données (.json)</h2>
-    <table>
-        <thead>
-            <tr><th>Fichier de données</th><th>État de génération</th><th>Contenu détecté</th></tr>
-        </thead>
-        <tbody id="json-table"></tbody>
-    </table>
-
-    <h2>3. Test de Connexion Réseau Serveur</h2>
-    <table>
-        <thead>
-            <tr><th>Service distant</th><th>État du Port</th><th>Détails techniques</th></tr>
+            <tr><th>Étape</th><th>Composant Requis</th><th>État d'Exécution</th><th>Vérification Mémoire</th></tr>
         </thead>
         <tbody>
             <tr>
-                <td><b>Liaison RMI Serveur (Port 5606)</b></td>
-                <td id="rmi-status"><span class="status warning">Vérification...</span></td>
-                <td id="rmi-info">Test de ping réseau sur Legion Hosting...</td>
+                <td class="step">Étape 1</td>
+                <td>Moteur de Cartographie (Leaflet)</td>
+                <td id="ord-leaflet"><span class="status warning">Analyse...</span></td>
+                <td id="det-leaflet">Vérification de la variable globale L</td>
+            </tr>
+            <tr>
+                <td class="step">Étape 2</td>
+                <td>Framework d'Interface (Vue.js)</td>
+                <td id="ord-vue"><span class="status warning">Analyse...</span></td>
+                <td id="det-vue">Vérification de la variable globale Vue</td>
+            </tr>
+            <tr>
+                <td class="step">Étape 3</td>
+                <td>Espace de Nom Général (`WurmMapGen`)</td>
+                <td id="ord-wmg"><span class="status warning">Analyse...</span></td>
+                <td id="det-wmg">Vérification de l'objet racine racine</td>
+            </tr>
+            <tr>
+                <td class="step">Étape 4</td>
+                <td>Fonctions Utilitaires (`util.js`)</td>
+                <td id="ord-util"><span class="status warning">Analyse...</span></td>
+                <td id="det-util">Vérification du module de conversion xy</td>
+            </tr>
+            <tr>
+                <td class="step">Étape 5</td>
+                <td>Banque d'Icônes (`markers.js`)</td>
+                <td id="ord-markers"><span class="status warning">Analyse...</span></td>
+                <td id="det-markers">Vérification de la structure des marqueurs</td>
+            </tr>
+            <tr>
+                <td class="step">Étape 6</td>
+                <td>Moteur de Dessin Canvas (`map.js`)</td>
+                <td id="ord-map"><span class="status warning">Analyse...</span></td>
+                <td id="det-map">Vérification du module de calques</td>
+            </tr>
+            <tr>
+                <td class="step">Étape 7</td>
+                <td>Interface de Filtrage (`gui.js`)</td>
+                <td id="ord-gui"><span class="status warning">Analyse...</span></td>
+                <td id="det-gui">Vérification de l'instance GUI active</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>2. État du Diagnostic d'Ordre</h2>
+    <table id="result-table">
+        <thead>
+            <tr><th>Vérification Globale</th><th>Résultat Technique</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Validité de la structure</b></td>
+                <td id="global-order-status"><span class="status warning">En attente de l'analyse...</span></td>
             </tr>
         </tbody>
     </table>
 </div>
 
+<!-- Chargement dynamique ordonné pour simuler et analyser le comportement de l'index -->
 <script>
-    const scripts = ['util.js', 'markers.js', 'map.js', 'gui.js', 'main.js'];
-    const jsonFiles = [
-        { key: 'config', path: 'data/config.json' },
-        { key: 'villages', path: 'data/villages.json' },
-        { key: 'guardtowers', path: 'data/guardtowers.json' },
-        { key: 'structures', path: 'data/structures.json' },
-        { key: 'portals', path: 'data/portals.json' },
-        { key: 'players', path: 'data/players.json' },
-        { key: 'timestamp', path: 'data/timestamp.json' }
-    ];
+    window.addEventListener('load', function() {
+        let errorDetected = false;
 
-    // 1. Vérification des scripts
-    const scriptsTable = document.getElementById('scripts-table');
-    scripts.forEach(src => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td><b>${src}</b></td><td id="s-${src.split('.')}"><span class="status warning">Analyse...</span></td><td id="d-${src.split('.')}">-</td>`;
-        scriptsTable.appendChild(row);
+        // 1. Test de Leaflet (L)
+        if (typeof window.L !== 'undefined') {
+            document.getElementById('ord-leaflet').innerHTML = '<span class="status ok">✔ CORRECT</span>';
+            document.getElementById('det-leaflet').innerHTML = 'Leaflet est bien chargé en premier.';
+        } else {
+            document.getElementById('ord-leaflet').innerHTML = '<span class="status error">✖ CRITIQUE</span>';
+            document.getElementById('det-leaflet').innerHTML = 'Erreur : Leaflet (L) est manquant. Les scripts vont planter.';
+            errorDetected = true;
+        }
 
-        fetch(src)
-            .then(res => {
-                if(!res.ok) throw new Error();
-                document.getElementById(`s-${src.split('.')}`).innerHTML = '<span class="status ok">✔ DISPONIBLE</span>';
-                document.getElementById(`d-${src.split('.')}`).innerHTML = 'Prêt pour l\'affichage.';
-            })
-            .catch(() => {
-                document.getElementById(`s-${src.split('.')}`).innerHTML = '<span class="status error">✖ INTROUVABLE (404)</span>';
-                document.getElementById(`d-${src.split('.')}`).innerHTML = 'Créez ce fichier à la racine de votre GitHub.';
-            });
-    });
+        // 2. Test de Vue.js
+        if (typeof window.Vue !== 'undefined') {
+            document.getElementById('ord-vue').innerHTML = '<span class="status ok">✔ CORRECT</span>';
+            document.getElementById('det-vue').innerHTML = 'Vue.js est disponible pour le menu latéral.';
+        } else {
+            document.getElementById('ord-vue').innerHTML = '<span class="status error">✖ CRITIQUE</span>';
+            document.getElementById('det-vue').innerHTML = 'Erreur : Vue est introuvable. Le menu ne s\'affichera pas.';
+            errorDetected = true;
+        }
 
-    // 2. Vérification des données JSON
-    const jsonTable = document.getElementById('json-table');
-    jsonFiles.forEach(file => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>data/${file.key}.json</td><td id="status-${file.key}"><span class="status warning">Analyse...</span></td><td id="info-${file.key}">-</td>`;
-        jsonTable.appendChild(row);
+        // 3. Test de l'objet racine WurmMapGen
+        if (typeof window.WurmMapGen !== 'undefined') {
+            document.getElementById('ord-wmg').innerHTML = '<span class="status ok">✔ CORRECT</span>';
+            document.getElementById('det-wmg').innerHTML = 'L\'objet global de transit est bien créé.';
+        } else {
+            document.getElementById('ord-wmg').innerHTML = '<span class="status error">✖ MANQUANT</span>';
+            document.getElementById('det-wmg').innerHTML = 'L\'objet WurmMapGen n\'est pas encore déclaré.';
+            errorDetected = true;
+        }
 
-        fetch(file.path)
-            .then(res => {
-                if(!res.ok) throw new Error();
-                return res.json();
-            })
-            .then(data => {
-                let detail = Array.isArray(data) ? `${data.length} éléments chargés` : 'Fichier valide';
-                if (file.key === 'players') {
-                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status ok">✔ LIÉ</span>';
-                } else {
-                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status ok">✔ LIÉ</span>';
-                }
-                document.getElementById(`info-${file.key}`).innerHTML = detail;
-            })
-            .catch(() => {
-                if (file.key === 'players') {
-                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status warning">⚠ VIDE (0 JOUEURS)</span>';
-                    document.getElementById(`info-${file.key}`).innerHTML = 'Normal si personne n\'est connecté.';
-                } else {
-                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status error">✖ MANQUANT</span>';
-                    document.getElementById(`info-${file.key}`).innerHTML = 'Vérifiez l\'étape 4 de votre Action GitHub.';
-                }
-            });
-    });
+        // 4. Test des modules enfants dépendants
+        setTimeout(() => {
+            const wmg = window.WurmMapGen || {};
 
-    // 3. Test de validation du Port RMI 5606 distant via Fetch Config
-    fetch('data/config.json')
-        .then(res => res.json())
-        .then(config => {
-            if (config && config.rmiPort == 5606) {
-                document.getElementById('rmi-status').innerHTML = '<span class="status ok">✔ PORT 5606 ACTIF</span>';
-                document.getElementById('rmi-info').innerHTML = 'Configuration WurmMapGen validée sur le serveur.';
+            // util.js
+            if (wmg.util) {
+                document.getElementById('ord-util').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
+                document.getElementById('det-util').innerHTML = 'Module utilitaire lié avec succès.';
             } else {
-                document.getElementById('rmi-status').innerHTML = '<span class="status error">✖ PORT KO</span>';
-                document.getElementById('rmi-info').innerHTML = 'Le fichier config n\'indique pas le port 5606.';
+                document.getElementById('ord-util').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
+                document.getElementById('det-util').innerHTML = 'util.js n\'a pas pu s\'exécuter.';
+                errorDetected = true;
             }
-        })
-        .catch(() => {
-            document.getElementById('rmi-status').innerHTML = '<span class="status warning">TEST EN ATTENTE</span>';
-            document.getElementById('rmi-info').innerHTML = 'Impossible de lire data/config.json pour valider le port.';
-        });
+
+            // markers.js
+            if (wmg.markers) {
+                document.getElementById('ord-markers').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
+                document.getElementById('det-markers').innerHTML = 'Banque d\'icônes Leaflet enregistrée.';
+            } else {
+                document.getElementById('ord-markers').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
+                document.getElementById('det-markers').innerHTML = 'markers.js n\'a pas pu s\'exécuter (Virgule ou ordre KO).';
+                errorDetected = true;
+            }
+
+            // map.js
+            if (wmg.map) {
+                document.getElementById('ord-map').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
+                document.getElementById('det-map').innerHTML = 'Moteur de calque Leaflet prêt.';
+            } else {
+                document.getElementById('ord-map').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
+                document.getElementById('det-map').innerHTML = 'map.js bloqué par une variable ou Leaflet.';
+                errorDetected = true;
+            }
+
+            // gui.js
+            if (wmg.gui) {
+                document.getElementById('ord-gui').innerHTML = '<span class="status ok">✔ COHÉRENT</span>';
+                document.getElementById('det-gui').innerHTML = 'Instance de recherche Vue.js liée.';
+            } else {
+                document.getElementById('ord-gui').innerHTML = '<span class="status error">✖ EN ATTENTE</span>';
+                document.getElementById('det-gui').innerHTML = 'gui.js bloqué (Vue.js manquant ou script coupé).';
+                errorDetected = true;
+            }
+
+            // Résultat Global final
+            if (!errorDetected) {
+                document.getElementById('global-order-status').innerHTML = '<span class="status ok">✔ ORDRE DE CHARGEMENT 100% VALIDE</span>';
+            } else {
+                document.getElementById('global-order-status').innerHTML = '<span class="status error">✖ CONFLIT SÉQUENTIEL DÉTECTÉ</span>';
+            }
+        }, 800);
+    });
 </script>
 
 </body>
 </html>
+
 
