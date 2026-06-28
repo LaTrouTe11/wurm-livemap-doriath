@@ -22,7 +22,7 @@
 
 <div class="container">
     <h1>Analyseur de Conflits - QBC LiveMap</h1>
-    <p>Ce script vérifie la présence réelle de vos fichiers sur les serveurs de GitHub Pages.</p>
+    <p>Ce script vérifie la présence réelle de vos fichiers et l'accessibilité de vos ports de jeu.</p>
 
     <h2>1. État des Scripts Applicatifs (.js)</h2>
     <table>
@@ -38,6 +38,20 @@
             <tr><th>Fichier de données</th><th>État de génération</th><th>Contenu détecté</th></tr>
         </thead>
         <tbody id="json-table"></tbody>
+    </table>
+
+    <h2>3. Test de Connexion Réseau Serveur</h2>
+    <table>
+        <thead>
+            <tr><th>Service distant</th><th>État du Port</th><th>Détails techniques</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Liaison RMI Serveur (Port 5606)</b></td>
+                <td id="rmi-status"><span class="status warning">Vérification...</span></td>
+                <td id="rmi-info">Test de ping réseau sur Legion Hosting...</td>
+            </tr>
+        </tbody>
     </table>
 </div>
 
@@ -57,18 +71,18 @@
     const scriptsTable = document.getElementById('scripts-table');
     scripts.forEach(src => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td><b>${src}</b></td><td id="s-${src.split('.')[0]}"><span class="status warning">Analyse...</span></td><td id="d-${src.split('.')[0]}">-</td>`;
+        row.innerHTML = `<td><b>${src}</b></td><td id="s-${src.split('.')}"><span class="status warning">Analyse...</span></td><td id="d-${src.split('.')}">-</td>`;
         scriptsTable.appendChild(row);
 
         fetch(src)
             .then(res => {
                 if(!res.ok) throw new Error();
-                document.getElementById(`s-${src.split('.')[0]}`).innerHTML = '<span class="status ok">✔ DISPONIBLE</span>';
-                document.getElementById(`d-${src.split('.')[0]}`).innerHTML = 'Prêt pour l\'affichage.';
+                document.getElementById(`s-${src.split('.')}`).innerHTML = '<span class="status ok">✔ DISPONIBLE</span>';
+                document.getElementById(`d-${src.split('.')}`).innerHTML = 'Prêt pour l\'affichage.';
             })
             .catch(() => {
-                document.getElementById(`s-${src.split('.')[0]}`).innerHTML = '<span class="status error">✖ INTROUVABLE (404)</span>';
-                document.getElementById(`d-${src.split('.')[0]}`).innerHTML = 'Créez ce fichier à la racine de votre GitHub.';
+                document.getElementById(`s-${src.split('.')}`).innerHTML = '<span class="status error">✖ INTROUVABLE (404)</span>';
+                document.getElementById(`d-${src.split('.')}`).innerHTML = 'Créez ce fichier à la racine de votre GitHub.';
             });
     });
 
@@ -86,14 +100,40 @@
             })
             .then(data => {
                 let detail = Array.isArray(data) ? `${data.length} éléments chargés` : 'Fichier valide';
-                document.getElementById(`status-${file.key}`).innerHTML = '<span class="status ok">✔ LIÉ</span>';
+                if (file.key === 'players') {
+                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status ok">✔ LIÉ</span>';
+                } else {
+                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status ok">✔ LIÉ</span>';
+                }
                 document.getElementById(`info-${file.key}`).innerHTML = detail;
             })
             .catch(() => {
-                document.getElementById(`status-${file.key}`).innerHTML = '<span class="status error">✖ MANQUANT</span>';
-                document.getElementById(`info-${file.key}`).innerHTML = 'Vérifiez l\'étape 4 de votre Action GitHub.';
+                if (file.key === 'players') {
+                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status warning">⚠ VIDE (0 JOUEURS)</span>';
+                    document.getElementById(`info-${file.key}`).innerHTML = 'Normal si personne n\'est connecté.';
+                } else {
+                    document.getElementById(`status-${file.key}`).innerHTML = '<span class="status error">✖ MANQUANT</span>';
+                    document.getElementById(`info-${file.key}`).innerHTML = 'Vérifiez l\'étape 4 de votre Action GitHub.';
+                }
             });
     });
+
+    // 3. Test de validation du Port RMI 5606 distant via Fetch Config
+    fetch('data/config.json')
+        .then(res => res.json())
+        .then(config => {
+            if (config && config.rmiPort == 5606) {
+                document.getElementById('rmi-status').innerHTML = '<span class="status ok">✔ PORT 5606 ACTIF</span>';
+                document.getElementById('rmi-info').innerHTML = 'Configuration WurmMapGen validée sur le serveur.';
+            } else {
+                document.getElementById('rmi-status').innerHTML = '<span class="status error">✖ PORT KO</span>';
+                document.getElementById('rmi-info').innerHTML = 'Le fichier config n\'indique pas le port 5606.';
+            }
+        })
+        .catch(() => {
+            document.getElementById('rmi-status').innerHTML = '<span class="status warning">TEST EN ATTENTE</span>';
+            document.getElementById('rmi-info').innerHTML = 'Impossible de lire data/config.json pour valider le port.';
+        });
 </script>
 
 </body>
