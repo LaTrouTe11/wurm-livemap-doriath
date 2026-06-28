@@ -31,7 +31,11 @@ jobs:
 
       - name: 4. Execution et Conversion
         run: |
-          # Création du fichier config WurmMapGen
+          # Création forcée du config.json indispensable au main.js
+          mkdir -p data
+          echo '{"actualMapSize":4096,"mapTileSize":256,"mapMaxZoom":5,"mapMinZoom":0,"nativeZoom":5,"markerType":2}' > data/config.json
+          
+          # Configuration du générateur
           cat <<EOF > WurmMapGen.properties
           serverName=[QC/FR/CAN] QBC Doriath
           wurmMapLocation=.
@@ -52,17 +56,11 @@ jobs:
           # Lancement du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
-          # SECURITE: Forcer la création d'un config.json s'il est vide
-          if [ ! -s data/config.json ]; then
-            echo '{"actualMapSize":4096,"mapTileSize":256,"mapMaxZoom":5,"mapMinZoom":0,"nativeZoom":5,"markerType":2}' > data/config.json
-          fi
-          
-          # Conversion des .php générés en .json
+          # Conversion des .php en .json
           for f in data/*.php; do [ -e "$f" ] && mv "$f" "${f%.php}.json"; done || true
 
       - name: 4c. Copie vers template
         run: |
-          # Recopie les fichiers générés dans le template pour qu'il soit toujours à jour
           mkdir -p template/data
           cp data/*.json template/data/ || true
 
@@ -70,7 +68,11 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add . 
+          
+          # On ajoute tout le dossier data et template/data
+          git add data/
+          git add template/data/
+          
           if ! git diff --cached --quiet; then
             git commit -m "MAJ auto : donnees et synchronisation template"
             git push origin main
