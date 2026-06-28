@@ -45,38 +45,37 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution du Generateur et Alignement Forcé
+      - name: 4. Execution du Generateur et Alignement Force
         run: |
-          # 1. Sauvegarde de sécurité de vos scripts personnalisés dans la mémoire de la machine virtuelle
-          mkdir -p /tmp/wurm_backup
-          cp index.html main.js map.js gui.js /tmp/wurm_backup/
+          # 1. Sauvegarde de sécurité de votre code propre dans la mémoire système temporaire
+          mkdir -p /tmp/wurm_clean_code
+          cp index.html main.js map.js gui.js /tmp/wurm_clean_code/
           
-          # 2. Création de la structure attendue par l'outil Java
+          # 2. Création de l'arborescence requise par la vérification stricte du binaire Java
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
-          cp /tmp/wurm_backup/index.html template/index.html
+          cp /tmp/wurm_clean_code/index.html template/index.html
           
           # 3. Exécution brute du générateur WurmMapGen
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 4. RESTAURATION FORCÉE : On réinjecte vos versions propres pour écraser les fichiers obsolètes générés par Java
-          cp -f /tmp/wurm_backup/index.html ./index.html
-          cp -f /tmp/wurm_backup/main.js ./main.js
-          cp -f /tmp/wurm_backup/map.js ./map.js
-          cp -f /tmp/wurm_backup/gui.js ./gui.js
+          # 4. RESTAURATION STRATEGIQUE : Écrase définitivement le code obsolète généré par Java
+          cp -f /tmp/wurm_clean_code/index.html ./index.html
+          cp -f /tmp/wurm_clean_code/main.js ./main.js
+          cp -f /tmp/wurm_clean_code/map.js ./map.js
+          cp -f /tmp/wurm_clean_code/gui.js ./gui.js
           
-          # 5. Nettoyage strict du dossier data
+          # 5. Tri strict des scripts dans le répertoire de données data/
           if [ -d "data" ]; then
             find data/ -type f ! -name "*.json" -delete
-            rm -f data/*.php
           fi
           
-          # 6. FORCE-FIX : Réparation automatique de la virgule cassée par Java dans markers.js
+          # 6. FORCE-PATCH : Correction dynamique de la virgule orpheline de la v2.33 dans markers.js
           if [ -f "markers.js" ]; then
             sed -i 's/iconSize:[[:space:]]*,/iconSize: [32, 37],/g' markers.js
             sed -i 's/iconAnchor:[[:space:]]*,/iconAnchor: [16, 37],/g' markers.js
           fi
 
-          # 7. Suppression des dossiers et scripts serveurs inutiles pour la production
+          # 7. Purge complète des répertoires intermédiaires et lourds pour la production
           rm -rf sqlite/
           rm -f top_layer.map
           rm -rf template/
