@@ -1,4 +1,3 @@
-
 name: Synchro Carte Wurm Legion Hosting
 
 on:
@@ -8,7 +7,14 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
-# ... (permissions et config inchangées)
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -17,36 +23,66 @@ jobs:
       - name: 1. Checkout du code source
         uses: actions/checkout@v4
 
-      - name: 2. Installation des paquets
+      - name: 2. Installation des paquets requis
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
-          sudo apt-get install -y lftp openjdk-17-jre
+          sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lftp openjdk-17-jre
 
-      - name: 3. Telechargement des donnees serveurs
+      - name: 3. Telechargement des donnees serveurs (.db et .map)
         run: |
           mkdir -p ./sqlite
           lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
-          # ... (commandes sftp inchangées)
+          set sftp:auto-confirm yes
+          set ssl:verify-certificate no
+          set xfer:clobber on
+          set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          cd /dist/Doriath-4k-20/sqlite/
+          mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
+          cd ../
+          get -O . top_layer.map
           bye
           EOF
 
-      - name: 4. Execution du Generateur et Correction
+      - name: 4. Execution du Generateur WurmMapGen 2.33
         run: |
-          # ... (copie index, java, etc.)
+          # 1. Préparation de l'arborescence requise par Java
+          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
           
-          # FORCE-FIX : Correction automatisée du bug de la virgule dans markers.js
-          if [ -f "markers.js" ]; then
-            sed -i 's/iconSize:[[:space:]]*,/iconSize:[32, 37],/g' markers.js
-            sed -i 's/iconAnchor:[[:space:]]*,/iconAnchor:[16, 37],/g' markers.js
+          # 2. Exécution brute du binaire officiel
+          java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
+          
+          # 3. Nettoyage et tri des fichiers dans data/
+          if [ -d "data" ]; then
+            find data/ -type f ! -name "*.json" -delete
+            rm -f data/*.php
           fi
-          # ... (nettoyage)
+          
+          # 4. Correction automatisée en ligne du bug de la virgule orpheline dans markers.js généré
+          if [ -f "markers.js" ]; then
+            sed -i 's/iconSize:[[:space:]]*,/iconSize: [32, 37],/g' markers.js
+            sed -i 's/iconAnchor:[[:space:]]*,/iconAnchor: [16, 37],/g' markers.js
+          fi
 
-      - name: 5. Creation et televersement de l'artefact
+          # 5. Suppression définitive des gros fichiers serveurs pour l'artefact
+          rm -rf sqlite/
+          rm -f top_layer.map
+          rm -rf template/
+
+      - name: 5. Creation et televersement de l'artefact Web
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
   deploy:
-    # ... (inchangé)
-
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 6. Deploiement en ligne sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
