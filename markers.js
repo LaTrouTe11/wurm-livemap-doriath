@@ -3,8 +3,8 @@
 (function() {
 
 var markerIcon = L.Icon.extend({options: {
-	iconSize:     [32, 37], // size of the icon
-	iconAnchor:   [16, 37], // point of the icon which will correspond to marker's location
+	iconSize:, // size of the icon
+	iconAnchor:, // point of the icon which will correspond to marker's location
 	popupAnchor:  [0, -37] // point from which the popup should open relative to the iconAnchor
 }});
 
