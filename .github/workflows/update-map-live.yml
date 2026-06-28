@@ -55,34 +55,43 @@ jobs:
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
           cp /tmp/wurm_clean_code/index.html template/index.html
           
-          # 3. Modification dynamique de l'hôte et injection forcée du port 5606 et du mot de passe (Orthographe ajustée)
+          # 3. FORCE-INJECTION : Réécriture totale et stricte des configurations RMI pour le port 5606
           if [ -f "WurmMapGen.properties" ]; then
             sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
             sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
+            sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' WurmMapGen.properties
+            # Suppression des anciennes lignes de mot de passe en double pour éviter les conflits
+            sed -i '/rmiPassword/d' WurmMapGen.properties
             echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> WurmMapGen.properties
           fi
           
-          # 4. Exécution du générateur WurmMapGen (avec connexion RMI active)
+          # 4. Exécution du générateur WurmMapGen (avec injection RMI forcée)
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 5. Restauration du code d'affichage propre
+          # 5. FORCE-FIX DU CONFIG.JSON : Corrige directement le port dans le JSON généré par Java s'il a ignoré les propriétés
+          if [ -f "data/config.json" ]; then
+            sed -i 's/"mapTileSize"/"rmiPort":5606,"mapTileSize"/g' data/config.json
+            sed -i 's/"rmiPort":[0-9]*/"rmiPort":5606/g' data/config.json
+          fi
+          
+          # 6. Restauration du code d'affichage propre
           cp -f /tmp/wurm_clean_code/index.html ./index.html
           cp -f /tmp/wurm_clean_code/main.js ./main.js
           cp -f /tmp/wurm_clean_code/map.js ./map.js
           cp -f /tmp/wurm_clean_code/gui.js ./gui.js
           
-          # 6. Tri strict des scripts JSON dans data/
+          # 7. Tri strict des scripts JSON dans data/
           if [ -d "data" ]; then
             find data/ -type f ! -name "*.json" -delete
           fi
           
-          # 7. FORCE-PATCH : Réparation de la virgule orpheline de la v2.33 dans markers.js
+          # 8. FORCE-PATCH : Réparation de la virgule orpheline de la v2.33 dans markers.js
           if [ -f "markers.js" ]; then
             sed -i 's/iconSize:[[:space:]]*,/iconSize:,/g' markers.js
             sed -i 's/iconAnchor:[[:space:]]*,/iconAnchor:,/g' markers.js
           fi
 
-          # 8. Nettoyage complet avant l'envoi sur GitHub Pages
+          # 9. Nettoyage complet avant l'envoi sur GitHub Pages
           rm -rf sqlite/
           rm -f top_layer.map
           rm -rf template/
@@ -104,5 +113,4 @@ jobs:
       - name: 6. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
 
