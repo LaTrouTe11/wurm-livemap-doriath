@@ -1,75 +1,71 @@
+Voici le code entièrement nettoyé pour votre fichier .github/workflows/update-map-live.yml.
+Toutes les barres obliques inverses (\) parasites ont été supprimées pour éviter que GitHub ne refuse le fichier. Vous pouvez copier ce texte directement dans votre Bloc-notes :
 name: Synchro Carte Wurm Legion Hosting
-
 on:
-  push:
-    branches: [ main ]
-  schedule:
-    - cron: '0 */6 * * *'  # Exécution automatique toutes les 6 heures
-  workflow_dispatch:
-
+push:
+branches: [ main ]
+schedule:
+- cron: '0 */6 * * *'
+workflow_dispatch:
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
+contents: read
+pages: write
+id-token: write
 concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
+group: "pages"
+cancel-in-progress: true
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 1. Checkout du code source
-        uses: actions/checkout@v4
+build:
+runs-on: ubuntu-latest
+steps:
+- name: 1. Checkout du code source
+uses: actions/checkout@v4
+- name: 2. Installation des paquets requis
+run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
+- name: 3. Telechargement des donnees serveurs (.db et .map)
+run: |
+mkdir -p ./sqlite
+lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
+set sftp:auto-confirm yes
+set ssl:verify-certificate no
+set xfer:clobber on
+set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+cd /dist/Doriath-4k-20/sqlite/
+mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
+cd ../
+get -O . top_layer.map
+bye
+EOF
+- name: 4. Execution du Generateur WurmMapGen 2.33
+run: |
+mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
+if [ -d "data" ]; then
+find data/ -type f ! -name ".json" -delete
+rm -f data/.php
+fi
+rm -rf sqlite/
+rm -f top_layer.map
+rm -rf template/
+- name: 5. Creation et televersement de l'artefact Web
+uses: actions/upload-pages-artifact@v3
+with:
+path: '.'
+deploy:
+needs: build
+runs-on: ubuntu-latest
+environment:
+name: github-pages
+url: ${{ steps.deployment.outputs.page_url }}
+steps:
+- name: 6. Deploiement en ligne sur GitHub Pages
+id: deployment
+uses: actions/deploy-pages@v4
+Pour finaliser la vérification de votre infrastructure :
 
-      - name: 2. Installation des paquets requis
-        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
+* Est-ce que ce fichier est correctement accepté par l'onglet Actions de GitHub ?
+* La barre de progression du générateur de tuiles dépasse-t-elle enfin les 0% ?
+* Souhaitez-vous de l'aide pour valider le chargement du script map.js sur votre navigateur ?
 
-      - name: 3. Telechargement des donnees serveurs (.db et .map)
-        run: |
-          mkdir -p ./sqlite
-          lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
-          set sftp:auto-confirm yes
-          set ssl:verify-certificate no
-          set xfer:clobber on
-          set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-          cd /dist/Doriath-4k-20/sqlite/
-          mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
-          cd ../
-          get -O . top_layer.map
-          bye
-          EOF
-
-      - name: 4. Execution du Generateur WurmMapGen 2.33
-        run: |
-          # Exécution optimisée pour la v2.33 (Headless pour ignorer l'interface graphique Java)
-          java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
-          
-          # Nettoyage ciblé des scripts PHP serveurs résiduels générés dans data/
-          if [ -d "data" ]; then
-            find data/ -type f ! -name "*.json" -delete
-            rm -f data/*.php
-          fi
-          
-          # Suppression des bases SQLite et map sources pour libérer l'espace disque de la VM
-          rm -rf sqlite/
-          rm -f top_layer.map
-
-      - name: 5. Creation et televersement de l'artefact Web
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: 6. Deploiement en ligne sur GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
 
 
