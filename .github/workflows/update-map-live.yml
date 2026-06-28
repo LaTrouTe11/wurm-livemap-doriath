@@ -1,5 +1,5 @@
-Voici le code entièrement nettoyé pour votre fichier .github/workflows/update-map-live.yml.
-Toutes les barres obliques inverses (\) parasites ont été supprimées pour éviter que GitHub ne refuse le fichier. Vous pouvez copier ce texte directement dans votre Bloc-notes :
+Voici le code d'automatisation nettoyé à 100 % de tous les caractères parasites introduits par les outils du chat.
+Vous pouvez copier tout le texte ci-dessous et le coller directement dans votre Bloc-notes :
 name: Synchro Carte Wurm Legion Hosting
 on:
 push:
@@ -61,11 +61,14 @@ steps:
 - name: 6. Deploiement en ligne sur GitHub Pages
 id: deployment
 uses: actions/deploy-pages@v4
-Pour finaliser la vérification de votre infrastructure :
+Pour finaliser la remise en route de votre système :
 
-* Est-ce que ce fichier est correctement accepté par l'onglet Actions de GitHub ?
-* La barre de progression du générateur de tuiles dépasse-t-elle enfin les 0% ?
-* Souhaitez-vous de l'aide pour valider le chargement du script map.js sur votre navigateur ?
+* L'onglet Actions a-t-il bien réapparu sur votre interface GitHub après l'enregistrement ?
+* Est-ce que le fichier s'est enregistré sans aucune erreur de syntaxe ou de format de votre côté ?
+* La progression du générateur se lance-t-elle correctement lors du démarrage manuel de l'Action ?
+
+
+
 
 
 
