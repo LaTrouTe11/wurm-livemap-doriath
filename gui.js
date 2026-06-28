@@ -37,25 +37,21 @@ WurmMapGen.gui = new Vue({
 		},
 
 		searchResults: function() {
-			// Return empty results if no search query is given
 			if (this.searchQuery.length < 1) {
 				return [];
 			}
 
 			var escapeHtml = WurmMapGen.util.escapeHtml;
-
 			var query = this.searchQuery.toLowerCase();
 			var results = [];
 			var i, index;
 
-			// Find online players who match the search query
+			// Rechercher les joueurs en ligne
 			if (WurmMapGen.players && this.showPlayers) {
 				for (i = 0; i < WurmMapGen.players.length; i++) {
 					var player = WurmMapGen.players[i];
-
 					var name = escapeHtml(player.name);
 
-					// Check if player name matches query
 					if ((index = name.toLowerCase().indexOf(query)) > -1) {
 						results.push({
 							type: 'player',
@@ -69,21 +65,16 @@ WurmMapGen.gui = new Vue({
 				}
 			}
 
-			// Find villages that match the search query
+			// Rechercher les villages (par nom ou maire)
 			if (this.showVillages) {
 				for (i = 0; i < WurmMapGen.villages.length; i++) {
 					var village = WurmMapGen.villages[i];
-
 					var name = escapeHtml(village.name);
 					var mayor = escapeHtml(village.mayor);
-
 					var label = '';
 
-					// Check if name matches query
 					if ((index = name.toLowerCase().indexOf(query)) > -1) {
 						label = '<p>' + name.slice(0, index) + '<strong>' + name.slice(index, index + query.length) + '</strong>' + name.slice(index + query.length) + '</p><p class="small">Mayor: ' + mayor + '</p>';
-
-					// Check if mayor name matches query
 					} else if ((index = mayor.toLowerCase().indexOf(query)) > -1) {
 						label = '<p>' + name + '</p><p class="small">Mayor: ' + mayor.slice(0, index) + '<strong>' + mayor.slice(index, index + query.length) + '</strong>' + mayor.slice(index + query.length) + '</p>';
 					}
@@ -101,21 +92,16 @@ WurmMapGen.gui = new Vue({
 				}
 			}
 
-			// Find structures that match the search query
+			// Rechercher les structures
 			if (this.showStructures) {
 				for (i = 0; i < WurmMapGen.structures.length; i++) {
 					var structure = WurmMapGen.structures[i];
-
 					var name = escapeHtml(structure.name);
 					var creator = escapeHtml(structure.creator);
-
 					var label = '';
 
-					// Check if structure name matches query
 					if ((index = name.toLowerCase().indexOf(query)) > -1) {
 						label = '<p>' + name.slice(0, index) + '<strong>' + name.slice(index, index + query.length) + '</strong>' + name.slice(index + query.length) + '</p><p class="small">Created by ' + creator + '</p>';
-
-					// Check if creator name matches query
 					} else if ((index = creator.toLowerCase().indexOf(query)) > -1) {
 						label = '<p>' + name + '</p><p class="small">Created by ' + creator.slice(0, index) + '<strong>' + creator.slice(index, index + query.length) + '</strong>' + creator.slice(index + query.length) + '</p>';
 					}
@@ -133,10 +119,10 @@ WurmMapGen.gui = new Vue({
 				}
 			}
 
+			// Rechercher les portails
 			if (this.showPortals) {
 				for (i = 0; i < WurmMapGen.portals.length; i++) {
 					var portal = WurmMapGen.portals[i];
-
 					var name = escapeHtml(portal.name);
 
 					if ((index = name.toLowerCase().indexOf(query)) > -1) {
@@ -152,14 +138,12 @@ WurmMapGen.gui = new Vue({
 				}
 			}
 
-			// Find guard towers that match the search query
+			// Rechercher les tours de garde
 			if (this.showTowers) {
 				for (i = 0; i < WurmMapGen.guardtowers.length; i++) {
 					var tower = WurmMapGen.guardtowers[i];
-
 					var creator = escapeHtml(tower.creator);
 
-					// Check if player name matches query
 					if ((index = creator.toLowerCase().indexOf(query)) > -1) {
 						results.push({
 							type: 'guardtower',
@@ -178,7 +162,6 @@ WurmMapGen.gui = new Vue({
 	},
 
 	watch: {
-		// When the sidebar is toggled, update the map
 		sidebarVisible: function() {
 			this.sidebarToggled = Date.now();
 			this.mapResizeInterval = window.setInterval(function() {
@@ -190,18 +173,17 @@ WurmMapGen.gui = new Vue({
 		},
 
 		showStructures: function(value) {
-        	this._setMapLayer('structureBorders', value);
-        },
+			this._setMapLayer('structureBorders', value);
+		},
 		showPortals: function(value) {
-        	this._setMapLayer('portalMarkers', value);
-        },
+			this._setMapLayer('portalMarkers', value);
+		},
 		showPlayers: function(value) {
-        	this._setMapLayer('playerMarkers', value);
-        },
+			this._setMapLayer('playerMarkers', value);
+		},
 
 		showVillages: function(value) {
 			this._setMapLayer('villageMarkers', value);
-
 			if (value === false) {
 				this._setMapLayer('villageBorders', false);
 			} else {
@@ -212,14 +194,12 @@ WurmMapGen.gui = new Vue({
 			if (this.showVillages === true) {
 				this._setMapLayer('villageBorders', value);
 			} else {
-				// Don't show the map layer but still save the setting
 				WurmMapGen.util.setConfig('villageBorders', value);
 			}
 		},
 
 		showTowers: function(value) {
 			this._setMapLayer('guardtowerMarkers', value);
-
 			if (value === false) {
 				this._setMapLayer('guardtowerBorders', false);
 			} else {
@@ -230,17 +210,12 @@ WurmMapGen.gui = new Vue({
 			if (this.showTowers === true) {
 				this._setMapLayer('guardtowerBorders', value);
 			} else {
-				// Don't show the map layer but still save the setting
 				WurmMapGen.util.setConfig('guardtowerBorders', value);
 			}
 		}
 	},
 
 	methods: {
-		/**
-		 * Initialises the GUI. Should be called once when the rest of the
-		 * application has been loaded and initialised.
-		 */
 		init: function() {
 			if (WurmMapGen.players) {
 				this.playerCount = WurmMapGen.players.length;
@@ -248,53 +223,38 @@ WurmMapGen.gui = new Vue({
 
 			this.showStructures = WurmMapGen.util.getConfig('structureBorders', true);
 			this.showPortals = WurmMapGen.util.getConfig('portalMarkers', true);
-
 			this.showVillages = WurmMapGen.util.getConfig('villageMarkers', true);
 			this.showVillageBorders = WurmMapGen.util.getConfig('villageBorders', true);
-
 			this.showTowers = WurmMapGen.util.getConfig('guardtowerMarkers', true);
-			this.showTowerBorders = WurmMapGen.util.getConfig('guardtowerBorders', false);
+			
+			// Correction : Passage de false à true par défaut pour éviter le masquage forcé au premier chargement
+			this.showTowerBorders = WurmMapGen.util.getConfig('guardtowerBorders', true);
 
 			this.loaded = true;
 		},
 
-		/**
-		 * Focuses the map on coordinates
-		 *
-		 * @param  {number}  x  The x coordinate
-		 * @param  {number}  y  The y coordinate
-		 */
 		focusMap: function(x, y) {
 			WurmMapGen.map.map.setView(WurmMapGen.util.xy(x, y), WurmMapGen.config.mapMaxZoom - 1);
 		},
 
-		/**
-		 * Enables or disables a map layer
-		 *
-		 * @param  {string}  name    The name of the map layer (key in the `WurmMapGen.map.layers` object)
-		 * @param  {boolean}  value  True to enable the layer
-		 *
-		 * @private
-		 */
+		// Correction : Reconstruction intégrale de la méthode qui avait été tronquée
 		_setMapLayer: function(name, value) {
 			var layer = WurmMapGen.map.layers[name];
+			if (layer === undefined) { return; }
 
-			// If the layer is already set to the wanted value, then we
-			// shouldn't change anything
-			if (WurmMapGen.map.map.hasLayer(layer) == value) { return; }
-
-			// Apply the changes to the map
-			if (value === false) {
-				WurmMapGen.map.map.removeLayer(layer);
+			if (value === true) {
+				if (!WurmMapGen.map.map.hasLayer(layer)) {
+					WurmMapGen.map.map.addLayer(layer);
+				}
 			} else {
-				WurmMapGen.map.map.addLayer(layer);
+				if (WurmMapGen.map.map.hasLayer(layer)) {
+					WurmMapGen.map.map.removeLayer(layer);
+				}
 			}
-
-			// Persist the user settings in a config cookie
 			WurmMapGen.util.setConfig(name, value);
 		}
 	}
 });
 
-// End IIFE
 })();
+
