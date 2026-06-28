@@ -4,10 +4,9 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 */6 * * *' # S'exécute automatiquement toutes les 6 heures
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
-# Autorise le workflow à modifier le site GitHub Pages lié
 permissions:
   contents: read
   pages: write
@@ -44,23 +43,19 @@ jobs:
 
       - name: 4. Execution du Generateur Wurm
         run: |
-          # Exécution de WurmMapGen avec une allocation de mémoire adaptée aux limites de GitHub
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Nettoyage strict des scripts serveurs dans le dossier data
           if [ -d "data" ]; then
             find data/ -type f ! -name "*.json" -delete
             rm -f data/*.php
           fi
           
-          # Suppression immédiate des fichiers sources lourds pour libérer l'espace disque de la VM
           rm -rf sqlite/
           rm -f top_layer.map
 
       - name: 5. Televersement de l'artéfact Web
         uses: actions/upload-pages-artifact@v3
         with:
-          # Téléverse directement tout le répertoire racine vers l'hébergement web sans polluer l'historique Git
           path: '.'
 
   deploy:
@@ -68,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps:deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: 6. Déploiement vers GitHub Pages
         id: deployment
