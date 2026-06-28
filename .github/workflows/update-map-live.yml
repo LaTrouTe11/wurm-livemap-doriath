@@ -30,10 +30,20 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution WurmMapGen
+      - name: 4. Execution et Synchronisation Racine
         run: |
-          # Le logiciel génère tout directement à la racine grâce à tes properties
+          # 1. Création temporaire du dossier que le logiciel exige
+          mkdir -p template/app template/css template/images template/markers
+          
+          # 2. Exécution du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
+          
+          # 3. Copie de TOUT ce que le générateur a créé vers la racine
+          # Le '-u' évite de copier les fichiers identiques, le '-r' copie les dossiers
+          cp -rf template/* . 
+          
+          # 4. Nettoyage : Suppression du dossier temporaire et des fichiers inutiles
+          rm -rf template/
           rm -f data/*.php
 
       - name: 5. Synchronisation Git
@@ -41,7 +51,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Ajout de tout le contenu racine
+          # Ajout de TOUT le contenu racine (y compris les nouveaux fichiers générés)
           git add -A
           
           if ! git diff --cached --quiet; then
