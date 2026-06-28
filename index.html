@@ -12,7 +12,13 @@
 </head>
 <body data-realtime="false">
 
+    <div id="map"></div>
+
     <script>
+        // Déclaration immédiate de l'objet global pour éviter l'erreur "not defined"
+        window.WurmMapGen = window.WurmMapGen || {};
+        
+        // Chargement ordonné et séquentiel des dépendances de la carte
         ['util.js', 'markers.js', 'map.js', 'gui.js', 'main.js'].forEach(function(src) { 
             var s = document.createElement('script'); 
             s.src = src; 
