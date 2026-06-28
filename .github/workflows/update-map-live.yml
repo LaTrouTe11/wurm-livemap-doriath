@@ -37,25 +37,26 @@ jobs:
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           rm -f data/*.php
 
-      - name: 4c. Synchronisation Totale (Racine vers Template)
+      - name: 4c. Synchronisation Totale (Forcée)
         run: |
-          # Nettoyage complet du dossier template
+          # Nettoyage et recréation propre
           rm -rf template/*
           mkdir -p template/app template/data
           
-          # Copie forcée de TOUT le contenu
-          cp index.html template/index.html
-          cp data/*.json template/data/ || true
-          cp app/*.js template/app/ || true
-          cp -r css/ template/css/ || true
-          cp -r images/ template/images/ || true
+          # Copie forcée (le -f écrase le fichier cible)
+          cp -f index.html template/index.html
+          cp -f data/*.json template/data/ || true
+          cp -f app/*.js template/app/ || true
+          cp -rf css/ template/css/ || true
+          cp -rf images/ template/images/ || true
 
       - name: 5. Synchronisation Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # On ajoute tout, même les fichiers inchangés pour forcer la mise à jour des timestamps
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ finale : synchronisation racine vers template"
+            git commit -m "MAJ FORCEE : Synchronisation index et assets"
             git push origin main
           fi
