@@ -29,7 +29,7 @@ jobs:
       - name: 3. Telechargement des donnees serveurs (.db et .map)
         run: |
           mkdir -p ./sqlite
-          lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
+          lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
           set xfer:clobber on
@@ -70,7 +70,6 @@ jobs:
       - name: 6. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
 
 
 
