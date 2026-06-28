@@ -32,19 +32,22 @@ jobs:
 
       - name: 4. Execution et Synchronisation Racine
         run: |
-          # 1. Création de tous les dossiers requis par WurmMapGen pour éviter le plantage
+          # 1. Création de tous les dossiers requis par le générateur
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
           
-          # 2. Copie du fichier index.html racine vers template (requis pour le générateur)
+          # 2. Copie du index.html racine vers template (nécessaire pour WurmMapGen)
           cp index.html template/index.html
           
           # 3. Exécution du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
           
-          # 4. Copie des fichiers générés vers la racine (pour GitHub Pages)
+          # 4. Nettoyage : On supprime tout ce qui n'est pas .json dans data/
+          find data/ -type f ! -name "*.json" -delete
+          
+          # 5. Copie vers la racine
           cp -rf template/* . 
           
-          # 5. Nettoyage : suppression du dossier temporaire et des fichiers PHP inutiles
+          # 6. Nettoyage final
           rm -rf template/
           rm -f data/*.php
 
