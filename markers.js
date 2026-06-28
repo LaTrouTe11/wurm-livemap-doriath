@@ -112,3 +112,4 @@ WurmMapGen.markers = {
 
 // End IIFE
 })();
+
