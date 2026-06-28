@@ -7,7 +7,6 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
-# Bloc de sécurité obligatoire pour autoriser le déploiement sur GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -80,7 +79,6 @@ jobs:
       - name: 6. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
 
 
 
