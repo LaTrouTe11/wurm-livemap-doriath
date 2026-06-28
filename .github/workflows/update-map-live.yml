@@ -18,7 +18,6 @@ jobs:
       - name: 3. Telechargement des donnees
         run: |
           mkdir -p ./sqlite
-          # Utilisation de lftp avec forçage de connexion et remplacement des fichiers existants
           lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
@@ -33,22 +32,23 @@ jobs:
 
       - name: 4. Execution et Conversion
         run: |
-          # Création forcée du config.json
           mkdir -p data
           echo '{"actualMapSize":4096,"mapTileSize":256,"mapMaxZoom":5,"mapMinZoom":0,"nativeZoom":5,"markerType":2}' > data/config.json
-          
-          # Lancement du générateur
           java -Djava.awt.headless=true -Xmx6g -jar WurmMapGen.jar || true
-          
-          # NETTOYAGE RADICAL : Suppression de tous les .php qui bloquent l'affichage JSON
           rm -f data/*.php
 
-      - name: 4c. Synchronisation Totale
+      - name: 4c. Synchronisation Totale (Racine vers Template)
         run: |
-          mkdir -p template/data
-          mkdir -p template/app
+          # Nettoyage complet du dossier template
+          rm -rf template/*
+          mkdir -p template/app template/data
+          
+          # Copie forcée de TOUT le contenu
+          cp index.html template/index.html
           cp data/*.json template/data/ || true
-          [ -f app/main.js ] && cp app/main.js template/app/main.js || true
+          cp app/*.js template/app/ || true
+          cp -r css/ template/css/ || true
+          cp -r images/ template/images/ || true
 
       - name: 5. Synchronisation Git
         run: |
@@ -56,6 +56,6 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "MAJ finale : correction SFTP, écrasement et nettoyage PHP"
+            git commit -m "MAJ finale : synchronisation racine vers template"
             git push origin main
           fi
