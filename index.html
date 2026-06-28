@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QBC LiveMap - Doriath</title>
-    <!-- Chargement indispensable des styles et scripts Leaflet et Vue.js -->
+    <!-- Intégration des frameworks Leaflet et Vue.js requis pour l'interprétation des scripts -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
     <script src="https://jsdelivr.net"></script>
@@ -19,7 +20,7 @@
 </head>
 <body data-realtime="false">
 
-    <!-- Structure HTML requise par le script gui.js -->
+    <!-- Structure pour le menu de recherche et les filtres de visibilité -->
     <div id="gui" :class="{ sidebar: sidebarVisible }" v-cloak>
         <div id="sidebar" :class="{ loaded: loaded }">
             <div class="block padding">
@@ -51,10 +52,10 @@
     <div id="map"></div>
 
     <script>
-        // Déclaration immédiate de l'objet global
+        // Déclaration immédiate de l'espace de nom global
         window.WurmMapGen = window.WurmMapGen || {};
         
-        // Chargement ordonné des contrôles applicatifs de la carte
+        // Exécution ordonnée de la logique applicative de la carte
         ['util.js', 'markers.js', 'map.js', 'gui.js', 'main.js'].forEach(function(src) { 
             var s = document.createElement('script'); 
             s.src = src; 
@@ -64,5 +65,4 @@
     </script>
 </body>
 </html>
-
 
