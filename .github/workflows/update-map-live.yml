@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */6 * * *'  # Exécution automatique toutes les 6 heures
   workflow_dispatch:
 
 permissions:
@@ -20,13 +20,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Checkout
+      - name: 1. Checkout du code source
         uses: actions/checkout@v4
 
-      - name: 2. Installation
+      - name: 2. Installation des paquets requis
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement des donnees
+      - name: 3. Telechargement des donnees serveurs (.db et .map)
         run: |
           mkdir -p ./sqlite
           lftp -u ${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }} sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
@@ -41,19 +41,22 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution du Generateur Wurm
+      - name: 4. Execution du Generateur WurmMapGen 2.33
         run: |
+          # Exécution optimisée pour la v2.33 (Headless pour ignorer l'interface graphique Java)
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
+          # Nettoyage ciblé des scripts PHP serveurs résiduels générés dans data/
           if [ -d "data" ]; then
             find data/ -type f ! -name "*.json" -delete
             rm -f data/*.php
           fi
           
+          # Suppression des bases SQLite et map sources pour libérer l'espace disque de la VM
           rm -rf sqlite/
           rm -f top_layer.map
 
-      - name: 5. Televersement de l'artéfact Web
+      - name: 5. Creation et televersement de l'artefact Web
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
@@ -65,7 +68,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 6. Déploiement vers GitHub Pages
+      - name: 6. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
