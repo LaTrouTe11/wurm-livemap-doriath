@@ -34,18 +34,23 @@ jobs:
 
       - name: 4. Generation
         run: |
-          # Lancement du générateur avec le chemin explicite vers le fichier properties
-          java -Djava.awt.headless=true -Xmx5g -jar WurmGenMap/WurmMapGen.jar -p WurmGenMap/WurmMapGen.properties
+          # 1. On place le fichier de config à la racine pour que le programme le trouve par défaut
+          cp WurmGenMap/WurmMapGen.properties .
           
-          # Création du dossier tiles dans template pour que GitHub Pages les trouve
+          # 2. Lancement du générateur (sans argument '-p', car il cherche par défaut à la racine)
+          java -Djava.awt.headless=true -Xmx5g -jar WurmGenMap/WurmMapGen.jar
+          
+          # 3. Création du dossier tiles dans template pour que GitHub Pages les trouve
           mkdir -p template/tiles
           find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile trouvée"
           
-          # Copie de la config générée vers template/data/ pour corriger le bug TypeError
+          # 4. Copie de la config générée vers template/data/ (corrige le bug TypeError)
           if [ -f config.json ]; then
             cp config.json template/data/config.json
           fi
           
+          # 5. Nettoyage de la racine
+          rm -f WurmMapGen.properties
           rm -f top_layer.map
 
       - name: 5. Upload Pages Artifact
