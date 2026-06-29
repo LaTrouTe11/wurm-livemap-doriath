@@ -41,13 +41,16 @@ jobs:
           bye
           EOF
 
-      - name: 4. Generation et Injection index.html propre
+      - name: 4. Generation et Injection index.html
         run: |
-          # Nettoyage strict avant génération
+          # Nettoyage PHP strict
           find . -type f -name "*.php" -delete
           
-          # Création du index.html corrigé (structure synchrone)
-          cat << 'EOF' > index.html
+          # Création structure complète pour Java
+          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+
+          # Injection index.html synchrone
+          cat << 'EOF' > template/index.html
           <!DOCTYPE html>
           <html lang="fr">
           <head>
@@ -58,10 +61,8 @@ jobs:
           </head>
           <body>
               <div id="map" style="height:100vh; width:100%;"></div>
-
               <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
               <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-              
               <script>window.WurmMapGen = {};</script>
               <script src="util.js"></script>
               <script src="markers.js"></script>
@@ -72,23 +73,29 @@ jobs:
           </html>
           EOF
 
-          # Exécution du générateur Java
-          mkdir -p template
-          cp index.html template/index.html
+          # Génération
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Synchronisation finale racine
+          # Sync racine
           cp -ru template/* .
-          rm -rf template/ sqlite/ top_layer.map app/
+          rm -rf template/ sqlite/ top_layer.map
 
-      - name: 5. Sauvegarde et Push Git
+      - name: 5. Mise a jour statut.txt
+        run: |
+          echo "Rapport de generation : $(date)" > statut.txt
+          echo "Contenu racine :" >> statut.txt
+          ls -F >> statut.txt
+          echo "Images detectees : $(find images/ -type f | wc -l)" >> statut.txt
+
+      - name: 6. Push Git final
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff-index --quiet HEAD || (git commit -m "MAJ AUTO : Synchronisation structure racine et index" && git push origin main)
+          git commit -m "MAJ AUTO : Synchronisation racine et statut" || echo "Rien a committer"
+          git push origin main
 
-      - name: 6. Deploiement GitHub Pages
+      - name: 7. Deploiement GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
