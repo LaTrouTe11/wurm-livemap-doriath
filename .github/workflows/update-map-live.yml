@@ -41,15 +41,15 @@ jobs:
           bye
           EOF
 
-      - name: 4. Generation et Injection index.html
+      - name: 4. Generation et Injection index.html propre
         run: |
-          # Nettoyage PHP strict
+          # Nettoyage strict des fichiers parasites
           find . -type f -name "*.php" -delete
           
-          # Création structure complète pour Java
+          # Création structure requise par Java
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
 
-          # Injection index.html synchrone
+          # Injection du index.html corrigé (Chargement synchrone pour Vue.js)
           cat << 'EOF' > template/index.html
           <!DOCTYPE html>
           <html lang="fr">
@@ -61,8 +61,10 @@ jobs:
           </head>
           <body>
               <div id="map" style="height:100vh; width:100%;"></div>
+
               <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-              <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+              <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+              
               <script>window.WurmMapGen = {};</script>
               <script src="util.js"></script>
               <script src="markers.js"></script>
@@ -73,18 +75,16 @@ jobs:
           </html>
           EOF
 
-          # Génération
+          # Exécution du générateur
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Sync racine
+          # Copie vers la racine
           cp -ru template/* .
-          rm -rf template/ sqlite/ top_layer.map
+          rm -rf template/ sqlite/ top_layer.map app/
 
       - name: 5. Mise a jour statut.txt
         run: |
           echo "Rapport de generation : $(date)" > statut.txt
-          echo "Contenu racine :" >> statut.txt
-          ls -F >> statut.txt
           echo "Images detectees : $(find images/ -type f | wc -l)" >> statut.txt
 
       - name: 6. Push Git final
