@@ -42,39 +42,38 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution Directe Securisee du Generateur
+      - name: 4. Execution du Generateur avec Securite Hybride
         run: |
-          # 1. Sauvegarde index.html
-          mkdir -p /tmp/wurm_web_save
-          cp index.html /tmp/wurm_web_save/index.html
+          # Sauvegarde du fichier index propre
+          cp index.html /tmp/index_hybride.html
           
-          # 2. Structure pour Java
-          mkdir -p template/app template/css template/data template/images template/markers
-          cp /tmp/wurm_web_save/index.html template/index.html
+          # Création de l'arborescence requise par l'outil Java
+          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+          cp /tmp/index_hybride.html template/index.html
           
-          # 3. Injection configuration RMI (Port 5606)
+          # Configuration RMI
           if [ -f "WurmMapGen.properties" ]; then
             sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
             sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
             sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' WurmMapGen.properties
           fi
 
-          # 4. Exécution (Génère le terrain)
+          # Exécution de l'outil Java
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 5. Restauration de sécurité
-          cp -f /tmp/wurm_web_save/index.html ./index.html
+          # Restauration forcée de l'index hybride compatible
+          cp -f /tmp/index_hybride.html ./index.html
           
-          # 6. Nettoyage
-          rm -rf sqlite/ top_layer.map template/
+          # Nettoyage des dossiers temporaires
+          rm -rf sqlite/ top_layer.map template/ app/ dist/ includes/
           if [ -d "data" ]; then find data/ -type f ! -name "*.json" -delete; fi
 
-      - name: 5. Sauvegarde persistante Git
+      - name: 5. Sauvegarde persistante Git (Vitesse instantanee)
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add images/ data/ index.html
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation"
+          git add images/ data/ index.html WurmMapGen.properties
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation incrementale 2026"
           git push origin main || true
 
       - name: 6. Creation et televersement de l'artefact Web
@@ -85,8 +84,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 7. Deploiement en ligne
+      - name: 7. Deploiement en ligne sur GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
+
 
 
