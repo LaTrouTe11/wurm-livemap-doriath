@@ -4,146 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
+    <!-- Chargement CDN ultra-rapide du moteur Leaflet de wu-map -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <script src="https://unpkg.com"></script>
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; background-color: #15151c; color: white; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; background-color: #1a1a24; color: #fff; }
+        #map { position: absolute; top: 0; bottom: 0; right: 0; left: 300px; background-color: #15151c; }
         
-        /* Menu latéral fixe à gauche */
-        .sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 280px; background: #1e1e2a; box-shadow: 2px 0 15px rgba(0,0,0,0.5); z-index: 100; display: flex; flex-direction: column; border-right: 2px solid #2196F3; }
-        .sidebar-header { padding: 20px; background: #15151f; border-bottom: 1px solid #333; }
+        /* Menu latéral de type wu-map */
+        .sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 300px; background: #22222b; box-shadow: 2px 0 10px rgba(0,0,0,0.5); z-index: 100; display: flex; flex-direction: column; border-right: 1px solid #3a3a4a; }
+        .sidebar-header { padding: 15px; background: #1a1a22; border-bottom: 1px solid #3a3a4a; }
         .sidebar-header h1 { margin: 0; font-size: 18px; color: #2196F3; }
-        .sidebar-header p { margin: 5px 0 0 0; font-size: 12px; color: #888; }
+        .sidebar-header p { margin: 5px 0 0 0; font-size: 11px; color: #888; }
         
-        /* Zone de recherche */
-        .search-box { padding: 15px; background: #252535; border-bottom: 1px solid #333; }
-        .search-input { width: calc(100% - 20px); padding: 8px 10px; background: #15151f; border: 1px solid #444; color: white; border-radius: 4px; font-size: 14px; }
+        .search-box { padding: 12px; background: #2a2a35; border-bottom: 1px solid #3a3a4a; }
+        .search-input { width: calc(100% - 20px); padding: 8px 10px; background: #1a1a22; border: 1px solid #444; color: white; border-radius: 4px; font-size: 13px; }
         .search-input:focus { border-color: #2196F3; outline: none; }
 
-        /* Contenu du menu (liens rapides) */
-        .sidebar-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
-        .menu-title { font-size: 12px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; }
-        .menu-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-        .menu-item { padding: 10px; background: #252535; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background 0.2s; border-left: 3px solid #444; }
-        .menu-item:hover { background: #2d2d42; border-left-color: #2196F3; }
-        .menu-item span { display: block; font-size: 11px; color: #888; margin-top: 2px; }
+        .section-title { font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; padding: 12px 15px 5px 15px; letter-spacing: 1px; }
+        .filter-group { padding: 0 15px; display: flex; flex-direction: column; gap: 8px; }
+        .filter-item { display: flex; align-items: center; font-size: 13px; cursor: pointer; user-select: none; }
+        .filter-item input { margin-right: 8px; }
 
-        /* Zone de visualisation de la carte (décalée à droite de la sidebar) */
-        .wurm-viewer { position: absolute; top: 0; bottom: 0; left: 282px; right: 0; overflow: auto; cursor: grab; background: #15151c; }
-        .wurm-viewer:active { cursor: grabbing; }
-
-        /* Conteneur de la grille d'images de Doriath */
-        .wurm-grid-canvas { display: grid; grid-template-columns: repeat(16, 256px); grid-template-rows: repeat(16, 256px); width: 4096px; height: 4096px; transform-origin: top left; transition: transform 0.1s ease-out; padding: 20px; }
-        .wurm-grid-canvas img { width: 256px; height: 256px; display: block; background: #15151c; -webkit-user-drag: none; user-select: none; image-rendering: pixelated; }
-
-        /* Boutons de zoom ajustés */
-        .wurm-zoom-controls { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 5px; z-index: 100; }
-        .wurm-zoom-btn { width: 40px; height: 40px; background: #2196F3; color: white; border: none; border-radius: 4px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
-        .wurm-zoom-btn:hover { background: #1976D2; }
+        .sidebar-content { flex-grow: 1; overflow-y: auto; padding: 10px 15px; }
+        .village-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+        .village-item { padding: 8px; background: #2a2a35; border-radius: 4px; cursor: pointer; font-size: 13px; border-left: 3px solid #444; }
+        .village-item:hover { background: #323242; border-left-color: #2196F3; }
+        .village-item span { display: block; font-size: 10px; color: #888; margin-top: 2px; }
     </style>
 </head>
 <body>
 
-    <!-- Menu latéral gauche rétabli -->
     <div class="sidebar">
         <div class="sidebar-header">
             <h1>QBC Doriath</h1>
-            <p>Carte interactive • MàJ 6h</p>
+            <p>WU Interactive Map • Instantanée</p>
         </div>
         
         <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="Filtrer un village..." onkeyup="filterVillages()">
+            <input type="text" id="searchInput" class="search-input" placeholder="Rechercher un village..." onkeyup="filterList()">
         </div>
 
+        <div class="section-title">Filtres Marqueurs</div>
+        <div class="filter-group">
+            <label class="filter-item"><input type="checkbox" id="chk-villages" checked onchange="toggleLayer('villages')"> Villages</label>
+            <label class="filter-item"><input type="checkbox" id="chk-towers" checked onchange="toggleLayer('towers')"> Tours de garde</label>
+            <label class="filter-item"><input type="checkbox" id="chk-players" checked onchange="toggleLayer('players')"> Joueurs en ligne</label>
+        </div>
+
+        <div class="section-title">Liste des index</div>
         <div class="sidebar-content">
-            <div class="menu-title">Points d'intérêt</div>
-            <ul class="menu-list" id="villageList">
-                <!-- Liens de téléportation visuelle sur la carte -->
-                <li class="menu-item" onclick="focusCoordinates(2048, 2048)">
-                    📍 Centre du Monde
-                    <span>Coordonnées : 2048, 2048</span>
-                </li>
-                <li class="menu-item" onclick="focusCoordinates(500, 800)">
-                    🏰 Point de Départ (Spawn)
-                    <span>Coordonnées : 500, 800</span>
-                </li>
-                <li class="menu-item" onclick="focusCoordinates(3200, 1500)">
-                    ⚓ Port de Doriath
-                    <span>Coordonnées : 3200, 1500</span>
-                </li>
+            <ul class="village-list" id="villageList">
+                <li class="village-item" onclick="focusOn(2048, 2048)">📍 Centre de Doriath<span>Position : 2048, 2048</span></li>
+                <li class="village-item" onclick="focusOn(500, 800)">🏰 Point de Départ (Spawn)<span>Position : 500, 800</span></li>
             </ul>
         </div>
     </div>
 
-    <!-- Zone de la carte interactive -->
-    <div class="wurm-viewer" id="wurmViewer">
-        <div class="wurm-grid-canvas" id="wurmGrid"></div>
-    </div>
-
-    <div class="wurm-zoom-controls">
-        <button class="wurm-zoom-btn" onclick="adjustZoom(0.1)">+</button>
-        <button class="wurm-zoom-btn" onclick="adjustZoom(-0.1)">-</button>
-    </div>
+    <div id="map"></div>
 
     <script>
-        // Génération automatique de la grille 16x16
-        const grid = document.getElementById('wurmGrid');
-        for (let y = 0; y < 16; y++) {
-            for (let x = 0; x < 16; x++) {
-                const img = document.createElement('img');
-                img.src = `images/${x}-${y}.png`;
-                grid.appendChild(img);
-            }
+        // Déclaration immédiate de l'objet global
+        window.WurmMapGen = window.WurmMapGen || {};
+
+        // Configuration de la carte Leaflet Simple (Identique à wu-map)
+        var map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: 0,
+            maxZoom: 5,
+            zoomControl: true,
+            attributionControl: false
+        });
+
+        // Définition des bordures de la carte (4096 x 4096)
+        var mapBounds = new L.LatLngBounds(
+            map.unproject([0, 4096], 5),
+            map.unproject([4096, 0], 5)
+        );
+        map.fitBounds(mapBounds);
+        map.setZoom(2);
+
+        // Chargement instantané des tuiles d'images depuis le cache GitHub
+        var tileLayer = L.tileLayer('images/{x}-{y}.png', {
+            tileSize: 256,
+            noWrap: true,
+            tms: false
+        }).addTo(map);
+
+        // Groupes de calques pour les filtres
+        var layers = {
+            villages: L.layerGroup().addTo(map),
+            towers: L.layerGroup().addTo(map),
+            players: L.layerGroup().addTo(map)
+        };
+
+        // Fonction pour cacher / afficher un calque (Villages, Tours)
+        function toggleLayer(type) {
+            var chk = document.getElementById('chk-' + type);
+            if (chk.checked) { map.addLayer(layers[type]); } else { map.removeLayer(layers[type]); }
         }
 
-        // Système de Zoom et Centrage
-        var currentZoom = 0.4;
-        var viewer = document.getElementById('wurmViewer');
-        grid.style.transform = `scale(${currentZoom})`;
-
-        function adjustZoom(amount) {
-            currentZoom = Math.max(0.1, Math.min(1.5, currentZoom + amount));
-            grid.style.transform = `scale(${currentZoom})`;
+        // Fonction pour centrer la carte sur un point précis
+        function focusOn(x, y) {
+            // Conversion de coordonnées Wurm vers Leaflet Simple
+            var target = map.unproject([x, y], 5);
+            map.setView(target, 4);
         }
 
-        // Fonction de centrage automatique au clic sur un élément du menu
-        function focusCoordinates(x, y) {
-            // Calcule la position exacte en fonction du niveau de zoom actuel
-            viewer.scrollLeft = (x * currentZoom) - (viewer.offsetWidth / 2);
-            viewer.scrollTop = (y * currentZoom) - (viewer.offsetHeight / 2);
-        }
-
-        // Script de filtrage en temps réel dans la barre de recherche
-        function filterVillages() {
-            var input = document.getElementById('searchInput');
-            var filter = input.value.toLowerCase();
-            var ul = document.getElementById('villageList');
-            var li = ul.getElementsByTagName('li');
-
+        // Filtrage dynamique de la recherche textuelle
+        function filterList() {
+            var input = document.getElementById('searchInput').value.toLowerCase();
+            var li = document.getElementById('villageList').getElementsByTagName('li');
             for (var i = 0; i < li.length; i++) {
-                var txtValue = li[i].textContent || li[i].innerText;
-                if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                    li[i].style.display = "";
-                } else {
-                    li[i].style.display = "none";
-                }
+                var txt = li[i].textContent || li[i].innerText;
+                li[i].style.display = (txt.toLowerCase().indexOf(input) > -1) ? "" : "none";
             }
         }
 
-        // Système de glissement de carte à la souris (Drag to Scroll)
-        var isDown = false; var startX, startY, scrollLeft, scrollTop;
-        viewer.addEventListener('mousedown', (e) => {
-            isDown = true;
-            startX = e.pageX - viewer.offsetLeft; startY = e.pageY - viewer.offsetTop;
-            scrollLeft = viewer.scrollLeft; scrollTop = viewer.scrollTop;
-        });
-        viewer.addEventListener('mouseleave', () => isDown = false);
-        viewer.addEventListener('mouseup', () => isDown = false);
-        viewer.addEventListener('mousemove', (e) => {
-            if(!isDown) return; e.preventDefault();
-            const x = e.pageX - viewer.offsetLeft; const y = e.pageY - viewer.offsetTop;
-            viewer.scrollLeft = scrollLeft - (x - startX); viewer.scrollTop = scrollTop - (y - startY);
-        });
+        // Chargement asynchrone des données des villages si elles existent
+        fetch('data/villages.json')
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('villageList');
+                data.forEach(v => {
+                    // Ajout du marqueur sur le calque Leaflet
+                    var marker = L.marker(map.unproject([v.x, v.y], 5));
+                    marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}`);
+                    layers.villages.addLayer(marker);
+
+                    // Ajout dynamique dans la liste du menu de gauche
+                    var item = document.createElement('li');
+                    item.className = 'village-item';
+                    item.onclick = () => focusOn(v.x, v.y);
+                    item.innerHTML = `🏠 ${v.name} <span>Maire : ${v.mayor}</span>`;
+                    list.appendChild(item);
+                });
+            }).catch(() => console.log("Aucune donnée village pour le moment."));
     </script>
 </body>
 </html>
+
 
 
