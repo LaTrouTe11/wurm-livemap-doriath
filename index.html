@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
-    <!-- Chargement CDN ultra-rapide du moteur Leaflet de wu-map -->
+    <!-- Chargement CDN ultra-rapide de l'infrastructure Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; background-color: #1a1a24; color: #fff; }
         #map { position: absolute; top: 0; bottom: 0; right: 0; left: 300px; background-color: #15151c; }
         
-        /* Menu latéral de type wu-map */
+        /* Menu latéral style wu-map */
         .sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 300px; background: #22222b; box-shadow: 2px 0 10px rgba(0,0,0,0.5); z-index: 100; display: flex; flex-direction: column; border-right: 1px solid #3a3a4a; }
         .sidebar-header { padding: 15px; background: #1a1a22; border-bottom: 1px solid #3a3a4a; }
         .sidebar-header h1 { margin: 0; font-size: 18px; color: #2196F3; }
@@ -38,25 +38,23 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h1>QBC Doriath</h1>
-            <p>WU Interactive Map • Instantanée</p>
+            <p>Interactive Map • Instantanée</p>
         </div>
         
         <div class="search-box">
             <input type="text" id="searchInput" class="search-input" placeholder="Rechercher un village..." onkeyup="filterList()">
         </div>
 
-        <div class="section-title">Filtres Marqueurs</div>
+        <div class="section-title">Filtres Calques</div>
         <div class="filter-group">
-            <label class="filter-item"><input type="checkbox" id="chk-villages" checked onchange="toggleLayer('villages')"> Villages</label>
+            <label class="filter-item"><input type="checkbox" id="chk-villages" checked onchange="toggleLayer('villages')"> Villages (Deeds)</label>
             <label class="filter-item"><input type="checkbox" id="chk-towers" checked onchange="toggleLayer('towers')"> Tours de garde</label>
-            <label class="filter-item"><input type="checkbox" id="chk-players" checked onchange="toggleLayer('players')"> Joueurs en ligne</label>
         </div>
 
-        <div class="section-title">Liste des index</div>
+        <div class="section-title">Index des localisations</div>
         <div class="sidebar-content">
             <ul class="village-list" id="villageList">
-                <li class="village-item" onclick="focusOn(2048, 2048)">📍 Centre de Doriath<span>Position : 2048, 2048</span></li>
-                <li class="village-item" onclick="focusOn(500, 800)">🏰 Point de Départ (Spawn)<span>Position : 500, 800</span></li>
+                <li class="village-item" onclick="focusOn(2048, 2048)">📍 Centre de Doriath<span>Position de référence : 2048, 2048</span></li>
             </ul>
         </div>
     </div>
@@ -64,10 +62,8 @@
     <div id="map"></div>
 
     <script>
-        // Déclaration immédiate de l'objet global
         window.WurmMapGen = window.WurmMapGen || {};
 
-        // Configuration de la carte Leaflet Simple (Identique à wu-map)
         var map = L.map('map', {
             crs: L.CRS.Simple,
             minZoom: 0,
@@ -76,42 +72,32 @@
             attributionControl: false
         });
 
-        // Définition des bordures de la carte (4096 x 4096)
-        var mapBounds = new L.LatLngBounds(
-            map.unproject([0, 4096], 5),
-            map.unproject([4096, 0], 5)
-        );
+        // Cadrage géométrique de la grille
+        var mapBounds = new L.LatLngBounds(map.unproject([0, 4096], 5), map.unproject([4096, 0], 5));
         map.fitBounds(mapBounds);
         map.setZoom(2);
 
-        // Chargement instantané des tuiles d'images depuis le cache GitHub
-        var tileLayer = L.tileLayer('images/{x}-{y}.png', {
+        // Lecture immédiate depuis le stockage permanent de votre GitHub
+        L.tileLayer('images/{x}-{y}.png', {
             tileSize: 256,
             noWrap: true,
             tms: false
         }).addTo(map);
 
-        // Groupes de calques pour les filtres
         var layers = {
             villages: L.layerGroup().addTo(map),
-            towers: L.layerGroup().addTo(map),
-            players: L.layerGroup().addTo(map)
+            towers: L.layerGroup().addTo(map)
         };
 
-        // Fonction pour cacher / afficher un calque (Villages, Tours)
         function toggleLayer(type) {
             var chk = document.getElementById('chk-' + type);
             if (chk.checked) { map.addLayer(layers[type]); } else { map.removeLayer(layers[type]); }
         }
 
-        // Fonction pour centrer la carte sur un point précis
         function focusOn(x, y) {
-            // Conversion de coordonnées Wurm vers Leaflet Simple
-            var target = map.unproject([x, y], 5);
-            map.setView(target, 4);
+            map.setView(map.unproject([x, y], 5), 4);
         }
 
-        // Filtrage dynamique de la recherche textuelle
         function filterList() {
             var input = document.getElementById('searchInput').value.toLowerCase();
             var li = document.getElementById('villageList').getElementsByTagName('li');
@@ -121,28 +107,27 @@
             }
         }
 
-        // Chargement asynchrone des données des villages si elles existent
+        // Lecture en boucle du fichier villages.json généré automatiquement
         fetch('data/villages.json')
             .then(res => res.json())
             .then(data => {
                 const list = document.getElementById('villageList');
                 data.forEach(v => {
-                    // Ajout du marqueur sur le calque Leaflet
                     var marker = L.marker(map.unproject([v.x, v.y], 5));
-                    marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}`);
+                    marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}<br>Citoyens: ${v.citizens}`);
                     layers.villages.addLayer(marker);
 
-                    // Ajout dynamique dans la liste du menu de gauche
                     var item = document.createElement('li');
                     item.className = 'village-item';
                     item.onclick = () => focusOn(v.x, v.y);
                     item.innerHTML = `🏠 ${v.name} <span>Maire : ${v.mayor}</span>`;
                     list.appendChild(item);
                 });
-            }).catch(() => console.log("Aucune donnée village pour le moment."));
+            }).catch(() => console.log("Fichier villages.json vide ou indisponible."));
     </script>
 </body>
 </html>
+
 
 
 
