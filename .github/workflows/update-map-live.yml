@@ -28,7 +28,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
-          sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lftp openjdk-17-jre wget
+          sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lftp openjdk-17-jre
 
       - name: 3. Telechargement des donnees serveurs (.db et .map)
         run: |
@@ -45,37 +45,45 @@ jobs:
           bye
           EOF
 
-      - name: 4. Telechargement automatique et Execution de WurmMapDump (Moderne)
+      - name: 4. Execution du Generateur en Zone Isolee
         run: |
-          # 1. Création d'une zone de build temporaire isolée
-          mkdir -p /tmp/wurm_dump_zone
-          cd /tmp/wurm_dump_zone
+          # 1. Création d'un répertoire temporaire pour isoler le traitement
+          mkdir -p /tmp/wurm_isolated
           
-          # 2. Téléchargement automatique de l'outil moderne officiel depuis les dépôts communautaires
-          wget -q -O WurmMapDump.jar https://github.com 2>/dev/null || wget -q -O WurmMapDump.jar https://github.com
+          # 2. Utilisation du binaire WurmMapGen.jar existant et sécurisé de votre dépôt
+          cp WurmMapGen.jar WurmMapGen.properties top_layer.map /tmp/wurm_isolated/
+          cp -r sqlite /tmp/wurm_isolated/
           
-          # 3. Copie des fichiers sources de Doriath pour traitement
-          cp $GITHUB_WORKSPACE/top_layer.map .
-          cp -r $GITHUB_WORKSPACE/sqlite .
+          # 3. Création de la structure de dossiers requise par Java
+          mkdir -p /tmp/wurm_isolated/template/app /tmp/wurm_isolated/template/css /tmp/wurm_isolated/template/data /tmp/wurm_isolated/template/images /tmp/wurm_isolated/template/markers /tmp/wurm_isolated/template/dist /tmp/wurm_isolated/template/includes
           
-          # 4. Exécution du nouveau binaire (Génération topographique 4k)
-          java -jar WurmMapDump.jar -map top_layer.map -dbdir ./sqlite -output ./dist_map -image TypeTopographical -tileSize 256
-          
-          # 5. Rapatriement ciblé des images et des données vers votre dépôt racine
-          mkdir -p $GITHUB_WORKSPACE/images $GITHUB_WORKSPACE/data
-          if [ -d "./dist_map/images" ]; then cp -f ./dist_map/images/*.png $GITHUB_WORKSPACE/images/ 2>/dev/null || true; fi
-          if [ -d "./dist_map/data" ]; then cp -f ./dist_map/data/*.json $GITHUB_WORKSPACE/data/ 2>/dev/null || true; fi
-          
-          # 6. Purge complète des dossiers résiduels de la machine virtuelle
+          # 4. Modification dynamique sécurisée des accès RMI distants
+          if [ -f "/tmp/wurm_isolated/WurmMapGen.properties" ]; then
+            sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' /tmp/wurm_isolated/WurmMapGen.properties
+            sed -i 's/rmiPort=.*/rmiPort=5606/g' /tmp/wurm_isolated/WurmMapGen.properties
+            sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' /tmp/wurm_isolated/WurmMapGen.properties
+            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> /tmp/wurm_isolated/WurmMapGen.properties
+          fi
+
+          # 5. Exécution sécurisée à l'abri
+          cd /tmp/wurm_isolated
+          java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           cd $GITHUB_WORKSPACE
-          rm -rf sqlite/ top_layer.map /tmp/wurm_dump_zone
+          
+          # 6. Rapatriement exclusif des images modifiées et des données JSON
+          mkdir -p images data
+          if [ -d "/tmp/wurm_isolated/images" ]; then cp -f /tmp/wurm_isolated/images/*.png ./images/ 2>/dev/null || true; fi
+          if [ -d "/tmp/wurm_isolated/data" ]; then cp -f /tmp/wurm_isolated/data/*.json ./data/ 2>/dev/null || true; fi
+          
+          # 7. Nettoyage des fichiers temporaires lourds
+          rm -rf sqlite/ top_layer.map /tmp/wurm_isolated
 
       - name: 5. Sauvegarde persistante Git (Vitesse instantanée)
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add images/ data/ index.html WurmMapGen.properties
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : bascule et rendu via WurmMapDump moderne"
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation incrémentale du terrain"
           git push origin main || true
 
       - name: 6. Creation et televersement de l'artefact Web
