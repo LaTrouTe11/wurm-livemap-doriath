@@ -61,7 +61,7 @@
     <div id="map"></div>
 
     <script>
-        // SÉCURITÉ : On attend le chargement complet des scripts CDN externes pour bloquer l'erreur "L is not defined"
+        // On attend que la page complète soit lue pour s'assurer que Leaflet existe
         window.addEventListener('load', function() {
             window.WurmMapGen = window.WurmMapGen || {};
 
@@ -73,6 +73,7 @@
                 attributionControl: false
             });
 
+            // Définition géométrique exacte des bordures de votre monde 4k
             var mapBounds = new L.LatLngBounds(
                 map.unproject([0, 4096], 5),
                 map.unproject([4096, 0], 5)
@@ -80,6 +81,7 @@
             map.fitBounds(mapBounds);
             map.setZoom(2);
 
+            // Chargement de vos images stockées de manière permanente sur GitHub
             L.tileLayer('images/{x}-{y}.png', {
                 tileSize: 256,
                 noWrap: true,
@@ -109,6 +111,7 @@
                 }
             };
 
+            // Lecture automatique de votre fichier de données pour lister vos villes
             fetch('data/villages.json')
                 .then(res => res.json())
                 .then(data => {
@@ -124,10 +127,11 @@
                         item.innerHTML = `🏠 ${v.name} <span>Maire : ${v.mayor}</span>`;
                         list.appendChild(item);
                     });
-                }).catch(() => console.log("En attente des données JSON des villages..."));
+                }).catch(() => console.log("En attente de données JSON..."));
         });
     </script>
 </body>
 </html>
+
 
 
