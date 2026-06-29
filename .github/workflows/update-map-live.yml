@@ -64,7 +64,7 @@ jobs:
           cp -f /tmp/wurm_clean/gui.js ./gui.js 2>/dev/null || true
           cp -f /tmp/wurm_clean/diagnostic.html ./diagnostic.html 2>/dev/null || true
           
-          # 5. INJECTION SYSTEME DES CADRAGES CDN (Régle définitivement l'erreur L is not defined)
+          # 5. INJECTION SYSTEME DES CADRAGES CDN (Règle définitivement l'erreur L is not defined)
           if [ -f "index.html" ]; then
             sed -i '/<head>/a \    <script src="https://unpkg.com"></script>\n    <script src="https://jsdelivr.net"></script>\n    <script src="https://jsdelivr.net"></script>' index.html
           fi
@@ -99,6 +99,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
+          retention-days: 1
 
   deploy:
     needs: build
@@ -110,5 +111,6 @@ jobs:
       - name: 6. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
 
