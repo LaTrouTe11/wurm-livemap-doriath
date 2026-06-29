@@ -35,24 +35,27 @@ jobs:
 
       - name: 4. Generation
         run: |
-          # Génération de la carte (le .jar est à la racine)
+          # Génération de la carte
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Copie des tuiles générées vers le dossier de votre site
+          # Création du dossier cible dans template/
           mkdir -p template/tiles
-          cp -r tiles/* template/tiles/
+          
+          # Copie des tuiles (si le dossier tiles/ existe à la racine après la génération)
+          if [ -d "tiles" ]; then
+            cp -r tiles/* template/tiles/
+            rm -rf tiles/
+          fi
           
           # Nettoyage des fichiers temporaires
-          rm -rf tiles/
           rm -f top_layer.map
-          # Optionnel : rm -rf sqlite/ (si vous ne voulez pas garder les DB dans le repo)
 
       - name: 5. Push final
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Ajout des modifications dans le dossier template
+          # On ajoute uniquement les modifications dans le dossier template
           git add template/ || echo "Aucun changement"
-          git commit -m "MAJ AUTO : Synchronisation des tuiles et mise à jour web" || echo "Rien à commiter"
+          git commit -m "MAJ AUTO : Synchronisation des tuiles dans template" || echo "Rien à commiter"
           git push origin main
