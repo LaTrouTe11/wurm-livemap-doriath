@@ -45,38 +45,33 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution du Generateur en Zone Isolee
+      - name: 4. Execution Directe Securisee du Generateur
         run: |
-          mkdir -p /tmp/wurm_isolated
-          cp WurmMapGen.jar WurmMapGen.properties top_layer.map /tmp/wurm_isolated/
-          cp -r sqlite /tmp/wurm_isolated/
+          # 1. Sauvegarde et protection de votre index.html propre de type wu-map
+          mkdir -p /tmp/wurm_web_save
+          cp index.html /tmp/wurm_web_save/index.html
           
-          # Création forcée de l'arborescence complète exigée par le binaire Java
-          mkdir -p /tmp/wurm_isolated/template/app
-          mkdir -p /tmp/wurm_isolated/template/css
-          mkdir -p /tmp/wurm_isolated/template/data
-          mkdir -p /tmp/wurm_isolated/template/images
-          mkdir -p /tmp/wurm_isolated/template/markers
-          mkdir -p /tmp/wurm_isolated/template/dist
-          mkdir -p /tmp/wurm_isolated/template/includes
-          cp index.html /tmp/wurm_isolated/template/index.html
+          # 2. Création de la structure de dossiers obligatoire pour empêcher le crash de Java
+          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+          cp /tmp/wurm_web_save/index.html template/index.html
           
-          if [ -f "/tmp/wurm_isolated/WurmMapGen.properties" ]; then
-            sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' /tmp/wurm_isolated/WurmMapGen.properties
-            sed -i 's/rmiPort=.*/rmiPort=5606/g' /tmp/wurm_isolated/WurmMapGen.properties
-            sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' /tmp/wurm_isolated/WurmMapGen.properties
-            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> /tmp/wurm_isolated/WurmMapGen.properties
+          # 3. Injection dynamique et invisible des accès RMI distants (Port 5606)
+          if [ -f "WurmMapGen.properties" ]; then
+            sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
+            sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
+            sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' WurmMapGen.properties
+            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> WurmMapGen.properties
           fi
 
-          cd /tmp/wurm_isolated
+          # 4. Exécution directe (Génère de vraies données et de nouvelles tuiles de terrain)
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
-          cd $GITHUB_WORKSPACE
           
-          mkdir -p images data
-          if [ -d "/tmp/wurm_isolated/images" ]; then cp -f /tmp/wurm_isolated/images/*.png ./images/ 2>/dev/null || true; fi
-          if [ -d "/tmp/wurm_isolated/data" ]; then cp -f /tmp/wurm_isolated/data/*.json ./data/ 2>/dev/null || true; fi
+          # 5. Restauration de sécurité de votre index de navigation
+          cp -f /tmp/wurm_web_save/index.html ./index.html
           
-          rm -rf sqlite/ top_layer.map /tmp/wurm_isolated
+          # 6. Nettoyage et tri strict des fichiers lourds de la machine de build
+          rm -rf sqlite/ top_layer.map template/ app/ /tmp/wurm_web_save/
+          if [ -d "data" ]; then find data/ -type f ! -name "*.json" -delete; fi
 
       - name: 5. Sauvegarde persistante Git (Vitesse instantanee)
         run: |
@@ -101,4 +96,5 @@ jobs:
       - name: 7. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
