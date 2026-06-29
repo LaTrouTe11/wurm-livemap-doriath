@@ -45,32 +45,39 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution du Generateur en Mode Incremental
+      - name: 4. Execution du Generateur WurmMapGen
         run: |
           # 1. Structure minimale exigée par le binaire Java
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
           cp index.html template/index.html
           
-          # 2. Exécution du générateur Java (Il va écraser uniquement les images modifiées)
+          # 2. Injection dynamique des accès RMI distants (Port 5606)
+          if [ -f "WurmMapGen.properties" ]; then
+            sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
+            sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
+            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> WurmMapGen.properties
+          fi
+
+          # 3. Exécution brute du générateur Java (Il modifie uniquement les tuiles qui ont changé)
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 3. Restauration forcée de votre index de type wu-map
+          # 4. Restauration de l'index de navigation propre
           cp -f template/index.html ./index.html
           
-          # 4. Nettoyage ciblé : On détruit les bases SQL de 5 Go et les structures temporaires, MAIS ON GARDE LE DOSSIER IMAGES/
+          # 5. Nettoyage : On détruit les fichiers lourds, MAIS ON GARDE LE DOSSIER IMAGES/ ET DATA/
           rm -rf sqlite/
           rm -f top_layer.map
           rm -rf template/
           rm -rf app/
           if [ -d "data" ]; then find data/ -type f ! -name "*.json" -delete; fi
 
-      - name: 5. Synchronisation intelligente Git (Envoie uniquement les tuiles qui ont changé)
+      - name: 5. Stockage persistant et intelligent sur GitHub (Vitesse instantanée)
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add images/ data/ index.html
-          # Le script vérifie s'il y a de réels changements (ex: un nouvel arbre coupé ou une maison construite)
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation des tuiles modifiees"
+          git add images/ data/ index.html WurmMapGen.properties
+          # Git analyse et pousse uniquement si des bâtiments/terrains ont bougé en jeu
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : stockage des nouvelles tuiles modifiees"
           git push origin main || true
 
       - name: 6. Creation et televersement de l'artefact Web
