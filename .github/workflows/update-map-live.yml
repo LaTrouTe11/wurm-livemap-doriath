@@ -10,10 +10,6 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,18 +35,10 @@ jobs:
           bye
           EOF
 
-      - name: 4. Generation et Nettoyage Racine
+      - name: 4. Generation et Injection index.html (SANS SUPPRIMER)
         run: |
-          # Nettoyage total sauf fichiers vitaux pour Java et le site
-          find . -maxdepth 1 -not -name '.' -not -name '.git' -not -name '.github' \
-          -not -name 'WurmMapGen.jar' -not -name 'WurmMapGen.properties' \
-          -not -name 'markers.js' -not -name 'top_layer.map' -not -name 'sqlite' \
-          -exec rm -rf {} +
-          
-          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
-
-          # Injection du index.html corrigé
-          cat << 'EOF' > template/index.html
+          # ON NE SUPPRIME RIEN. On remplace juste index.html
+          cat << 'EOF' > index.html
           <!DOCTYPE html>
           <html lang="fr">
           <head>
@@ -75,35 +63,16 @@ jobs:
           </html>
           EOF
 
-          # Execution Java
+          # On génère seulement les fichiers manquants/mis à jour
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Copie des fichiers générés et correction permissions (fix 403)
-          cp -ru template/* .
-          find . -type d -exec chmod 755 {} \;
-          find . -type f -exec chmod 644 {} \;
-          
-          # Nettoyage temporaire
-          rm -rf template/ app/
+          # Nettoyage des dossiers temporaires uniquement
+          rm -rf template/ sqlite/ top_layer.map
 
       - name: 5. Push final
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "MAJ AUTO : Nettoyage, Menu et Permissions" || echo "Pas de modif"
+          git commit -m "MAJ AUTO : Mise à jour index.html sans toucher aux sources" || echo "Pas de modif"
           git push origin main
-
-      - name: 6. Deploiement
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-  
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: {name: github-pages, url: '${{ steps.deployment.outputs.page_url }}'}
-    steps:
-      - name: Deploiement
-        id: deployment
-        uses: actions/deploy-pages@v4
