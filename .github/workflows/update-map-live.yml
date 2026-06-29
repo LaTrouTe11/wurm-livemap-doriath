@@ -47,17 +47,13 @@ jobs:
 
       - name: 4. Execution du Generateur en Zone Isolee
         run: |
-          # 1. Création d'un répertoire temporaire pour isoler le traitement
           mkdir -p /tmp/wurm_isolated
-          
-          # 2. Utilisation du binaire WurmMapGen.jar existant et sécurisé de votre dépôt
           cp WurmMapGen.jar WurmMapGen.properties top_layer.map /tmp/wurm_isolated/
           cp -r sqlite /tmp/wurm_isolated/
           
-          # 3. Création de la structure de dossiers requise par Java
-          mkdir -p /tmp/wurm_isolated/template/app /tmp/wurm_isolated/template/css /tmp/wurm_isolated/template/data /tmp/wurm_isolated/template/images /tmp/wurm_isolated/template/markers /tmp/wurm_isolated/template/dist /tmp/wurm_isolated/template/includes
+          mkdir -p /tmp/wurm_isolated/template
+          cp index.html /tmp/wurm_isolated/template/index.html
           
-          # 4. Modification dynamique sécurisée des accès RMI distants
           if [ -f "/tmp/wurm_isolated/WurmMapGen.properties" ]; then
             sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' /tmp/wurm_isolated/WurmMapGen.properties
             sed -i 's/rmiPort=.*/rmiPort=5606/g' /tmp/wurm_isolated/WurmMapGen.properties
@@ -65,25 +61,22 @@ jobs:
             echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> /tmp/wurm_isolated/WurmMapGen.properties
           fi
 
-          # 5. Exécution sécurisée à l'abri
           cd /tmp/wurm_isolated
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           cd $GITHUB_WORKSPACE
           
-          # 6. Rapatriement exclusif des images modifiées et des données JSON
           mkdir -p images data
           if [ -d "/tmp/wurm_isolated/images" ]; then cp -f /tmp/wurm_isolated/images/*.png ./images/ 2>/dev/null || true; fi
           if [ -d "/tmp/wurm_isolated/data" ]; then cp -f /tmp/wurm_isolated/data/*.json ./data/ 2>/dev/null || true; fi
           
-          # 7. Nettoyage des fichiers temporaires lourds
           rm -rf sqlite/ top_layer.map /tmp/wurm_isolated
 
-      - name: 5. Sauvegarde persistante Git (Vitesse instantanée)
+      - name: 5. Sauvegarde persistante Git (Vitesse instantanee)
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add images/ data/ index.html WurmMapGen.properties
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation incrémentale du terrain"
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation incrementale du terrain"
           git push origin main || true
 
       - name: 6. Creation et televersement de l'artefact Web
@@ -101,7 +94,3 @@ jobs:
       - name: 7. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-
-
-
