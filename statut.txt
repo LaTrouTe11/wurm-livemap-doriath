@@ -1,9 +1,21 @@
-===========================================
-   RAPPORT DE VALIDATION LIVE - DORIATH   
-===========================================
-Date de vérification : Mon Jun 29 03:54:57 UTC 2026
-
-✔️ Fichier index.html : PRÉSENT et sain.
-✔️ Fichier data/villages.json : PRÉSENT (Données synchronisées).
-✔️ Dossier images/ : Trouvé (256 tuiles de terrain enregistrées).
-===========================================
+Rapport de generation : Mon Jun 29 04:21:44 UTC 2026
+Contenu racine :
+WurmMapGen.jar
+WurmMapGen.properties
+app/
+css/
+data/
+diagnostic.html
+dist/
+gui.js
+images/
+includes/
+index.html
+main.js
+map.js
+markers/
+markers.js
+statut.txt
+test.html
+util.js
+Images detectees : 256
