@@ -45,42 +45,39 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution du Generateur WurmMapGen
+      - name: 4. Execution du Generateur en Zone Isolee
         run: |
-          # 1. Structure minimale exigée par le binaire Java
-          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
-          cp index.html template/index.html
+          # 1. Création d'un répertoire temporaire pour isoler l'outil Java
+          mkdir -p /tmp/wurm_build_zone
+          cp WurmMapGen.jar WurmMapGen.properties top_layer.map /tmp/wurm_build_zone/
+          cp -r sqlite /tmp/wurm_build_zone/
           
-          # 2. Injection dynamique des accès RMI distants (Port 5606)
-          if [ -f "WurmMapGen.properties" ]; then
-            sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
-            sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
-            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> WurmMapGen.properties
-          fi
-
-          # 3. Exécution brute du générateur Java (Il modifie uniquement les tuiles qui ont changé)
+          # 2. Création de la structure minimale demandée par Java dans la zone isolée
+          mkdir -p /tmp/wurm_build_zone/template/app /tmp/wurm_build_zone/template/css /tmp/wurm_build_zone/template/data /tmp/wurm_build_zone/template/images /tmp/wurm_build_zone/template/markers /tmp/wurm_build_zone/template/dist /tmp/wurm_build_zone/template/includes
+          
+          # 3. Exécution du générateur à l'abri à l'intérieur du dossier temporaire
+          cd /tmp/wurm_build_zone
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
+          cd $GITHUB_WORKSPACE
           
-          # 4. Restauration de l'index de navigation propre
-          cp -f template/index.html ./index.html
-          
-          # 5. Nettoyage : On détruit les fichiers lourds, MAIS ON GARDE LE DOSSIER IMAGES/ ET DATA/
-          rm -rf sqlite/
-          rm -f top_layer.map
-          rm -rf template/
-          rm -rf app/
-          if [ -d "data" ]; then find data/ -type f ! -name "*.json" -delete; fi
+          # 4. RÉCUPÉRATION CIBLÉE : On rapatrie uniquement les images et les JSON sans toucher à l'index.html
+          mkdir -p images data
+          if [ -d "/tmp/wurm_build_zone/images" ]; then cp -f /tmp/wurm_build_zone/images/*.png ./images/ 2>/dev/null || true; fi
+          if [ -d "/tmp/wurm_build_zone/data" ]; then cp -f /tmp/wurm_build_zone/data/*.json ./data/ 2>/dev/null || true; fi
 
-      - name: 5. Stockage persistant et intelligent sur GitHub (Vitesse instantanée)
+          # 5. Nettoyage complet de la zone temporaire de Linux
+          rm -rf sqlite/ top_layer.map /tmp/wurm_build_zone
+
+      - name: 5. Sauvegarde persistante des nouvelles images sur votre GitHub
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add images/ data/ index.html WurmMapGen.properties
-          # Git analyse et pousse uniquement si des bâtiments/terrains ont bougé en jeu
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : stockage des nouvelles tuiles modifiees"
+          # On enregistre les modifications de terrain uniquement s'il y en a
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation des tuiles de terrain doriath"
           git push origin main || true
 
-      - name: 6. Creation et televersement de l'artefact Web
+      - name: 6. Creation et televersement de l'artefact Web pour Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
