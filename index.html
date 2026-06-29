@@ -1,64 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
-    <!-- Chargement des styles officiels Leaflet de l infrastructure -->
-    <link rel="stylesheet" href="https://unpkg.com" />
+    <title>QBC Doriath - LiveMap</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <link rel="stylesheet" href="css/style.css" />
-
-    <!-- Chargement ordonne des scripts et de Vue.js sans coupure -->
-    <script src="https://unpkg.com"></script>
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
-
-    <script type="text/javascript">
-        window.WurmMapGen = window.WurmMapGen || {};
-    </script>
-
-    <!-- Chargement des modules du moteur de rendu original -->
-    <script type="text/javascript" src="util.js" defer></script>
-    <script type="text/javascript" src="markers.js" defer></script>
-    <script type="text/javascript" src="map.js" defer></script>
-    <script type="text/javascript" src="gui.js" defer></script>
-    <script type="text/javascript" src="main.js" defer></script>
+    <script>window.WurmMapGen = window.WurmMapGen || {};</script>
+    <script src="util.js" defer></script>
+    <script src="markers.js" defer></script>
+    <script src="map.js" defer></script>
+    <script src="gui.js" defer></script>
+    <script src="main.js" defer></script>
 </head>
-<body class="z-page">
-
-    <div id="gui" class="z-gui transition" :class="{ sidebar: sidebarVisible }">
-        <div id="sidebar" class="transition" :class="{ loaded: loaded }">
-            <div class="block padding">
-                <h1>{{ WurmMapGen.config ? WurmMapGen.config.serverName : 'QBC Doriath' }}</h1>
-                <p id="playercount">{{ playerCountLabel }}</p>
-            </div>
-            
-            <div class="block">
-                <label><input type="checkbox" v-model="showVillages"> Villages</label>
-                <label class="indent" :class="{ inactive: !showVillages }"><input type="checkbox" v-model="showVillageBorders" :disabled="!showVillages"> Bordures</label>
-                <label><input type="checkbox" v-model="showTowers"> Tours de garde</label>
-                <label class="indent" :class="{ inactive: !showTowers }"><input type="checkbox" v-model="showTowerBorders" :disabled="!showTowers"> Zone d influence</label>
-                <label><input type="checkbox" v-model="showStructures"> Structures</label>
-                <label><input type="checkbox" v-model="showPortals"> Portails</label>
-                <label><input type="checkbox" v-model="showPlayers"> Joueurs</label>
-            </div>
-        </div>
-
-        <div id="sidebar-toggle" class="absolute transition" @click="sidebarVisible = !sidebarVisible">
-            <span v-if="sidebarVisible">&#x276e;</span>
-            <span v-else>&#x276f;</span>
-        </div>
-
-        <div id="search" class="absolute transition" :class="{ open: searchResultsOpen }">
-            <input type="text" v-model="searchQuery" placeholder="Rechercher...">
-            <div id="search-results">
-                <div v-for="res in searchResults" :class="res.type" @click="focusMap(res.x, res.y)" v-html="res.label"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="map" class="absolute z-page"></div>
-
+<body>
+    <div id="map" style="height:100vh; width:100%;"></div>
 </body>
 </html>
