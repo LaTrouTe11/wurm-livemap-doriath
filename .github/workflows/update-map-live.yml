@@ -41,13 +41,12 @@ jobs:
           bye
           EOF
 
-      - name: 4. Generation de la carte et injection index.html
+      - name: 4. Generation et Injection index.html propre
         run: |
-          # Nettoyage préventif
+          # Nettoyage strict avant génération
           find . -type f -name "*.php" -delete
-          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
-
-          # Injection du index.html corrigé
+          
+          # Création du index.html corrigé (structure synchrone)
           cat << 'EOF' > index.html
           <!DOCTYPE html>
           <html lang="fr">
@@ -55,37 +54,39 @@ jobs:
               <meta charset="utf-8" />
               <title>QBC Doriath - LiveMap</title>
               <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-              <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-              <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
               <link rel="stylesheet" href="css/style.css" />
-              <script>window.WurmMapGen = window.WurmMapGen || {};</script>
-              <script src="util.js" defer></script>
-              <script src="markers.js" defer></script>
-              <script src="map.js" defer></script>
-              <script src="gui.js" defer></script>
-              <script src="main.js" defer></script>
           </head>
           <body>
               <div id="map" style="height:100vh; width:100%;"></div>
+
+              <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+              <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+              
+              <script>window.WurmMapGen = {};</script>
+              <script src="util.js"></script>
+              <script src="markers.js"></script>
+              <script src="map.js"></script>
+              <script src="gui.js"></script>
+              <script src="main.js"></script>
           </body>
           </html>
           EOF
 
-          # Génération
+          # Exécution du générateur Java
+          mkdir -p template
           cp index.html template/index.html
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Synchronisation racine intelligente
+          # Synchronisation finale racine
           cp -ru template/* .
-          find data/ -type f -name "*.php" -delete
           rm -rf template/ sqlite/ top_layer.map app/
 
-      - name: 5. Push Git final
+      - name: 5. Sauvegarde et Push Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff-index --quiet HEAD || (git commit -m "MAJ AUTO : Synchronisation racine propre" && git push origin main)
+          git diff-index --quiet HEAD || (git commit -m "MAJ AUTO : Synchronisation structure racine et index" && git push origin main)
 
       - name: 6. Deploiement GitHub Pages
         uses: actions/upload-pages-artifact@v3
