@@ -4,63 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
-    <!-- Chargement CDN officiel du moteur de cartographie Leaflet et Vue.js -->
-    <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com"></script>
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
-    <link rel="stylesheet" href="css/style.css" />
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Roboto', sans-serif; }
-        #map { position: absolute; top: 0; bottom: 0; right: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-color: #1a1a24; }
-        #gui { position: absolute; z-index: 10; pointer-events: none; width: 100%; height: 100%; }
-        #sidebar, #sidebar-toggle, #search { pointer-events: auto; }
+        /* Configuration de l'environnement plein écran sans défilement */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #15151c; font-family: 'Segoe UI', Arial, sans-serif; }
+        
+        /* Barre d'en-tête du serveur */
+        .wurm-header { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: #1e1e2a; color: #fff; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 100; border-bottom: 2px solid #2196F3; }
+        .wurm-header h1 { margin: 0; font-size: 16px; font-weight: 600; color: #2196F3; }
+        .wurm-header span { margin-left: auto; font-size: 12px; color: #888; background: #111; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
+
+        /* Zone de visualisation de la carte */
+        .wurm-viewer { position: absolute; top: 50px; bottom: 0; left: 0; right: 0; width: 100%; height: calc(100% - 50px); overflow: auto; cursor: grab; display: flex; align-items: flex-start; justify-content: flex-start; }
+        .wurm-viewer:active { cursor: grabbing; }
+
+        /* Conteneur de la grille d'images de Doriath */
+        .wurm-grid-canvas { display: grid; grid-template-columns: repeat(16, 256px); grid-template-rows: repeat(16, 256px); width: 4096px; height: 4096px; transform-origin: top left; transition: transform 0.1s ease-out; padding: 20px; }
+        .wurm-grid-canvas img { width: 256px; height: 256px; display: block; background: #15151c; -webkit-user-drag: none; user-select: none; image-rendering: pixelated; }
+
+        /* Boutons de zoom de l'interface */
+        .wurm-zoom-controls { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 5px; z-index: 100; }
+        .wurm-zoom-btn { width: 40px; height: 40px; background: #2196F3; color: white; border: none; border-radius: 4px; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
+        .wurm-zoom-btn:hover { background: #1976D2; }
     </style>
 </head>
 <body>
 
-    <!-- Interface utilisateur de filtrage et de recherche -->
-    <div id="gui" :class="{ sidebar: sidebarVisible }">
-        <div id="sidebar" :class="{ loaded: loaded }">
-            <div class="block padding">
-                <h1>{{ WurmMapGen.config ? WurmMapGen.config.serverName : '[QC/FR/CAN] QBC Doriath' }}</h1>
-                <p id="playercount">{{ playerCountLabel }}</p>
-            </div>
-            <div class="block">
-                <label><input type="checkbox" v-model="showVillages"> Villages</label>
-                <label class="indent" :class="{ inactive: !showVillages }"><input type="checkbox" v-model="showVillageBorders" :disabled="!showVillages"> Bordures</label>
-                <label><input type="checkbox" v-model="showTowers"> Tours de garde</label>
-                <label class="indent" :class="{ inactive: !showTowers }"><input type="checkbox" v-model="showTowerBorders" :disabled="!showTowers"> Zone d'influence</label>
-                <label><input type="checkbox" v-model="showStructures"> Structures</label>
-                <label><input type="checkbox" v-model="showPortals"> Portails</label>
-                <label><input type="checkbox" v-model="showPlayers"> Joueurs</label>
-            </div>
-        </div>
-        <div id="sidebar-toggle" class="absolute transition" @click="sidebarVisible = !sidebarVisible">
-            <span v-if="sidebarVisible">&#x276e;</span>
-            <span v-else>&#x276f;</span>
-        </div>
-        <div id="search" class="absolute transition" :class="{ open: searchResultsOpen }">
-            <input type="text" v-model="searchQuery" placeholder="Rechercher un village, joueur...">
-            <div id="search-results">
-                <div v-for="res in searchResults" :class="res.type" @click="focusMap(res.x, res.y)" v-html="res.label"></div>
-            </div>
+    <div class="wurm-header">
+        <h1>[QC/FR/CAN] QBC Doriath - Carte interactive officielle</h1>
+        <span>Mise à jour automatique : 6h</span>
+    </div>
+
+    <!-- Conteneur panoramique avec déplacement à la souris -->
+    <div class="wurm-viewer" id="wurmViewer">
+        <div class="wurm-grid-canvas" id="wurmGrid">
+            <!-- La grille 16x16 de tuiles est chargée ici (images/X-Y.png) -->
+            <!-- Cette structure remplace Leaflet par un affichage natif simple -->
         </div>
     </div>
 
-    <!-- Conteneur Leaflet où s'affiche la grille complète de votre carte -->
-    <div id="map"></div>
+    <div class="wurm-zoom-controls">
+        <button class="wurm-zoom-btn" onclick="adjustZoom(0.1)">+</button>
+        <button class="wurm-zoom-btn" onclick="adjustZoom(-0.1)">-</button>
+    </div>
 
     <script>
-        window.WurmMapGen = window.WurmMapGen || {};
-        
-        // Lancement ordonné de l'application de cartographie
-        ['util.js', 'markers.js', 'map.js', 'gui.js', 'main.js'].forEach(function(src) { 
-            var s = document.createElement('script'); 
-            s.src = src; 
-            s.defer = true; 
-            document.body.appendChild(s); 
+        // Génération dynamique de la grille 16x16 pour alléger le code
+        const grid = document.getElementById('wurmGrid');
+        for (let y = 0; y < 16; y++) {
+            for (let x = 0; x < 16; x++) {
+                const img = document.createElement('img');
+                img.src = `images/${x}-${y}.png`;
+                grid.appendChild(img);
+            }
+        }
+
+        // Logique de zoom et de déplacement (Drag & Zoom)
+        var currentZoom = 0.5;
+        var viewer = document.getElementById('wurmViewer');
+        grid.style.transform = `scale(${currentZoom})`;
+
+        function adjustZoom(amount) {
+            currentZoom = Math.max(0.1, Math.min(1.5, currentZoom + amount));
+            grid.style.transform = `scale(${currentZoom})`;
+        }
+
+        // Script de glissement (Drag to scroll)
+        var isDown = false; var startX, startY, scrollLeft, scrollTop;
+        viewer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - viewer.offsetLeft; startY = e.pageY - viewer.offsetTop;
+            scrollLeft = viewer.scrollLeft; scrollTop = viewer.scrollTop;
+        });
+        viewer.addEventListener('mouseleave', () => isDown = false);
+        viewer.addEventListener('mouseup', () => isDown = false);
+        viewer.addEventListener('mousemove', (e) => {
+            if(!isDown) return; e.preventDefault();
+            const x = e.pageX - viewer.offsetLeft; const y = e.pageY - viewer.offsetTop;
+            viewer.scrollLeft = scrollLeft - (x - startX); viewer.scrollTop = scrollTop - (y - startY);
         });
     </script>
 </body>
 </html>
+
