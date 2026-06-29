@@ -26,8 +26,6 @@ jobs:
           lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
-          set xfer:clobber on
-          set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
           cd /dist/Doriath-4k-20/sqlite/
           mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
           cd ../
@@ -37,43 +35,24 @@ jobs:
 
       - name: 4. Generation
         run: |
-          # On remplace proprement l'index.html
-          cat << 'EOF' > index.html
-          <!DOCTYPE html>
-          <html lang="fr">
-          <head>
-              <meta charset="utf-8" />
-              <title>QBC Doriath - LiveMap</title>
-              <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-              <link rel="stylesheet" href="css/style.css" />
-          </head>
-          <body>
-              <div id="gui"></div>
-              <div id="map" style="height:100vh; width:100%;"></div>
-              <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-              <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-              <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
-              <script>window.WurmMapGen = {};</script>
-              <script src="util.js"></script>
-              <script src="markers.js"></script>
-              <script src="map.js"></script>
-              <script src="gui.js"></script>
-              <script src="main.js"></script>
-          </body>
-          </html>
-          EOF
-
-          # Génération de la carte
+          # Génération de la carte (le .jar est à la racine)
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Nettoyage sécurisé : uniquement le fichier temporaire utilisé pour la génération
+          # Copie des tuiles générées vers le dossier de votre site
+          mkdir -p template/tiles
+          cp -r tiles/* template/tiles/
+          
+          # Nettoyage des fichiers temporaires
+          rm -rf tiles/
           rm -f top_layer.map
+          # Optionnel : rm -rf sqlite/ (si vous ne voulez pas garder les DB dans le repo)
 
       - name: 5. Push final
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # Ajout uniquement des éléments de la carte
-          git add index.html tiles/ || echo "Aucun changement détecté"
-          git commit -m "MAJ AUTO : Synchronisation des tuiles et index" || echo "Rien à commiter"
+          
+          # Ajout des modifications dans le dossier template
+          git add template/ || echo "Aucun changement"
+          git commit -m "MAJ AUTO : Synchronisation des tuiles et mise à jour web" || echo "Rien à commiter"
           git push origin main
