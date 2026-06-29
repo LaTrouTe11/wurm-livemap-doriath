@@ -20,34 +20,41 @@ jobs:
       - name: 2. Installation
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement donnees
+      - name: 3. Telechargement
         run: |
-          mkdir -p ./sqlite
+          mkdir -p WurmGenMap/sqlite
           lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
-          set xfer:clobber on
           cd /dist/Doriath-4k-20/sqlite/
-          mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
-          cd ../
-          get -O . top_layer.map
+          mget -O WurmGenMap/sqlite/ wurmzones.db wurmitems.db wurmplayers.db
           bye
           EOF
 
       - name: 4. Generation
         run: |
-          java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
-          mkdir -p template/tiles
-          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile trouvée"
+          # 1. Lancer le générateur depuis WurmGenMap
+          java -Djava.awt.headless=true -Xmx5g -jar WurmGenMap/WurmMapGen.jar
+          
+          # 2. Création du dossier tiles à la racine pour GitHub Pages
+          mkdir -p tiles
+          
+          # 3. Déplacer les tuiles générées (png/json) vers tiles/
+          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} tiles/ \; || echo "Aucune tuile trouvée"
+          
+          # 4. Correction du bug TypeError (copie de la config vers template/data/)
+          # On vérifie si config.json existe à la racine et on le copie
+          if [ -f config.json ]; then
+            cp config.json template/data/config.json
+          fi
+          
+          # 5. Nettoyage
           rm -f top_layer.map
-
-      - name: 5. Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: 6. Upload Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './template' # On ne publie QUE le contenu du dossier template
-
-      - name: 7. Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+          
+      - name: 5. Push final
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "MAJ AUTO : Synchronisation des données et tuiles" || echo "Rien à commiter"
+          git push origin main
