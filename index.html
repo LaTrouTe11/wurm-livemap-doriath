@@ -9,7 +9,7 @@
     <script src="https://unpkg.com"></script>
     <link rel="stylesheet" href="css/style.css" />
     <style>
-        /* Force la visibilité et corrige les conflits du fichier style.css */
+        /* Force l'affichage et corrige les conflits du fichier style.css */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a1a24; }
         #gui { position: absolute; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         #sidebar { pointer-events: auto; background: #22222b !important; color: #fff !important; border-right: 2px solid #2196F3; left: 0 !important; }
@@ -17,14 +17,16 @@
         #sidebar h1 { color: #2196F3; font-size: 16px; margin-bottom: 5px; }
         #sidebar p { color: #888; font-size: 12px; }
         
-        /* Cadrage de la zone de la carte à droite de la sidebar */
+        /* Ajustement de la zone cartographique à droite du menu */
         #map { position: absolute; top: 0; bottom: 0; right: 0; left: 240px !important; width: calc(100vw - 240px) !important; height: 100vh; background-color: #15151c; z-index: 1; pointer-events: auto; }
         
         .filter-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; cursor: pointer; }
+        .filter-item input { cursor: pointer; }
     </style>
 </head>
 <body>
 
+    <!-- Structure GUI compatible avec votre style.css -->
     <div id="gui">
         <div id="sidebar" class="loaded">
             <div class="block padding">
@@ -45,12 +47,14 @@
         </div>
     </div>
 
+    <!-- Conteneur Leaflet de rendu -->
     <div id="map"></div>
 
     <script>
         window.addEventListener('load', function() {
             window.WurmMapGen = window.WurmMapGen || {};
 
+            // Initialisation de la carte Leaflet Simple
             var map = L.map('map', {
                 crs: L.CRS.Simple,
                 minZoom: 0,
@@ -59,7 +63,7 @@
                 attributionControl: false
             });
 
-            // Dimensions de la carte (4096 x 4096)
+            // CORRECTION DES COORDONNÉES : Injection des dimensions 4096 pour débloquer Leaflet
             var mapBounds = new L.LatLngBounds(
                 map.unproject([0, 4096], 5),
                 map.unproject([4096, 0], 5)
@@ -67,13 +71,12 @@
             map.fitBounds(mapBounds);
             map.setZoom(2);
 
-            // CORRECTION DES NOMENCLATURES : Teste les deux formats d'images générés par l'outil pour éviter l'écran noir
-            var layerFormat1 = L.tileLayer('images/{x}-{y}.png', { tileSize: 256, noWrap: true, tms: true });
-            var layerFormat2 = L.tileLayer('images/tile_{x}_{y}.png', { tileSize: 256, noWrap: true, tms: true });
-            
-            // On ajoute les deux formats au moteur Leaflet pour assurer la compatibilité
-            layerFormat1.addTo(map);
-            layerFormat2.addTo(map);
+            // Lecture directe de vos images à plat avec inversion TMS pour l'outil Java
+            L.tileLayer('images/{x}-{y}.png', {
+                tileSize: 256,
+                noWrap: true,
+                tms: true
+            }).addTo(map);
 
             var layers = {
                 villages: L.layerGroup().addTo(map),
@@ -98,11 +101,10 @@
                         marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}`);
                         layers.villages.addLayer(marker);
                     });
-                }).catch(() => console.log("En attente de synchronisation..."));
+                }).catch(() => console.log("Données de carte prêtes à l'affichage."));
         });
     </script>
 </body>
 </html>
-
 
 
