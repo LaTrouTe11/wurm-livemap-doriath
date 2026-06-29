@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -20,7 +21,6 @@
         /* Ajustement dynamique de la zone cartographique à droite du menu */
         #map { position: absolute; top: 0; bottom: 0; right: 0; left: 240px !important; width: calc(100vw - 240px) !important; height: 100vh; background-color: #15151c; z-index: 1; pointer-events: auto; }
         
-        /* Personnalisation sombre des filtres de la sidebar */
         .filter-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; cursor: pointer; }
         .filter-item input { cursor: pointer; }
     </style>
@@ -72,11 +72,11 @@
             map.fitBounds(mapBounds);
             map.setZoom(2);
 
-            // Chargement de vos images persistantes
+            // CORRECTIONS DES COORDONNÉES INVERSÉES (tms: true débloque l'affichage des images Wurm)
             L.tileLayer('images/{x}-{y}.png', {
                 tileSize: 256,
                 noWrap: true,
-                tms: false
+                tms: true
             }).addTo(map);
 
             var layers = {
@@ -107,6 +107,5 @@
     </script>
 </body>
 </html>
-
 
 
