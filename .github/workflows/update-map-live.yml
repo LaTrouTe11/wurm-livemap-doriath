@@ -27,29 +27,33 @@ jobs:
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
           set xfer:clobber on
+          # Téléchargement des bases sqlite
           cd /dist/Doriath-4k-20/sqlite/
           mget -O WurmGenMap/sqlite/ wurmzones.db wurmitems.db wurmplayers.db
+          # Téléchargement du fichier de mapping
+          cd ../
+          get -O WurmGenMap/ top_layer.map
           bye
           EOF
 
       - name: 4. Generation
         run: |
-          # 1. On place le fichier de config à la racine pour que le programme le trouve par défaut
+          # 1. Copie du fichier de config à la racine pour le programme
           cp WurmGenMap/WurmMapGen.properties .
           
-          # 2. Lancement du générateur (sans argument '-p', car il cherche par défaut à la racine)
+          # 2. Lancement du générateur (il trouvera top_layer.map dans WurmGenMap/)
           java -Djava.awt.headless=true -Xmx5g -jar WurmGenMap/WurmMapGen.jar
           
-          # 3. Création du dossier tiles dans template pour que GitHub Pages les trouve
+          # 3. Déplacement des tuiles vers template/tiles
           mkdir -p template/tiles
-          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile trouvée"
+          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile"
           
-          # 4. Copie de la config générée vers template/data/ (corrige le bug TypeError)
+          # 4. Copie de la config générée (pour le bug TypeError)
           if [ -f config.json ]; then
             cp config.json template/data/config.json
           fi
           
-          # 5. Nettoyage de la racine
+          # 5. Nettoyage
           rm -f WurmMapGen.properties
           rm -f top_layer.map
 
