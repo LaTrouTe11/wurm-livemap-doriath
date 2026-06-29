@@ -28,7 +28,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
-          sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lftp openjdk-17-jre
+          sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lftp openjdk-17-jre wget
 
       - name: 3. Telechargement des donnees serveurs (.db et .map)
         run: |
@@ -45,39 +45,40 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution du Generateur en Zone Isolee
+      - name: 4. Telechargement automatique et Execution de WurmMapDump (Moderne)
         run: |
-          # 1. Création d'un répertoire temporaire pour isoler l'outil Java
-          mkdir -p /tmp/wurm_build_zone
-          cp WurmMapGen.jar WurmMapGen.properties top_layer.map /tmp/wurm_build_zone/
-          cp -r sqlite /tmp/wurm_build_zone/
+          # 1. Création d'une zone de build temporaire isolée
+          mkdir -p /tmp/wurm_dump_zone
+          cd /tmp/wurm_dump_zone
           
-          # 2. Création de la structure minimale demandée par Java dans la zone isolée
-          mkdir -p /tmp/wurm_build_zone/template/app /tmp/wurm_build_zone/template/css /tmp/wurm_build_zone/template/data /tmp/wurm_build_zone/template/images /tmp/wurm_build_zone/template/markers /tmp/wurm_build_zone/template/dist /tmp/wurm_build_zone/template/includes
+          # 2. Téléchargement automatique de l'outil moderne officiel depuis les dépôts communautaires
+          wget -q -O WurmMapDump.jar https://github.com 2>/dev/null || wget -q -O WurmMapDump.jar https://github.com
           
-          # 3. Exécution du générateur à l'abri à l'intérieur du dossier temporaire
-          cd /tmp/wurm_build_zone
-          java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
+          # 3. Copie des fichiers sources de Doriath pour traitement
+          cp $GITHUB_WORKSPACE/top_layer.map .
+          cp -r $GITHUB_WORKSPACE/sqlite .
+          
+          # 4. Exécution du nouveau binaire (Génération topographique 4k)
+          java -jar WurmMapDump.jar -map top_layer.map -dbdir ./sqlite -output ./dist_map -image TypeTopographical -tileSize 256
+          
+          # 5. Rapatriement ciblé des images et des données vers votre dépôt racine
+          mkdir -p $GITHUB_WORKSPACE/images $GITHUB_WORKSPACE/data
+          if [ -d "./dist_map/images" ]; then cp -f ./dist_map/images/*.png $GITHUB_WORKSPACE/images/ 2>/dev/null || true; fi
+          if [ -d "./dist_map/data" ]; then cp -f ./dist_map/data/*.json $GITHUB_WORKSPACE/data/ 2>/dev/null || true; fi
+          
+          # 6. Purge complète des dossiers résiduels de la machine virtuelle
           cd $GITHUB_WORKSPACE
-          
-          # 4. RÉCUPÉRATION CIBLÉE : On rapatrie uniquement les images et les JSON sans toucher à l'index.html
-          mkdir -p images data
-          if [ -d "/tmp/wurm_build_zone/images" ]; then cp -f /tmp/wurm_build_zone/images/*.png ./images/ 2>/dev/null || true; fi
-          if [ -d "/tmp/wurm_build_zone/data" ]; then cp -f /tmp/wurm_build_zone/data/*.json ./data/ 2>/dev/null || true; fi
+          rm -rf sqlite/ top_layer.map /tmp/wurm_dump_zone
 
-          # 5. Nettoyage complet de la zone temporaire de Linux
-          rm -rf sqlite/ top_layer.map /tmp/wurm_build_zone
-
-      - name: 5. Sauvegarde persistante des nouvelles images sur votre GitHub
+      - name: 5. Sauvegarde persistante Git (Vitesse instantanée)
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add images/ data/ index.html WurmMapGen.properties
-          # On enregistre les modifications de terrain uniquement s'il y en a
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation des tuiles de terrain doriath"
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : bascule et rendu via WurmMapDump moderne"
           git push origin main || true
 
-      - name: 6. Creation et televersement de l'artefact Web pour Pages
+      - name: 6. Creation et televersement de l'artefact Web
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
@@ -92,6 +93,7 @@ jobs:
       - name: 7. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
 
 
