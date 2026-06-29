@@ -26,6 +26,7 @@ jobs:
           lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
+          set xfer:clobber on
           cd /dist/Doriath-4k-20/sqlite/
           mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
           cd ../
@@ -38,16 +39,16 @@ jobs:
           # Génération de la carte
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Création du dossier cible dans template/
+          # Préparation du dossier de destination dans template/
           mkdir -p template/tiles
           
-          # Copie des tuiles (si le dossier tiles/ existe à la racine après la génération)
+          # Copie des tuiles (si elles ont été générées à la racine dans un dossier tiles/)
           if [ -d "tiles" ]; then
             cp -r tiles/* template/tiles/
             rm -rf tiles/
           fi
           
-          # Nettoyage des fichiers temporaires
+          # Nettoyage final des fichiers temporaires
           rm -f top_layer.map
 
       - name: 5. Push final
@@ -55,7 +56,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # On ajoute uniquement les modifications dans le dossier template
+          # Ajout uniquement des changements dans le dossier template
           git add template/ || echo "Aucun changement"
-          git commit -m "MAJ AUTO : Synchronisation des tuiles dans template" || echo "Rien à commiter"
+          git commit -m "MAJ AUTO : Synchronisation des tuiles et mise à jour web" || echo "Rien à commiter"
           git push origin main
