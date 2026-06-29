@@ -20,41 +20,19 @@ jobs:
       - name: 2. Installation
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement
+      - name: 3. Generation
         run: |
           mkdir -p WurmGenMap/sqlite
-          lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
-          set sftp:auto-confirm yes
-          set ssl:verify-certificate no
-          cd /dist/Doriath-4k-20/sqlite/
-          mget -O WurmGenMap/sqlite/ wurmzones.db wurmitems.db wurmplayers.db
-          bye
-          EOF
-
-      - name: 4. Generation
-        run: |
-          # 1. Lancer le générateur depuis WurmGenMap
+          # (Ajoutez ici vos commandes lftp si besoin)
           java -Djava.awt.headless=true -Xmx5g -jar WurmGenMap/WurmMapGen.jar
-          
-          # 2. Création du dossier tiles à la racine pour GitHub Pages
           mkdir -p tiles
-          
-          # 3. Déplacer les tuiles générées (png/json) vers tiles/
-          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} tiles/ \; || echo "Aucune tuile trouvée"
-          
-          # 4. Correction du bug TypeError (copie de la config vers template/data/)
-          # On vérifie si config.json existe à la racine et on le copie
-          if [ -f config.json ]; then
-            cp config.json template/data/config.json
-          fi
-          
-          # 5. Nettoyage
-          rm -f top_layer.map
-          
-      - name: 5. Push final
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "MAJ AUTO : Synchronisation des données et tuiles" || echo "Rien à commiter"
-          git push origin main
+          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} tiles/ \; || echo "Aucune tuile"
+          if [ -f config.json ]; then cp config.json template/data/config.json; fi
+
+      - name: 4. Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './template' # Publie uniquement le dossier template
+
+      - name: 5. Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
