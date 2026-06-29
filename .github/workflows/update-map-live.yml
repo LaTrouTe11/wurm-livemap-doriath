@@ -36,24 +36,18 @@ jobs:
 
       - name: 4. Generation
         run: |
-          # Génération de la carte
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
-          
-          # Création du dossier pour les tuiles dans template/
           mkdir -p template/tiles
-          
-          # Déplacement des tuiles générées (png/json) vers template/tiles/
           find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile trouvée"
-          
-          # Nettoyage
           rm -f top_layer.map
 
-      - name: 5. Push final
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Ajout de toutes les modifications
-          git add -A
-          git commit -m "MAJ AUTO : Synchronisation des données et tuiles dans template/" || echo "Rien à commiter"
-          git push origin main
+      - name: 5. Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: 6. Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './template' # On ne publie QUE le contenu du dossier template
+
+      - name: 7. Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
