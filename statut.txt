@@ -1,21 +1,2 @@
-Rapport de generation : Mon Jun 29 04:21:44 UTC 2026
-Contenu racine :
-WurmMapGen.jar
-WurmMapGen.properties
-app/
-css/
-data/
-diagnostic.html
-dist/
-gui.js
-images/
-includes/
-index.html
-main.js
-map.js
-markers/
-markers.js
-statut.txt
-test.html
-util.js
+Rapport de generation : Mon Jun 29 04:26:01 UTC 2026
 Images detectees : 256
