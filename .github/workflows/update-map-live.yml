@@ -1,3 +1,4 @@
+
 name: Synchro Carte Wurm Legion Hosting
 
 on:
@@ -41,12 +42,10 @@ jobs:
 
       - name: 4. Generation et Injection index.html
         run: |
-          # Nettoyage
           find . -type f -name "*.php" -delete
           rm -f index.html
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
 
-          # Injection index.html avec le <div id="gui">
           cat << 'EOF' > template/index.html
           <!DOCTYPE html>
           <html lang="fr">
@@ -61,6 +60,7 @@ jobs:
               <div id="map" style="height:100vh; width:100%;"></div>
               <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
               <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+              <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
               <script>window.WurmMapGen = {};</script>
               <script src="util.js"></script>
               <script src="markers.js"></script>
@@ -72,7 +72,12 @@ jobs:
           EOF
 
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
+          
+          # Copie et réparation des permissions pour corriger les erreurs 403
           cp -ru template/* .
+          find . -type d -exec chmod 755 {} \;
+          find . -type f -exec chmod 644 {} \;
+          
           rm -rf template/ sqlite/ top_layer.map app/
 
       - name: 5. Push final
@@ -80,7 +85,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "MAJ AUTO : Structure index et menu" || echo "Pas de modif"
+          git commit -m "MAJ AUTO : Correction JS, Cookies et Permissions" || echo "Pas de modif"
           git push origin main
 
       - name: 6. Deploiement
@@ -96,4 +101,3 @@ jobs:
       - name: Deploiement
         id: deployment
         uses: actions/deploy-pages@v4
-
