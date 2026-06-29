@@ -1,66 +1,64 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- Chargement des styles officiels Leaflet de l infrastructure -->
     <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com"></script>
     <link rel="stylesheet" href="css/style.css" />
-    <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a1a24; }
-        #gui { position: absolute; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-        #sidebar { pointer-events: auto; background: #22222b !important; color: #fff !important; border-right: 2px solid #2196F3; left: 0 !important; width: 240px; }
-        #sidebar .block { display: block !important; border-bottom: 1px solid #3a3a4a !important; }
-        #sidebar h1 { color: #2196F3; font-size: 16px; margin-bottom: 5px; }
-        #sidebar p { color: #888; font-size: 12px; }
-        #map { position: absolute; top: 0; bottom: 0; right: 0; left: 240px !important; width: calc(100vw - 240px) !important; height: 100vh; background-color: #15151c; z-index: 1; pointer-events: auto; }
-        .filter-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; cursor: pointer; }
-    </style>
+
+    <!-- Chargement ordonne des scripts et de Vue.js sans coupure -->
+    <script src="https://unpkg.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
+
+    <script type="text/javascript">
+        window.WurmMapGen = window.WurmMapGen || {};
+    </script>
+
+    <!-- Chargement des modules du moteur de rendu original -->
+    <script type="text/javascript" src="util.js" defer></script>
+    <script type="text/javascript" src="markers.js" defer></script>
+    <script type="text/javascript" src="map.js" defer></script>
+    <script type="text/javascript" src="gui.js" defer></script>
+    <script type="text/javascript" src="main.js" defer></script>
 </head>
-<body>
-    <div id="gui">
-        <div id="sidebar" class="loaded">
+<body class="z-page">
+
+    <div id="gui" class="z-gui transition" :class="{ sidebar: sidebarVisible }">
+        <div id="sidebar" class="transition" :class="{ loaded: loaded }">
             <div class="block padding">
-                <h1>QBC Doriath</h1>
-                <p id="playercount">Interactive LiveMap</p>
+                <h1>{{ WurmMapGen.config ? WurmMapGen.config.serverName : 'QBC Doriath' }}</h1>
+                <p id="playercount">{{ playerCountLabel }}</p>
             </div>
+            
             <div class="block">
-                <div style="font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px;">Calques</div>
-                <label class="filter-item"><input type="checkbox" id="chk-villages" checked onchange="toggleLayer('villages')"> Villages (Deeds)</label>
-                <label class="filter-item"><input type="checkbox" id="chk-towers" checked onchange="toggleLayer('towers')"> Tours de garde</label>
+                <label><input type="checkbox" v-model="showVillages"> Villages</label>
+                <label class="indent" :class="{ inactive: !showVillages }"><input type="checkbox" v-model="showVillageBorders" :disabled="!showVillages"> Bordures</label>
+                <label><input type="checkbox" v-model="showTowers"> Tours de garde</label>
+                <label class="indent" :class="{ inactive: !showTowers }"><input type="checkbox" v-model="showTowerBorders" :disabled="!showTowers"> Zone d influence</label>
+                <label><input type="checkbox" v-model="showStructures"> Structures</label>
+                <label><input type="checkbox" v-model="showPortals"> Portails</label>
+                <label><input type="checkbox" v-model="showPlayers"> Joueurs</label>
             </div>
-            <div class="block">
-                <div style="font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px;">Index</div>
-                <div style="padding: 6px 8px; background: #2a2a35; border-radius: 4px; cursor: pointer; font-size: 13px; border-left: 3px solid #2196F3;" onclick="focusOn(2048, 2048)">📍 Centre du Monde</div>
+        </div>
+
+        <div id="sidebar-toggle" class="absolute transition" @click="sidebarVisible = !sidebarVisible">
+            <span v-if="sidebarVisible">&#x276e;</span>
+            <span v-else>&#x276f;</span>
+        </div>
+
+        <div id="search" class="absolute transition" :class="{ open: searchResultsOpen }">
+            <input type="text" v-model="searchQuery" placeholder="Rechercher...">
+            <div id="search-results">
+                <div v-for="res in searchResults" :class="res.type" @click="focusMap(res.x, res.y)" v-html="res.label"></div>
             </div>
         </div>
     </div>
-    <div id="map"></div>
-    <script>
-        window.addEventListener('load', function() {
-            window.WurmMapGen = window.WurmMapGen || {};
-            var map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: 5, zoomControl: true, attributionControl: false });
-            var mapBounds = new L.LatLngBounds(map.unproject([0, 4096], 5), map.unproject([4096, 0], 5));
-            map.fitBounds(mapBounds);
-            map.setZoom(2);
-            L.tileLayer('images/{x}-{y}.png', { tileSize: 256, noWrap: true, tms: true }).addTo(map);
-            var layers = { villages: L.layerGroup().addTo(map), towers: L.layerGroup().addTo(map) };
-            window.toggleLayer = function(type) {
-                var chk = document.getElementById('chk-' + type);
-                if (chk.checked) { map.addLayer(layers[type]); } else { map.removeLayer(layers[type]); }
-            };
-            window.focusOn = function(x, y) { map.setView(map.unproject([x, y], 5), 4); };
-            fetch('data/villages.json')
-                .then(res => res.json())
-                .then(data => {
-                    data.forEach(v => {
-                        var marker = L.marker(map.unproject([v.x, v.y], 5));
-                        marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}`);
-                        layers.villages.addLayer(marker);
-                    });
-                }).catch(() => console.log("JSON chargé."));
-        });
-    </script>
+
+    <div id="map" class="absolute z-page"></div>
+
 </body>
 </html>

@@ -1,0 +1,9 @@
+===========================================
+   RAPPORT DE VALIDATION LIVE - DORIATH   
+===========================================
+Date de vérification : Mon Jun 29 03:54:57 UTC 2026
+
+✔️ Fichier index.html : PRÉSENT et sain.
+✔️ Fichier data/villages.json : PRÉSENT (Données synchronisées).
+✔️ Dossier images/ : Trouvé (256 tuiles de terrain enregistrées).
+===========================================
