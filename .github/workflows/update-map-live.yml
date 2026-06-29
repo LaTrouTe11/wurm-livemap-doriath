@@ -24,6 +24,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 2. Installation des paquets requis
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
           sudo apt-get install -y lftp openjdk-17-jre
@@ -43,40 +45,46 @@ jobs:
           bye
           EOF
 
-      - name: 4. Execution Directe Securisee du Generateur
+      - name: 4. Execution du Generateur et Correction Automatique de l'Index Racine
         run: |
-          # 1. Sauvegarde et mise à l'abri de votre code d'affichage racine propre
-          mkdir -p /tmp/wurm_web_save
-          cp index.html /tmp/wurm_web_save/index.html
+          # 1. Sauvegarde temporaire de votre index racine
+          mkdir -p /tmp/wurm_clean
+          cp index.html /tmp/wurm_clean/index.html 2>/dev/null || true
           
-          # 2. Création de l'arborescence requise par l'outil Java pour éviter son crash
+          # 2. Création de l'arborescence requise par l'outil Java
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
-          cp /tmp/wurm_web_save/index.html template/index.html
+          cp /tmp/wurm_clean/index.html template/index.html
           
           # 3. Injection configuration RMI (Port 5606)
           if [ -f "WurmMapGen.properties" ]; then
             sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
             sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
             sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' WurmMapGen.properties
-            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> WurmMapGen.properties
           fi
 
           # 4. Exécution de l'outil Java
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 5. PROTECTION ET REMPLACEMENT FORCE : Écrase le mauvais fichier généré par Java avec votre version propre
-          cp -f /tmp/wurm_web_save/index.html ./index.html
+          # 5. Restauration de l'index racine propre
+          cp -f /tmp/wurm_clean/index.html ./index.html 2>/dev/null || true
           
-          # 6. Nettoyage strict des résidus
-          rm -rf sqlite/ top_layer.map template/ app/ dist/ includes/ /tmp/wurm_web_save/
+          # 6. REPARATION CHIRURGICALE DE L'INDEX RACINE : Remplit automatiquement les crochets vides par 0, 4096
+          if [ -f "index.html" ]; then
+            sed -i 's/map.unproject(\[,\s*\]/map.unproject([0, 4096]/g' index.html
+            sed -i 's/map.unproject(\[\s*,\s*\]/map.unproject([0, 4096]/g' index.html
+          fi
+
+          # 7. Nettoyage strict des résidus lourds
+          rm -rf sqlite/ top_layer.map template/ app/ dist/ includes/ /tmp/wurm_web_save/ /tmp/wurm_clean
           if [ -d "data" ]; then find data/ -type f ! -name "*.json" -delete; fi
 
-      - name: 5. Sauvegarde persistante Git (Vitesse instantanee)
+      - name: 5. Enregistrement automatique des corrections sur GitHub
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add images/ data/ index.html WurmMapGen.properties
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : resolution définitive index"
+          # Commit et pousse les corrections mathématiques directement dans votre dépôt pour Vercel et GitHub Pages
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : reparation geometrique en direct de l'index racine"
           git push origin main || true
 
       - name: 6. Creation et televersement de l'artefact Web
@@ -94,7 +102,5 @@ jobs:
       - name: 7. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-
 
 
