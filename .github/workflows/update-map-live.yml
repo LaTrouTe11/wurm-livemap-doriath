@@ -20,19 +20,37 @@ jobs:
       - name: 2. Installation
         run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Generation
+      - name: 3. Telechargement
         run: |
           mkdir -p WurmGenMap/sqlite
-          # (Ajoutez ici vos commandes lftp si besoin)
-          java -Djava.awt.headless=true -Xmx5g -jar WurmGenMap/WurmMapGen.jar
-          mkdir -p tiles
-          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} tiles/ \; || echo "Aucune tuile"
-          if [ -f config.json ]; then cp config.json template/data/config.json; fi
+          lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
+          set sftp:auto-confirm yes
+          set ssl:verify-certificate no
+          cd /dist/Doriath-4k-20/sqlite/
+          mget -O WurmGenMap/sqlite/ wurmzones.db wurmitems.db wurmplayers.db
+          bye
+          EOF
 
-      - name: 4. Upload Pages Artifact
+      - name: 4. Generation
+        run: |
+          # Lancement du générateur avec le chemin explicite vers le fichier properties
+          java -Djava.awt.headless=true -Xmx5g -jar WurmGenMap/WurmMapGen.jar -p WurmGenMap/WurmMapGen.properties
+          
+          # Création du dossier tiles dans template pour que GitHub Pages les trouve
+          mkdir -p template/tiles
+          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile"
+          
+          # Copie de la config générée vers template/data/ pour corriger le bug TypeError
+          if [ -f config.json ]; then
+            cp config.json template/data/config.json
+          fi
+          
+          rm -f top_layer.map
+
+      - name: 5. Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './template' # Publie uniquement le dossier template
+          path: './template'
 
-      - name: 5. Deploy to GitHub Pages
+      - name: 6. Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
