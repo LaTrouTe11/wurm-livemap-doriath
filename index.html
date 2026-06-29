@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
-    <!-- Chargement CDN ultra-rapide de l'infrastructure Leaflet -->
+    <!-- Chargement ordonné et sécurisé du moteur Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
     <style>
@@ -62,71 +62,75 @@
     <div id="map"></div>
 
     <script>
-        window.WurmMapGen = window.WurmMapGen || {};
+        // On attend que la page et les scripts CDN externes soient 100% chargés en mémoire
+        window.addEventListener('DOMContentLoaded', function() {
+            window.WurmMapGen = window.WurmMapGen || {};
 
-        var map = L.map('map', {
-            crs: L.CRS.Simple,
-            minZoom: 0,
-            maxZoom: 5,
-            zoomControl: true,
-            attributionControl: false
-        });
+            // Initialisation de la carte Leaflet
+            var map = L.map('map', {
+                crs: L.CRS.Simple,
+                minZoom: 0,
+                maxZoom: 5,
+                zoomControl: true,
+                attributionControl: false
+            });
 
-        // CORRECTION DE FORCE : Intégration des valeurs géométriques 4096 pour débloquer le rendu des tuiles
-        var mapBounds = new L.LatLngBounds(
-            map.unproject([0, 4096], 5),
-            map.unproject([4096, 0], 5)
-        );
-        map.fitBounds(mapBounds);
-        map.setZoom(2);
+            // Cadrage géométrique de votre grille 4k
+            var mapBounds = new L.LatLngBounds(
+                map.unproject([0, 4096], 5),
+                map.unproject([4096, 0], 5)
+            );
+            map.fitBounds(mapBounds);
+            map.setZoom(2);
 
-        // Connexion directe aux images permanentes stockées sur votre dépôt
-        L.tileLayer('images/{x}-{y}.png', {
-            tileSize: 256,
-            noWrap: true,
-            tms: false
-        }).addTo(map);
+            // Rendu instantané à partir de vos images sauvegardées sur GitHub
+            L.tileLayer('images/{x}-{y}.png', {
+                tileSize: 256,
+                noWrap: true,
+                tms: false
+            }).addTo(map);
 
-        var layers = {
-            villages: L.layerGroup().addTo(map),
-            towers: L.layerGroup().addTo(map)
-        };
+            var layers = {
+                villages: L.layerGroup().addTo(map),
+                towers: L.layerGroup().addTo(map)
+            };
 
-        function toggleLayer(type) {
-            var chk = document.getElementById('chk-' + type);
-            if (chk.checked) { map.addLayer(layers[type]); } else { map.removeLayer(layers[type]); }
-        }
-
-        function focusOn(x, y) {
-            map.setView(map.unproject([x, y], 5), 4);
-        }
-
-        function filterList() {
-            var input = document.getElementById('searchInput').value.toLowerCase();
-            var li = document.getElementById('villageList').getElementsByTagName('li');
-            for (var i = 0; i < li.length; i++) {
-                var txt = li[i].textContent || li[i].innerText;
-                li[i].style.display = (txt.toLowerCase().indexOf(input) > -1) ? "" : "none";
+            window.toggleLayer = function(type) {
+                var chk = document.getElementById('chk-' + type);
+                if (chk.checked) { map.addLayer(layers[type]); } else { map.removeLayer(layers[type]); }
             }
-        }
 
-        // Chargement automatique des villages depuis villages.json
-        fetch('data/villages.json')
-            .then(res => res.json())
-            .then(data => {
-                const list = document.getElementById('villageList');
-                data.forEach(v => {
-                    var marker = L.marker(map.unproject([v.x, v.y], 5));
-                    marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}<br>Citoyens: ${v.citizens}`);
-                    layers.villages.addLayer(marker);
+            window.focusOn = function(x, y) {
+                map.setView(map.unproject([x, y], 5), 4);
+            }
 
-                    var item = document.createElement('li');
-                    item.className = 'village-item';
-                    item.onclick = () => focusOn(v.x, v.y);
-                    item.innerHTML = `🏠 ${v.name} <span>Maire : ${v.mayor}</span>`;
-                    list.appendChild(item);
-                });
-            }).catch(() => console.log("Fichier JSON introuvable ou vide."));
+            window.filterList = function() {
+                var input = document.getElementById('searchInput').value.toLowerCase();
+                var li = document.getElementById('villageList').getElementsByTagName('li');
+                for (var i = 0; i < li.length; i++) {
+                    var txt = li[i].textContent || li[i].innerText;
+                    li[i].style.display = (txt.toLowerCase().indexOf(input) > -1) ? "" : "none";
+                }
+            }
+
+            // Lecture sécurisée du fichier villages.json généré automatiquement
+            fetch('data/villages.json')
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('villageList');
+                    data.forEach(v => {
+                        var marker = L.marker(map.unproject([v.x, v.y], 5));
+                        marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}<br>Citoyens: ${v.citizens}`);
+                        layers.villages.addLayer(marker);
+
+                        var item = document.createElement('li');
+                        item.className = 'village-item';
+                        item.onclick = () => focusOn(v.x, v.y);
+                        item.innerHTML = `🏠 ${v.name} <span>Maire : ${v.mayor}</span>`;
+                        list.appendChild(item);
+                    });
+                }).catch(() => console.log("Fichier JSON en attente de génération."));
+        });
     </script>
 </body>
 </html>
