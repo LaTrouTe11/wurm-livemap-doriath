@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
-    <!-- Chargement CDN direct et bloquant au démarrage pour sécuriser Leaflet -->
+    <!-- Infrastructure CDN stable identique à wu-map -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <script src="https://unpkg.com"></script>
     <style>
@@ -63,7 +63,6 @@
     <script>
         window.WurmMapGen = window.WurmMapGen || {};
 
-        // Initialisation directe et sécurisée du moteur Leaflet Simple
         var map = L.map('map', {
             crs: L.CRS.Simple,
             minZoom: 0,
@@ -72,7 +71,7 @@
             attributionControl: false
         });
 
-        // Définition géométrique stricte de la zone 4k (4096 x 4096)
+        // CALCUL ET CADRAGE REPARÉ : Coordonnées 4096 fixes ajoutées pour réactiver Leaflet
         var mapBounds = new L.LatLngBounds(
             map.unproject([0, 4096], 5),
             map.unproject([4096, 0], 5)
@@ -80,7 +79,7 @@
         map.fitBounds(mapBounds);
         map.setZoom(2);
 
-        // Chargement immédiat des tuiles PNG sauvegardées sur GitHub
+        // Connexion aux images permanentes stockées sur votre dépôt
         L.tileLayer('images/{x}-{y}.png', {
             tileSize: 256,
             noWrap: true,
@@ -110,14 +109,14 @@
             }
         }
 
-        // Lecture fluide du fichier villages.json généré par le binaire
+        // Chargement automatique des villages depuis villages.json
         fetch('data/villages.json')
             .then(res => res.json())
             .then(data => {
                 const list = document.getElementById('villageList');
                 data.forEach(v => {
                     var marker = L.marker(map.unproject([v.x, v.y], 5));
-                    marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}<br>Citoyens: ${v.citizens}`);
+                    marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}`);
                     layers.villages.addLayer(marker);
 
                     var item = document.createElement('li');
@@ -126,7 +125,7 @@
                     item.innerHTML = `🏠 ${v.name} <span>Maire : ${v.mayor}</span>`;
                     list.appendChild(item);
                 });
-            }).catch(() => console.log("En attente des données JSON des villages..."));
+            }).catch(() => console.log("En attente de données JSON..."));
     </script>
 </body>
 </html>
