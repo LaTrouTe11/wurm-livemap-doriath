@@ -41,14 +41,15 @@ jobs:
 
       - name: 4. Generation et Nettoyage Racine
         run: |
-          # Nettoyage total sauf fichiers vitaux et top_layer.map
+          # Nettoyage total sauf fichiers vitaux pour Java et le site
           find . -maxdepth 1 -not -name '.' -not -name '.git' -not -name '.github' \
           -not -name 'WurmMapGen.jar' -not -name 'WurmMapGen.properties' \
-          -not -name 'markers.js' -not -name 'top_layer.map' -exec rm -rf {} +
+          -not -name 'markers.js' -not -name 'top_layer.map' -not -name 'sqlite' \
+          -exec rm -rf {} +
           
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
 
-          # Injection index.html avec conteneur menu
+          # Injection du index.html corrigé
           cat << 'EOF' > template/index.html
           <!DOCTYPE html>
           <html lang="fr">
@@ -74,22 +75,23 @@ jobs:
           </html>
           EOF
 
-          # Generation
+          # Execution Java
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Copie et correction droits (CHMOD)
+          # Copie des fichiers générés et correction permissions (fix 403)
           cp -ru template/* .
           find . -type d -exec chmod 755 {} \;
           find . -type f -exec chmod 644 {} \;
           
-          rm -rf template/ sqlite/ app/
+          # Nettoyage temporaire
+          rm -rf template/ app/
 
       - name: 5. Push final
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "MAJ AUTO : Nettoyage racine, structure menu et permissions" || echo "Rien a committer"
+          git commit -m "MAJ AUTO : Nettoyage, Menu et Permissions" || echo "Pas de modif"
           git push origin main
 
       - name: 6. Deploiement
