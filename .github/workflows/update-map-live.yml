@@ -35,9 +35,9 @@ jobs:
           bye
           EOF
 
-      - name: 4. Generation et Injection index.html (SANS SUPPRIMER)
+      - name: 4. Generation
         run: |
-          # ON NE SUPPRIME RIEN. On remplace juste index.html
+          # On remplace proprement l'index.html
           cat << 'EOF' > index.html
           <!DOCTYPE html>
           <html lang="fr">
@@ -63,16 +63,17 @@ jobs:
           </html>
           EOF
 
-          # On génère seulement les fichiers manquants/mis à jour
+          # Génération de la carte
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # Nettoyage des dossiers temporaires uniquement
-          rm -rf template/ sqlite/ top_layer.map
+          # Nettoyage sécurisé : uniquement le fichier temporaire utilisé pour la génération
+          rm -f top_layer.map
 
       - name: 5. Push final
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "MAJ AUTO : Mise à jour index.html sans toucher aux sources" || echo "Pas de modif"
+          # Ajout uniquement des éléments de la carte
+          git add index.html tiles/ || echo "Aucun changement détecté"
+          git commit -m "MAJ AUTO : Synchronisation des tuiles et index" || echo "Rien à commiter"
           git push origin main
