@@ -24,11 +24,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 2. Installation des paquets requis
-        env:
-          DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
-          sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" lftp openjdk-17-jre
+          sudo apt-get install -y lftp openjdk-17-jre
 
       - name: 3. Telechargement des donnees serveurs (.db et .map)
         run: |
@@ -37,7 +35,6 @@ jobs:
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
           set xfer:clobber on
-          set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
           cd /dist/Doriath-4k-20/sqlite/
           mget -O ./sqlite/ wurmzones.db wurmitems.db wurmplayers.db
           cd ../
@@ -47,38 +44,37 @@ jobs:
 
       - name: 4. Execution Directe Securisee du Generateur
         run: |
-          # 1. Sauvegarde et protection de votre index.html propre de type wu-map
+          # 1. Sauvegarde index.html
           mkdir -p /tmp/wurm_web_save
           cp index.html /tmp/wurm_web_save/index.html
           
-          # 2. Création de la structure de dossiers obligatoire pour empêcher le crash de Java
-          mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
+          # 2. Structure pour Java
+          mkdir -p template/app template/css template/data template/images template/markers
           cp /tmp/wurm_web_save/index.html template/index.html
           
-          # 3. Injection dynamique et invisible des accès RMI distants (Port 5606)
+          # 3. Injection configuration RMI (Port 5606)
           if [ -f "WurmMapGen.properties" ]; then
             sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
             sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
             sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' WurmMapGen.properties
-            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> WurmMapGen.properties
           fi
 
-          # 4. Exécution directe (Génère de vraies données et de nouvelles tuiles de terrain)
+          # 4. Exécution (Génère le terrain)
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 5. Restauration de sécurité de votre index de navigation
+          # 5. Restauration de sécurité
           cp -f /tmp/wurm_web_save/index.html ./index.html
           
-          # 6. Nettoyage et tri strict des fichiers lourds de la machine de build
-          rm -rf sqlite/ top_layer.map template/ app/ /tmp/wurm_web_save/
+          # 6. Nettoyage
+          rm -rf sqlite/ top_layer.map template/
           if [ -d "data" ]; then find data/ -type f ! -name "*.json" -delete; fi
 
-      - name: 5. Sauvegarde persistante Git (Vitesse instantanee)
+      - name: 5. Sauvegarde persistante Git
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add images/ data/ index.html WurmMapGen.properties
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation incrementale du terrain"
+          git add images/ data/ index.html
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : synchronisation"
           git push origin main || true
 
       - name: 6. Creation et televersement de l'artefact Web
@@ -89,12 +85,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 7. Deploiement en ligne sur GitHub Pages
-        id: deployment
+      - name: 7. Deploiement en ligne
         uses: actions/deploy-pages@v4
 
 
