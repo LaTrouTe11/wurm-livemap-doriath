@@ -26,6 +26,7 @@ jobs:
           lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
           set sftp:auto-confirm yes
           set ssl:verify-certificate no
+          set xfer:clobber on
           cd /dist/Doriath-4k-20/sqlite/
           mget -O WurmGenMap/sqlite/ wurmzones.db wurmitems.db wurmplayers.db
           bye
@@ -38,7 +39,7 @@ jobs:
           
           # Création du dossier tiles dans template pour que GitHub Pages les trouve
           mkdir -p template/tiles
-          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile"
+          find . -maxdepth 1 \( -name "*.png" -o -name "*.json" \) -exec mv {} template/tiles/ \; || echo "Aucune tuile trouvée"
           
           # Copie de la config générée vers template/data/ pour corriger le bug TypeError
           if [ -f config.json ]; then
