@@ -45,7 +45,7 @@ jobs:
 
       - name: 4. Execution du Generateur et Correction Automatique
         run: |
-          # 1. Sauvegarde et protection de votre index racine
+          # 1. Sauvegarde et mise à l'abri de votre code racine
           mkdir -p /tmp/wurm_web_save
           cp index.html /tmp/wurm_web_save/index.html 2>/dev/null || true
           
@@ -53,7 +53,7 @@ jobs:
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
           cp /tmp/wurm_web_save/index.html template/index.html 2>/dev/null || true
           
-          # 3. Nettoyage et injection de la configuration RMI (Port 5606)
+          # 3. Nettoyage de la configuration RMI pour bloquer les doublons
           if [ -f "WurmMapGen.properties" ]; then
             sed -i '/rmiPassword/d' WurmMapGen.properties
             sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
@@ -65,16 +65,16 @@ jobs:
           # 4. Exécution de l'outil Java
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 5. Restauration de sécurité de votre index racine propre
+          # 5. Restauration de sécurité du fichier racine
           cp -f /tmp/wurm_web_save/index.html ./index.html 2>/dev/null || true
           
-          # 6. CORRECTION FORCEE DES LIENS UNPKG : Répare automatiquement les adresses CDN brisées
+          # 6. CORRECTION TECHNIQUE AUTOMATIQUE : Répare de force les adresses unpkg incomplètes
           if [ -f "index.html" ]; then
             sed -i 's|href="https://unpkg.com"|href="https://unpkg.com"|g' index.html
             sed -i 's|src="https://unpkg.com"|src="https://unpkg.com"|g' index.html
           fi
 
-          # 7. Nettoyage strict des fichiers temporaires lourds
+          # 7. Nettoyage des dossiers temporaires
           rm -rf sqlite/ top_layer.map template/ app/ dist/ includes/ /tmp/wurm_web_save/
           if [ -d "data" ]; then find data/ -type f ! -name "*.json" -delete; fi
 
@@ -83,8 +83,8 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add images/ data/ index.html WurmMapGen.properties
-          # Enregistre et pousse les corrections en direct pour que vous puissiez voir les fichiers changer tout seul
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : correction automatique des liens CDN unpkg"
+          # Le robot pousse lui-même la correction des liens sur votre dépôt GitHub visible
+          git diff-index --quiet HEAD || git commit -m "MAJ auto : reparation automatique des liens CDN unpkg"
           git push origin main || true
 
       - name: 6. Creation et televersement de l'artefact Web
@@ -102,6 +102,7 @@ jobs:
       - name: 7. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
 
 
