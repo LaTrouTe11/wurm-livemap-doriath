@@ -23,12 +23,10 @@ jobs:
       - name: 1. Checkout du code source
         uses: actions/checkout@v4
 
-      - name: 2. Installation des paquets requis
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y lftp openjdk-17-jre
+      - name: 2. Installation des paquets
+        run: sudo apt-get update && sudo apt-get install -y lftp openjdk-17-jre
 
-      - name: 3. Telechargement des donnees serveurs (.db et .map)
+      - name: 3. Telechargement des donnees serveurs
         run: |
           mkdir -p ./sqlite
           lftp -u "${{ secrets.LEGION_USER }},${{ secrets.LEGION_PASS }}" sftp://${{ secrets.LEGION_HOST }}:${{ secrets.LEGION_PORT }} <<EOF
@@ -43,155 +41,64 @@ jobs:
           bye
           EOF
 
-      - name: 4. Generation du Terrain et Ecriture Forcee de l Index Officiel WurmMapGen
+      - name: 4. Generation de la carte et injection index.html
         run: |
-          # 1. Nettoyage de la configuration properties
-          if [ -f "WurmMapGen.properties" ]; then
-            sed -i '/rmiPassword/d' WurmMapGen.properties
-            sed -i 's/rmiHost=.*/rmiHost=${{ secrets.LEGION_HOST }}/g' WurmMapGen.properties
-            sed -i 's/rmiPort=.*/rmiPort=5606/g' WurmMapGen.properties
-            sed -i 's/enableRealtimeMarkers=.*/enableRealtimeMarkers=true/g' WurmMapGen.properties
-            echo "rmiPassword=${{ secrets.RMI_PASSEWORD }}" >> WurmMapGen.properties
-          fi
-
-          # 2. Arborescence obligatoire exigée par l'outil Java
+          # Nettoyage préventif
+          find . -type f -name "*.php" -delete
           mkdir -p template/app template/css template/data template/images template/markers template/dist template/includes
 
-          # 3. RÉÉCRITURE COMPLÈTE DE L'INDEX D'ORIGINE OFFICIEL WURMMAPGEN PAR LE ROBOT
+          # Injection du index.html corrigé
           cat << 'EOF' > index.html
           <!DOCTYPE html>
-          <html>
+          <html lang="fr">
           <head>
-              <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
               <meta charset="utf-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-              
-              <!-- Chargement des styles officiels Leaflet de l infrastructure -->
-              <link rel="stylesheet" href="https://unpkg.com" />
+              <title>QBC Doriath - LiveMap</title>
+              <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+              <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+              <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
               <link rel="stylesheet" href="css/style.css" />
-
-              <!-- Chargement ordonne des scripts et de Vue.js sans coupure -->
-              <script src="https://unpkg.com"></script>
-              <script src="https://jsdelivr.net"></script>
-              <script src="https://jsdelivr.net"></script>
-
-              <script type="text/javascript">
-                  window.WurmMapGen = window.WurmMapGen || {};
-              </script>
-
-              <!-- Chargement des modules du moteur de rendu original -->
-              <script type="text/javascript" src="util.js" defer></script>
-              <script type="text/javascript" src="markers.js" defer></script>
-              <script type="text/javascript" src="map.js" defer></script>
-              <script type="text/javascript" src="gui.js" defer></script>
-              <script type="text/javascript" src="main.js" defer></script>
+              <script>window.WurmMapGen = window.WurmMapGen || {};</script>
+              <script src="util.js" defer></script>
+              <script src="markers.js" defer></script>
+              <script src="map.js" defer></script>
+              <script src="gui.js" defer></script>
+              <script src="main.js" defer></script>
           </head>
-          <body class="z-page">
-
-              <div id="gui" class="z-gui transition" :class="{ sidebar: sidebarVisible }">
-                  <div id="sidebar" class="transition" :class="{ loaded: loaded }">
-                      <div class="block padding">
-                          <h1>{{ WurmMapGen.config ? WurmMapGen.config.serverName : 'QBC Doriath' }}</h1>
-                          <p id="playercount">{{ playerCountLabel }}</p>
-                      </div>
-                      
-                      <div class="block">
-                          <label><input type="checkbox" v-model="showVillages"> Villages</label>
-                          <label class="indent" :class="{ inactive: !showVillages }"><input type="checkbox" v-model="showVillageBorders" :disabled="!showVillages"> Bordures</label>
-                          <label><input type="checkbox" v-model="showTowers"> Tours de garde</label>
-                          <label class="indent" :class="{ inactive: !showTowers }"><input type="checkbox" v-model="showTowerBorders" :disabled="!showTowers"> Zone d influence</label>
-                          <label><input type="checkbox" v-model="showStructures"> Structures</label>
-                          <label><input type="checkbox" v-model="showPortals"> Portails</label>
-                          <label><input type="checkbox" v-model="showPlayers"> Joueurs</label>
-                      </div>
-                  </div>
-
-                  <div id="sidebar-toggle" class="absolute transition" @click="sidebarVisible = !sidebarVisible">
-                      <span v-if="sidebarVisible">&#x276e;</span>
-                      <span v-else>&#x276f;</span>
-                  </div>
-
-                  <div id="search" class="absolute transition" :class="{ open: searchResultsOpen }">
-                      <input type="text" v-model="searchQuery" placeholder="Rechercher...">
-                      <div id="search-results">
-                          <div v-for="res in searchResults" :class="res.type" @click="focusMap(res.x, res.y)" v-html="res.label"></div>
-                      </div>
-                  </div>
-              </div>
-
-              <div id="map" class="absolute z-page"></div>
-
+          <body>
+              <div id="map" style="height:100vh; width:100%;"></div>
           </body>
           </html>
           EOF
-          
-          # 4. Envoi de l'index d'origine dans le dossier template pour satisfaire Java
-          cp index.html template/index.html
 
-          # 5. Exécution sécurisée de l'outil Java
+          # Génération
+          cp index.html template/index.html
           java -Djava.awt.headless=true -Xmx5g -jar WurmMapGen.jar
           
-          # 6. Restauration forcée de sécurité
-          cp template/index.html ./index.html
+          # Synchronisation racine intelligente
+          cp -ru template/* .
+          find data/ -type f -name "*.php" -delete
+          rm -rf template/ sqlite/ top_layer.map app/
 
-          # 7. Nettoyage des dossiers résiduels de build
-          rm -rf sqlite/ top_layer.map template/ app/ dist/ includes/
-
-      - name: 5. Verification Automatique et Creation du Log Racine
+      - name: 5. Push Git final
         run: |
-          echo "===========================================" > statut.txt
-          echo "   RAPPORT DE VALIDATION LIVE - DORIATH   " >> statut.txt
-          echo "===========================================" >> statut.txt
-          echo "Date de vérification : $(date)" >> statut.txt
-          echo "" >> statut.txt
-          
-          # 1. Vérification de l'index HTML racine
-          if [ -f "index.html" ]; then
-            echo "✔️ Fichier index.html : PRÉSENT et sain." >> statut.txt
-          else
-            echo "❌ Fichier index.html : MANQUANT ! Le site va planter." >> statut.txt
-          fi
-          
-          # 2. Compte et vérification des fichiers JSON générés
-          if [ -f "data/villages.json" ]; then
-            echo "✔️ Fichier data/villages.json : PRÉSENT (Données synchronisées)." >> statut.txt
-          else
-            echo "⚠️ Fichier data/villages.json : VIDE ou absent (Pas de villages détectés)." >> statut.txt
-          fi
-          
-          # 3. Compte des images de tuiles géographiques présentes à la racine
-          if [ -d "images" ]; then
-            NB_IMG=$(find images/ -maxdepth 1 -name "*.png" | wc -l)
-            echo "✔️ Dossier images/ : Trouvé ($NB_IMG tuiles de terrain enregistrées)." >> statut.txt
-          else
-            echo "❌ Dossier images/ : INTROUVABLE ! Pas de textures de carte." >> statut.txt
-          fi
-          echo "===========================================" >> statut.txt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff-index --quiet HEAD || (git commit -m "MAJ AUTO : Synchronisation racine propre" && git push origin main)
 
-      - name: 6. Sauvegarde Persistante et Push Git (Changements visibles)
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add images/ data/ index.html WurmMapGen.properties statut.txt
-          # Envoie le rapport de statut et la carte en direct sur vos fichiers visibles
-          git diff-index --quiet HEAD || git commit -m "MAJ auto : reecriture index et generation du rapport statut.txt"
-          git push origin main || true
-
-      - name: 7. Creation et televersement de l'artefact Web
+      - name: 6. Deploiement GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-
+  
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    environment: {name: github-pages, url: '${{ steps.deployment.outputs.page_url }}'}
     steps:
-      - name: 8. Deploiement en ligne sur GitHub Pages
+      - name: Deploiement
         id: deployment
         uses: actions/deploy-pages@v4
-
 
 
