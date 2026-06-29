@@ -51,7 +51,14 @@ jobs:
           cp WurmMapGen.jar WurmMapGen.properties top_layer.map /tmp/wurm_isolated/
           cp -r sqlite /tmp/wurm_isolated/
           
-          mkdir -p /tmp/wurm_isolated/template
+          # Création forcée de l'arborescence complète exigée par le binaire Java
+          mkdir -p /tmp/wurm_isolated/template/app
+          mkdir -p /tmp/wurm_isolated/template/css
+          mkdir -p /tmp/wurm_isolated/template/data
+          mkdir -p /tmp/wurm_isolated/template/images
+          mkdir -p /tmp/wurm_isolated/template/markers
+          mkdir -p /tmp/wurm_isolated/template/dist
+          mkdir -p /tmp/wurm_isolated/template/includes
           cp index.html /tmp/wurm_isolated/template/index.html
           
           if [ -f "/tmp/wurm_isolated/WurmMapGen.properties" ]; then
@@ -94,3 +101,4 @@ jobs:
       - name: 7. Deploiement en ligne sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
