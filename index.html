@@ -30,7 +30,8 @@
     <script>
         window.addEventListener('load', function() {
             var map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: 5, zoomControl: true, attributionControl: false });
-            var bounds = [[0, 0], [4096, 4096]];
+            
+            var bounds = new L.LatLngBounds(map.unproject([0, 0], 5), map.unproject([4096, 4096], 5));
             map.fitBounds(bounds);
             map.setZoom(2);
             
