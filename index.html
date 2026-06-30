@@ -27,7 +27,9 @@
     <script>
         window.addEventListener('load', function() {
             var map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: 5, zoomControl: true, attributionControl: false });
-            var bounds = new L.LatLngBounds(map.unproject([0, 4096], 5), map.unproject([4096, 0], 5));
+            
+            // Injecté en dur par script Linux sed de l étape 5
+            var bounds = new L.LatLngBounds(map.unproject([0, 0], 5), map.unproject([4096, 4096], 5));
             map.fitBounds(bounds);
             map.setZoom(2);
             
@@ -44,7 +46,7 @@
                 .then(data => {
                     data.forEach(v => {
                         var marker = L.marker(map.unproject([v.x, v.y], 5));
-                        marker.bindPopup(`<b>${v.name}</b><br>Maire: ${v.mayor}`);
+                        marker.bindPopup(`<b>🏰 Village : ${v.name}</b><br>👤 Maire : ${v.mayor}`);
                         layers.villages.addLayer(marker);
                     });
                 }).catch(() => console.log("JSON chargé."));
