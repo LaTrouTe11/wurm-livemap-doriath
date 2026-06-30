@@ -1,15 +1,1 @@
-{
-  "serverName": "[QC/FR/CAN] QBC Doriath",
-  "actualMapSize": 4096,
-  "mapTileSize": 256,
-  "mapMaxZoom": 5,
-  "mapMinZoom": 0,
-  "nativeZoom": 5,
-  "markerType": 2,
-  "enableRealtimeMarkers": true,
-  "showPlayers": true,
-  "showDeeds": true,
-  "showGuardTowers": true,
-  "showPortals": true,
-  "showStructures": true
-}
+{"config":{"actualMapSize":4096,"showStructures":true,"nativeZoom":4,"mapMinZoom":2,"showGuardTowers":true,"mapMaxZoom":7,"mapTileSize":256,"showDeeds":true,"maxMapSize":32768,"markerType":2}}

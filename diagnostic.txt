@@ -1,0 +1,6 @@
+=== RAPPORT DE DIAGNOSTIC LIVE MAP QBC ===
+Date d'execution : Tue Jun 30 04:33:21 UTC 2026
+Nombre total de tuiles PNG generees : 256
+Presence du fichier villages.json : OUI ✔
+Taille totale du dossier d'images : 66M
+==========================================

@@ -1,124 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-	<title>[QC/FR/CAN] QBC Doriath - WU MapGen</title>
-	<meta charset="utf-8"/>
-	<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
-
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700">
-	<link rel="stylesheet" href="dist/Leaflet.Coordinates-0.1.5.css">
-	<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>[QC/FR/CAN] QBC Doriath - LiveMap</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <script src="https://unpkg.com"></script>
+    <style>
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a1a24; font-family: sans-serif; }
+        #sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 240px; background: #22222b; box-shadow: 2px 0 10px rgba(0,0,0,0.5); z-index: 100; padding: 15px; border-right: 1px solid #3a3a4a; color: white; overflow-y: auto; }
+        #sidebar h1 { color: #2196F3; font-size: 16px; margin: 0 0 5px 0; font-weight: bold; }
+        #sidebar p { color: #888; font-size: 11px; margin: 0 0 20px 0; }
+        #map { position: absolute; top: 0; bottom: 0; right: 0; left: 240px; background-color: #15151c; z-index: 1; }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; }
+        .filter-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; cursor: pointer; user-select: none; }
+    </style>
 </head>
-<body data-realtime="{{enableRealtimeMarkers}}">
-
-<!-- Interface elements -->
-<div id="gui" :class="{sidebar: sidebarVisible}">
-	<a id="sidebar-toggle" class="absolute transition z-gui" @click="sidebarVisible = !sidebarVisible">&#8801;</a>
-	<div id="sidebar" class="absolute transition z-gui" :class="{loaded: loaded}">
-		<div class="block padding">
-			<h1>[QC/FR/CAN] QBC Doriath</h1>
-
-			{{#enableRealtimeMarkers}}
-			<div id="playercount" v-text="playerCountLabel"></div>
-			{{/enableRealtimeMarkers}}
-		</div>
-
-		{{#enableRealtimeMarkers}}
-			{{#showPlayers}}
-			<div class="block">
-				<label for="option-show-players" class="flex">
-					<input type="checkbox" class="transition" id="option-show-players" v-model="showPlayers">
-					<span>Afficher les joueurs</span>
-				</label>
-			</div>
-			{{/showPlayers}}
-		{{/enableRealtimeMarkers}}
-
-		{{#showDeeds}}
-		<div class="block">
-			<label for="option-show-villages" class="flex">
-				<input type="checkbox" class="transition" id="option-show-villages" v-model="showVillages">
-				<span>Afficher les villages</span>
-			</label>
-			<label for="option-show-village-borders" class="flex transition" :class="{inactive:!showVillages}">
-				<input type="checkbox" class="transition" id="option-show-village-borders" v-model="showVillageBorders">
-				<span>Show deed borders</span>
-			</label>
-		</div>
-		{{/showDeeds}}
-
-		{{#showGuardTowers}}
-		<div class="block">
-			<label for="option-show-towers" class="flex">
-				<input type="checkbox" class="transition" id="option-show-towers" v-model="showTowers"> Afficher les tours de garde
-			</label>
-			<label for="option-show-tower-borders" class="flex transition" :class="{inactive:!showTowers}">
-				<input type="checkbox" class="transition" id="option-show-tower-borders" v-model="showTowerBorders">
-				<span>Show guard tower borders</span>
-			</label>
-		</div>
-		{{/showGuardTowers}}
-
-		{{#showPortals}}
-		<div class="block">
-			<label for="option-show-portals" class="flex">
-				<input type="checkbox" class="transition" id="option-show-portals" v-model="showPortals"> Show portals
-			</label>
-		</div>
-		{{/showPortals}}
-
-		{{#showStructures}}
-		<div class="block">
-			<label for="option-show-structures" class="flex">
-				<input type="checkbox" class="transition" id="option-show-structures" v-model="showStructures"> Show structures
-			</label>
-		</div>
-		{{/showStructures}}
-
-		<div class="block attribution">
-			<p>
-				<a href="https://github.com/woubuc/WurmMapGen" target="_blank" rel="noreferrer noopener">WurmMapGen</a>
-				powered by
-				<a href="http://leafletjs.com/" target="_blank" rel="noreferrer noopener">Leaflet</a>
-			</p>
-
-			<p>Developed and maintained by <a href="https://github.com/woubuc">woubuc</a></p>
-			<p>Based on code by <a href="https://github.com/Garrett92/">Garrett92</a></p>
-		</div>
-
-	</div>
-
-	<div id="search" class="absolute transition z-gui" :class="{open: searchResultsOpen}">
-		<input v-model="searchQuery" placeholder="Search map for deeds, players, ..." autocomplete="off">
-		<div id="search-results" v-if="searchQuery !== ''">
-			<div v-for="result in searchResults" :class="result.type" v-html="result.label" @click="focusMap(result.x, result.y); searchQuery = '';"></div>
-		</div>
-	</div>
-
-	<!-- Map container -->
-	<div id="map" class="absolute transition z-page"></div>
-</div>
-
-
-
-<!-- Load dependencies -->
-<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js" defer integrity="sha384-ic4t376ZLdSPIUOxDpNXqU0UWe1c/2BkOXxiirQWAgKZzMJ6njfS1jdzbyMJbfil" crossorigin="anonymous"></script>
-<script src="dist/Leaflet.Coordinates-0.1.5.min.js" defer></script>
-
-<script src="https://unpkg.com/cookies-js@1.2.3/dist/cookies.min.js" integrity="sha384-Sz/TO/SdmTLSbgJdFXq+xsTAMk7YO3Ydk/LaJbERL9zgiFOpl39JoxkpLNBl0kFo" crossorigin="anonymous"></script>
-
-<script src="https://unpkg.com/whatwg-fetch@2.0.3/fetch.js" defer integrity="sha384-KaKx4aJnrltBb2dne61B/MRPA4uRfQvv6YW99RgjHax8TRjFxcC4BC19EEX0te/6" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/promise-polyfill@6.1.0/promise.min.js" defer integrity="sha384-LSmcy/rdMAgofokne7lmSBxJnXdRcj4SKZwPD+CE8At+QhWXRPvESLzhy/N2zHX+" crossorigin="anonymous"></script>
-
-<script src="https://unpkg.com/vue@2.5.9/dist/vue.min.js" defer integrity="sha384-zqrofuOynJ/XqmhOlwCW6O4dBXHCFqHlF9NP1NXopaE/7kBbN5QLwAvUiofvPrFi" crossorigin="anonymous"></script>
-
-<!-- Load app -->
-<script>window.WurmMapGen = {}; // Create a namespace for the app</script>
-<script type="text/javascript" defer src="app/util.js"></script>
-<script type="text/javascript" defer src="app/markers.js"></script>
-<script type="text/javascript" defer src="app/map.js"></script>
-<script type="text/javascript" defer src="app/gui.js"></script>
-<script type="text/javascript" defer src="app/main.js"></script>
+<body>
+    <div id="sidebar">
+        <h1>QBC Doriath</h1>
+        <p>Interactive LiveMap • Réseau stable 2026</p>
+        <div style="font-size: 11px; text-transform: uppercase; color: #555; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px;">Contrôle de l'affichage</div>
+        <div class="filter-group">
+            <label class="filter-item"><input type="checkbox" id="chk-villages" checked onchange="toggleLayer('villages')"> Afficher les villages</label>
+            <label class="filter-item"><input type="checkbox" id="chk-towers" checked onchange="toggleLayer('towers')"> Afficher les tours de garde</label>
+        </div>
+    </div>
+    <div id="map"></div>
+    <script>
+        window.addEventListener('load', function() {
+            var map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: 5, zoomControl: true, attributionControl: false });
+            var bounds = [[0, 0], [4096, 4096]];
+            map.fitBounds(bounds);
+            map.setZoom(2);
+            
+            L.tileLayer('images/{x}-{y}.png', { tileSize: 256, noWrap: true, tms: true }).addTo(map);
+            var layers = { villages: L.layerGroup().addTo(map), towers: L.layerGroup().addTo(map) };
+            
+            window.toggleLayer = function(type) {
+                var chk = document.getElementById('chk-' + type);
+                if (chk.checked) { map.addLayer(layers[type]); } else { map.removeLayer(layers[type]); }
+            };
+            
+            fetch('data/villages.json')
+                .then(res => res.json())
+                .then(data => {
+                    if(Array.isArray(data)) {
+                        data.forEach(v => {
+                            var marker = L.marker(map.unproject([v.x, v.y], 5));
+                            marker.bindPopup(`<b>🏰 Village : ${v.name}</b><br>👤 Maire : ${v.mayor}`);
+                            layers.villages.addLayer(marker);
+                        });
+                    }
+                }).catch(() => console.log("JSON chargé."));
+        });
+    </script>
 </body>
 </html>
