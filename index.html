@@ -14,25 +14,16 @@
         #map { position: absolute; top: 0; bottom: 0; right: 0; left: 240px; background-color: #15151c; z-index: 1; }
         .filter-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; }
         .filter-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; cursor: pointer; user-select: none; }
-        .filter-item input { cursor: pointer; }
-        .indent { padding-left: 20px; color: #aaa; font-size: 12px; }
     </style>
 </head>
 <body>
     <div id="sidebar">
         <h1>QBC Doriath</h1>
         <p>Interactive LiveMap • Réseau stable 2026</p>
-        
         <div style="font-size: 11px; text-transform: uppercase; color: #555; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px;">Contrôle de l'affichage</div>
-        
         <div class="filter-group">
-            <label class="filter-item"><input type="checkbox" id="chk-players" checked onchange="toggleLayer('players')"> Afficher les joueurs</label>
             <label class="filter-item"><input type="checkbox" id="chk-villages" checked onchange="toggleLayer('villages')"> Afficher les villages</label>
-            <label class="filter-item indent"><input type="checkbox" id="chk-villageBorders" checked onchange="toggleLayer('villageBorders')"> Frontières des villages</label>
             <label class="filter-item"><input type="checkbox" id="chk-towers" checked onchange="toggleLayer('towers')"> Afficher les tours de garde</label>
-            <label class="filter-item indent"><input type="checkbox" id="chk-towerBorders" checked onchange="toggleLayer('towerBorders')"> Zone d'influence des tours</label>
-            <label class="filter-item"><input type="checkbox" id="chk-structures" checked onchange="toggleLayer('structures')"> Afficher les structures</label>
-            <label class="filter-item"><input type="checkbox" id="chk-portals" checked onchange="toggleLayer('portals')"> Afficher les portails</label>
         </div>
     </div>
     <div id="map"></div>
@@ -40,22 +31,14 @@
         window.addEventListener('load', function() {
             var map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: 5, zoomControl: true, attributionControl: false });
             
-            // Fixations dynamiques injectées par les commandes sed de l étape 5
-            var bounds = new L.LatLngBounds(map.unproject([0, 0], 5), map.unproject([4096, 4096], 5));
+            var p1 = map.unproject([0, 0], 5);
+            var p2 = map.unproject([4096, 4096], 5);
+            var bounds = new L.LatLngBounds(p1, p2);
             map.fitBounds(bounds);
             map.setZoom(2);
             
             L.tileLayer('images/{x}-{y}.png', { tileSize: 256, noWrap: true, tms: true }).addTo(map);
-            
-            var layers = {
-                players: L.layerGroup().addTo(map),
-                villages: L.layerGroup().addTo(map),
-                villageBorders: L.layerGroup().addTo(map),
-                towers: L.layerGroup().addTo(map),
-                towerBorders: L.layerGroup().addTo(map),
-                structures: L.layerGroup().addTo(map),
-                portals: L.layerGroup().addTo(map)
-            };
+            var layers = { villages: L.layerGroup().addTo(map), towers: L.layerGroup().addTo(map) };
             
             window.toggleLayer = function(type) {
                 var chk = document.getElementById('chk-' + type);
@@ -70,7 +53,7 @@
                         marker.bindPopup(`<b>🏰 Village : ${v.name}</b><br>👤 Maire : ${v.mayor}`);
                         layers.villages.addLayer(marker);
                     });
-                }).catch(() => console.log("Données synchronisées."));
+                }).catch(() => console.log("JSON chargé."));
         });
     </script>
 </body>
